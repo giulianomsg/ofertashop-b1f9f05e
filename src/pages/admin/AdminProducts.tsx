@@ -62,24 +62,14 @@ const AdminProducts = () => {
 
     setImportingImage(true);
     try {
-      const response = await fetch(form.image_url);
-      if (!response.ok) throw new Error("Falha ao baixar imagem");
+      const { data, error } = await supabase.functions.invoke("image-proxy", {
+        body: { imageUrl: form.image_url },
+      });
 
-      const blob = await response.blob();
-      const ext = blob.type.split("/")[1] || "jpg";
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      if (error) throw error;
+      if (!data?.publicUrl) throw new Error("URL não retornada");
 
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(fileName, blob, { contentType: blob.type });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("product-images")
-        .getPublicUrl(fileName);
-
-      setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
       toast.success("Imagem importada com sucesso!");
     } catch (err) {
       console.error(err);
