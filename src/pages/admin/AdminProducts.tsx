@@ -1,13 +1,56 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
-import { products } from "@/data/products";
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
+import { toast } from "sonner";
 
 const AdminProducts = () => {
+  const { data: products = [], isLoading } = useProducts(false);
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
   const [showModal, setShowModal] = useState(false);
-  const [activeProducts, setActiveProducts] = useState<Record<string, boolean>>(
-    Object.fromEntries(products.map((p) => [p.id, true]))
-  );
+  const [form, setForm] = useState({ title: "", affiliate_url: "", price: "", store: "", category: "Eletrônicos", description: "" });
+
+  const handleCreate = async () => {
+    if (!form.title || !form.affiliate_url || !form.price || !form.store) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    try {
+      await createProduct.mutateAsync({
+        title: form.title,
+        affiliate_url: form.affiliate_url,
+        price: parseFloat(form.price.replace(",", ".")),
+        store: form.store,
+        category: form.category,
+        description: form.description || null,
+      });
+      toast.success("Produto criado com sucesso!");
+      setShowModal(false);
+      setForm({ title: "", affiliate_url: "", price: "", store: "", category: "Eletrônicos", description: "" });
+    } catch {
+      toast.error("Erro ao criar produto. Verifique suas permissões.");
+    }
+  };
+
+  const handleToggle = async (id: string, currentActive: boolean) => {
+    try {
+      await updateProduct.mutateAsync({ id, is_active: !currentActive });
+    } catch {
+      toast.error("Erro ao atualizar status.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+    try {
+      await deleteProduct.mutateAsync(id);
+      toast.success("Produto excluído.");
+    } catch {
+      toast.error("Erro ao excluir produto.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -18,7 +61,6 @@ const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -33,7 +75,9 @@ const AdminProducts = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {isLoading ? (
+                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Carregando...</td></tr>
+              ) : products.map((product) => (
                 <motion.tr
                   key={product.id}
                   initial={{ opacity: 0 }}
@@ -42,19 +86,16 @@ const AdminProducts = () => {
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <img src={product.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                      <img src={product.image_url || "/placeholder.svg"} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       <span className="font-medium text-foreground line-clamp-1">{product.title}</span>
                     </div>
                   </td>
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
-                  <td className="p-4 font-semibold text-foreground">R$ {product.price.toFixed(2).replace(".", ",")}</td>
+                  <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
                   <td className="p-4 text-center text-muted-foreground hidden md:table-cell">{product.clicks.toLocaleString()}</td>
                   <td className="p-4 text-center">
-                    <button
-                      onClick={() => setActiveProducts((s) => ({ ...s, [product.id]: !s[product.id] }))}
-                      className="inline-flex"
-                    >
-                      {activeProducts[product.id] ? (
+                    <button onClick={() => handleToggle(product.id, product.is_active)} className="inline-flex">
+                      {product.is_active ? (
                         <ToggleRight className="w-7 h-7 text-success" />
                       ) : (
                         <ToggleLeft className="w-7 h-7 text-muted-foreground" />
@@ -66,7 +107,7 @@ const AdminProducts = () => {
                       <button className="p-2 rounded-lg hover:bg-secondary transition-colors">
                         <Pencil className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <button className="p-2 rounded-lg hover:bg-destructive/10 transition-colors">
+                      <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors">
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </button>
                     </div>
@@ -78,7 +119,6 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <motion.div
@@ -93,25 +133,38 @@ const AdminProducts = () => {
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-secondary"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-3">
-              {[
-                { label: "Título", placeholder: "Nome do produto" },
-                { label: "Link de Afiliado", placeholder: "https://..." },
-                { label: "Preço (R$)", placeholder: "99,90" },
-                { label: "Loja", placeholder: "Nome da loja" },
-              ].map((field) => (
-                <div key={field.label}>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">{field.label}</label>
-                  <input className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder={field.placeholder} />
-                </div>
-              ))}
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Imagem</label>
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center text-sm text-muted-foreground">
-                  Arraste uma imagem ou clique para selecionar
-                </div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Título *</label>
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Nome do produto" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Link de Afiliado *</label>
+                <input value={form.affiliate_url} onChange={(e) => setForm({ ...form, affiliate_url: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Preço (R$) *</label>
+                <input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="99,90" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Loja *</label>
+                <input value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Nome da loja" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Categoria</label>
+                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30">
+                  {["Eletrônicos", "Wearables", "Áudio", "Periféricos", "Acessórios", "Casa & Decoração", "Esportes"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Descrição</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full p-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none h-20" placeholder="Descrição do produto..." />
               </div>
             </div>
-            <button className="btn-accent w-full">Salvar Produto</button>
+            <button onClick={handleCreate} disabled={createProduct.isPending} className="btn-accent w-full disabled:opacity-50">
+              {createProduct.isPending ? "Salvando..." : "Salvar Produto"}
+            </button>
           </motion.div>
         </div>
       )}

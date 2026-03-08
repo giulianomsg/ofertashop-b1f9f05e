@@ -5,11 +5,12 @@ import SiteFooter from "@/components/SiteFooter";
 import FilterSidebar from "@/components/FilterSidebar";
 import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [mobileFilters, setMobileFilters] = useState(false);
+  const { data: products = [], isLoading } = useProducts();
 
   const filtered = selectedCategory === "Todos"
     ? products
@@ -20,12 +21,10 @@ const Index = () => {
       <SiteHeader />
 
       <main className="container mx-auto px-4 lg:px-8 py-6">
-        {/* Hero */}
         <section className="mb-8">
           <HeroCarousel />
         </section>
 
-        {/* Mobile filter toggle */}
         <div className="lg:hidden mb-4">
           <button
             onClick={() => setMobileFilters(true)}
@@ -45,7 +44,6 @@ const Index = () => {
             onClose={() => setMobileFilters(false)}
           />
 
-          {/* Product Grid */}
           <section className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display font-bold text-xl text-foreground">
@@ -53,11 +51,19 @@ const Index = () => {
               </h2>
               <span className="text-sm text-muted-foreground">{filtered.length} ofertas</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filtered.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-card rounded-xl border border-border animate-pulse aspect-[3/4]" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {filtered.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>
