@@ -40,7 +40,7 @@ const AdminLayout = () => {
           <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
             <ShoppingBag className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
-          {!collapsed && <span className="font-display font-bold text-lg text-sidebar-foreground">DealFlow</span>}
+          {!collapsed && <span className="font-display font-bold text-lg text-sidebar-foreground">OfertaShop</span>}
         </div>
 
         <nav className="flex-1 p-3 space-y-1">

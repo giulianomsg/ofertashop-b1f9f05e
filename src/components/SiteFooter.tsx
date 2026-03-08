@@ -42,7 +42,7 @@ const SiteFooter = () => (
         </div>
       </div>
       <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs text-primary-foreground/40">
-        © 2026 DealFlow. Todos os direitos reservados.
+        © 2026 OfertaShop. Todos os direitos reservados.
       </div>
     </div>
   </footer>

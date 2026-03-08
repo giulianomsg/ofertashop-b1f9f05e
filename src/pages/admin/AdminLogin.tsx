@@ -50,7 +50,7 @@ const AdminLogin = () => {
             <ShoppingBag className="w-6 h-6 text-accent-foreground" />
           </div>
           <h1 className="font-display font-bold text-2xl text-foreground">
-            Deal<span className="gradient-text">Flow</span>
+            Oferta<span className="gradient-text">Shop</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Central de Administração</p>
         </div>
