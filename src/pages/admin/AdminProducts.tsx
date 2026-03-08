@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload } from "lucide-react";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ const AdminProducts = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [importingImage, setImportingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const openCreate = () => {
     setEditingId(null);
@@ -56,7 +57,7 @@ const AdminProducts = () => {
 
   const importImageFromUrl = async () => {
     if (!form.image_url) {
-      toast.error("Cole uma URL de imagem primeiro.");
+      toast.error("Cole uma URL primeiro.");
       return;
     }
 
@@ -71,11 +72,47 @@ const AdminProducts = () => {
 
       setForm((f) => ({ ...f, image_url: data.publicUrl }));
       toast.success("Imagem importada com sucesso!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Erro ao importar imagem. A URL será salva diretamente.");
+      const msg = err?.message || "Erro ao importar imagem.";
+      toast.error(msg);
     } finally {
       setImportingImage(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem.");
+      return;
+    }
+
+    setImportingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(fileName, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(fileName);
+
+      setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
+      toast.success("Imagem enviada com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar imagem.");
+    } finally {
+      setImportingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -85,7 +122,7 @@ const AdminProducts = () => {
       return;
     }
 
-    const payload = {
+    const payload: Record<string, any> = {
       title: form.title,
       affiliate_url: form.affiliate_url,
       price: parseFloat(form.price.replace(",", ".")),
@@ -103,13 +140,14 @@ const AdminProducts = () => {
         await updateProduct.mutateAsync({ id: editingId, ...payload });
         toast.success("Produto atualizado!");
       } else {
-        await createProduct.mutateAsync(payload);
+        await createProduct.mutateAsync(payload as any);
         toast.success("Produto criado!");
       }
       setShowModal(false);
       setForm(emptyForm);
       setEditingId(null);
-    } catch {
+    } catch (err) {
+      console.error("Save error:", err);
       toast.error("Erro ao salvar produto. Verifique suas permissões.");
     }
   };
@@ -203,14 +241,14 @@ const AdminProducts = () => {
         </div>
       </div>
 
+      {/* Modal - closes ONLY via X button */}
       {showModal && (
-        <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+        <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-card rounded-2xl border border-border p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto"
             style={{ boxShadow: "var(--shadow-elevated)" }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-lg text-foreground">
@@ -220,7 +258,7 @@ const AdminProducts = () => {
             </div>
 
             <div className="space-y-3">
-              {/* Image preview & URL */}
+              {/* Image section */}
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Imagem do Produto</label>
                 {form.image_url && (
@@ -228,12 +266,14 @@ const AdminProducts = () => {
                     <img src={form.image_url} alt="Preview" className="w-full h-40 object-contain" />
                   </div>
                 )}
+
+                {/* URL import */}
                 <div className="flex gap-2">
                   <input
                     value={form.image_url}
                     onChange={(e) => setForm({ ...form, image_url: e.target.value })}
                     className="flex-1 h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
-                    placeholder="Cole a URL da imagem"
+                    placeholder="Cole a URL ou link de compartilhamento"
                   />
                   <button
                     type="button"
@@ -245,7 +285,25 @@ const AdminProducts = () => {
                     Importar
                   </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">Cole o link da imagem e clique em Importar para salvar no servidor.</p>
+
+                {/* Manual file upload */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={importingImage}
+                  className="mt-2 w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Enviar foto do computador
+                </button>
+                <p className="text-[11px] text-muted-foreground mt-1">Cole um link (direto ou de compartilhamento) e clique Importar, ou envie uma foto manualmente.</p>
               </div>
 
               <div>
