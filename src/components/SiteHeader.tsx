@@ -33,7 +33,7 @@ const SiteHeader = () => {
               <ShoppingBag className="w-4 h-4 text-accent-foreground" />
             </div>
             <span className="font-display font-bold text-xl text-foreground hidden sm:block">
-              Deal<span className="gradient-text">Flow</span>
+              Oferta<span className="gradient-text">Shop</span>
             </span>
           </Link>
 

@@ -10,7 +10,7 @@ const SiteFooter = () => (
             <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
               <ShoppingBag className="w-3.5 h-3.5 text-accent-foreground" />
             </div>
-            <span className="font-display font-bold text-lg">DealFlow</span>
+            <span className="font-display font-bold text-lg">OfertaShop</span>
           </div>
           <p className="text-sm text-primary-foreground/60">As melhores ofertas da internet, verificadas e atualizadas diariamente.</p>
         </div>
@@ -42,7 +42,7 @@ const SiteFooter = () => (
         </div>
       </div>
       <div className="border-t border-primary-foreground/10 pt-6 text-center text-xs text-primary-foreground/40">
-        © 2026 DealFlow. Todos os direitos reservados.
+        © 2026 OfertaShop. Todos os direitos reservados.
       </div>
     </div>
   </footer>
