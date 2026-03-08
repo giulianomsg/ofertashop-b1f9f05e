@@ -14,16 +14,208 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          affiliate_url: string
+          badge: string | null
+          category: string
+          clicks: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          original_price: number | null
+          price: number
+          rating: number
+          review_count: number
+          store: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_url: string
+          badge?: string | null
+          category: string
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          original_price?: number | null
+          price: number
+          rating?: number
+          review_count?: number
+          store: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_url?: string
+          badge?: string | null
+          category?: string
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          original_price?: number | null
+          price?: number
+          rating?: number
+          review_count?: number
+          store?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          report_type: string
+          reporter_email: string
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          report_type: string
+          reporter_email: string
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          report_type?: string
+          reporter_email?: string
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          helpful_count: number
+          id: string
+          product_id: string
+          rating: number
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          product_id: string
+          rating: number
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          product_id?: string
+          rating?: number
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +342,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor", "viewer"],
+    },
   },
 } as const

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
@@ -14,10 +15,22 @@ const menuItems = [
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user, loading, signOut, userRole } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse w-12 h-12 rounded-full bg-accent/20" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ duration: 0.2 }}
@@ -51,10 +64,23 @@ const AdminLayout = () => {
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-1">
+          {!collapsed && (
+            <div className="px-3 py-2 text-xs text-sidebar-foreground/40">
+              {user.email}
+              {userRole && <span className="ml-1 capitalize">({userRole})</span>}
+            </div>
+          )}
           <Link to="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all">
-            <LogOut className="w-5 h-5 shrink-0" />
+            <ShoppingBag className="w-5 h-5 shrink-0" />
             {!collapsed && <span>Voltar ao Site</span>}
           </Link>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all w-full"
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!collapsed && <span>Sair</span>}
+          </button>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all w-full"
@@ -65,7 +91,6 @@ const AdminLayout = () => {
         </div>
       </motion.aside>
 
-      {/* Content */}
       <div className="flex-1 overflow-auto">
         <header className="h-16 bg-card border-b border-border px-6 flex items-center">
           <h1 className="font-display font-semibold text-foreground">Administração</h1>
