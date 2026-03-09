@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShoppingBag, Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 const AdminLogin = () => {
@@ -40,12 +41,13 @@ const AdminLogin = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      toast.error(error.message);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result?.error) {
+      toast.error(result.error.message);
       setLoading(false);
     }
-    // Para sucesso com o OAuth provider, a página é redirecionada.
   };
 
   return (
