@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield } from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -135,7 +135,10 @@ const ProductDetail = () => {
               )}
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <div
+              dangerouslySetInnerHTML={{ __html: product.description || '' }}
+              className="text-muted-foreground leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-xl [&>h1]:font-bold [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold [&_a]:text-accent [&_a]:underline"
+            />
 
             <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
@@ -146,12 +149,27 @@ const ProductDetail = () => {
                 <Shield className="w-4 h-4 text-success" />
                 <span className="text-foreground font-medium">Confiável</span>
               </div>
-              {product.badge === "verified" && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
-                  <BadgeCheck className="w-4 h-4 text-info" />
-                  <span className="text-foreground font-medium">Verificado</span>
-                </div>
-              )}
+              {(() => {
+                const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; color: string }> = {
+                  verified: { icon: BadgeCheck, label: "Verificado", color: "text-info" },
+                  hot: { icon: Flame, label: "Top Oferta", color: "text-orange-500" },
+                  new: { icon: Sparkles, label: "Novo", color: "text-yellow-500" },
+                };
+                const predefinedBadge = product.badge ? badgeConfig[product.badge.toLowerCase()] : null;
+                const customBadge = !predefinedBadge && product.badge ? { label: product.badge, color: "text-accent" } : null;
+                const badgeToDisplay = predefinedBadge || customBadge;
+
+                if (!badgeToDisplay) return null;
+
+                const IconComponent = predefinedBadge ? predefinedBadge.icon : Flame;
+
+                return (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
+                    <IconComponent className={`w-4 h-4 ${badgeToDisplay.color}`} />
+                    <span className="text-foreground font-medium">{badgeToDisplay.label}</span>
+                  </div>
+                );
+              })()}
             </div>
 
             <a href={product.affiliate_url} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5">

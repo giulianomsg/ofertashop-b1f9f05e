@@ -4,6 +4,9 @@ import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Uploa
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+// @ts-ignore
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const emptyForm = {
   title: "",
@@ -241,7 +244,6 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal - closes ONLY via X button */}
       {showModal && (
         <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
@@ -258,7 +260,6 @@ const AdminProducts = () => {
             </div>
 
             <div className="space-y-3">
-              {/* Image section */}
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Imagem do Produto</label>
                 {form.image_url && (
@@ -267,7 +268,6 @@ const AdminProducts = () => {
                   </div>
                 )}
 
-                {/* URL import */}
                 <div className="flex gap-2">
                   <input
                     value={form.image_url}
@@ -286,7 +286,6 @@ const AdminProducts = () => {
                   </button>
                 </div>
 
-                {/* Manual file upload */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -352,13 +351,24 @@ const AdminProducts = () => {
                 </select>
               </div>
 
-              <div>
+              <div className="pb-10">
                 <label className="text-xs font-semibold text-foreground mb-1 block">Descrição</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full p-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none h-20" placeholder="Descrição do produto..." />
+                <div className="text-foreground bg-secondary rounded-lg overflow-hidden border border-transparent focus-within:ring-2 focus-within:ring-accent/30">
+                  <ReactQuill
+                    theme="snow"
+                    value={form.description}
+                    onChange={(content: string, delta: any, source: string, editor: any) => {
+                      if (source === 'user') {
+                        setForm({ ...form, description: content });
+                      }
+                    }}
+                    className="min-h-[150px]"
+                  />
+                </div>
               </div>
             </div>
 
-            <button onClick={handleSave} disabled={isSaving} className="btn-accent w-full disabled:opacity-50">
+            <button onClick={handleSave} disabled={isSaving} className="btn-accent w-full disabled:opacity-50 mt-6">
               {isSaving ? "Salvando..." : editingId ? "Salvar Alterações" : "Salvar Produto"}
             </button>
           </motion.div>

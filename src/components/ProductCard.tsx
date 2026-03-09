@@ -10,7 +10,10 @@ const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; clas
 };
 
 const ProductCard = ({ product, index }: { product: Product; index: number }) => {
-  const badge = product.badge ? badgeConfig[product.badge] : null;
+  const predefinedBadge = product.badge ? badgeConfig[product.badge.toLowerCase()] : null;
+  const customBadge = !predefinedBadge && product.badge ? { label: product.badge, className: "badge-hot" } : null;
+  const badge = predefinedBadge || customBadge;
+
   const imageUrl = product.image_url || "/placeholder.svg";
 
   return (
@@ -33,7 +36,7 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
           )}
           {badge && (
             <span className={`absolute top-3 right-3 ${badge.className}`}>
-              <badge.icon className="w-3 h-3" />
+              {predefinedBadge && <predefinedBadge.icon className="w-3 h-3" />}
               {badge.label}
             </span>
           )}

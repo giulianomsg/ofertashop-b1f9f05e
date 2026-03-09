@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -9,12 +9,30 @@ import { useProducts } from "@/hooks/useProducts";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [minRating, setMinRating] = useState(0);
+  const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
   const { data: products = [], isLoading } = useProducts();
 
-  const filtered = selectedCategory === "Todos"
-    ? products
-    : products.filter((p) => p.category === selectedCategory);
+  const availableStores = useMemo(() => {
+    const stores = products.map(p => p.store).filter(Boolean);
+    return [...new Set(stores)].sort();
+  }, [products]);
+
+  const handleStoreToggle = (store: string) => {
+    setSelectedStores(prev =>
+      prev.includes(store) ? prev.filter(s => s !== store) : [...prev, store]
+    );
+  };
+
+  const filtered = products.filter((p) => {
+    const categoryMatch = selectedCategory === "Todos" || p.category === selectedCategory;
+    const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
+    const ratingMatch = p.rating >= minRating;
+    const storeMatch = selectedStores.length === 0 || selectedStores.includes(p.store);
+    return categoryMatch && priceMatch && ratingMatch && storeMatch;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,6 +58,13 @@ const Index = () => {
           <FilterSidebar
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
+            priceRange={priceRange}
+            onPriceRangeChange={setPriceRange}
+            minRating={minRating}
+            onMinRatingChange={setMinRating}
+            availableStores={availableStores}
+            selectedStores={selectedStores}
+            onStoreToggle={handleStoreToggle}
             mobileOpen={mobileFilters}
             onClose={() => setMobileFilters(false)}
           />

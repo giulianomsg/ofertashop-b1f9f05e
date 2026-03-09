@@ -1,24 +1,39 @@
 import { useState } from "react";
-import { Star, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Star, ChevronDown, SlidersHorizontal, Check } from "lucide-react";
 import { categories } from "@/data/products";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FilterSidebarProps {
   selectedCategory: string;
   onCategoryChange: (cat: string) => void;
+  priceRange: number[];
+  onPriceRangeChange: (range: number[]) => void;
+  minRating: number;
+  onMinRatingChange: (rating: number) => void;
+  availableStores: string[];
+  selectedStores: string[];
+  onStoreToggle: (store: string) => void;
   mobileOpen?: boolean;
   onClose?: () => void;
 }
 
-const FilterSidebar = ({ selectedCategory, onCategoryChange, mobileOpen, onClose }: FilterSidebarProps) => {
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const [minRating, setMinRating] = useState(0);
-  const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, store: false });
+const FilterSidebar = ({ 
+  selectedCategory, 
+  onCategoryChange, 
+  priceRange,
+  onPriceRangeChange,
+  minRating,
+  onMinRatingChange,
+  availableStores,
+  selectedStores,
+  onStoreToggle,
+  mobileOpen, 
+  onClose 
+}: FilterSidebarProps) => {
+  const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, store: true });
 
   const toggleSection = (key: keyof typeof openSections) =>
     setOpenSections((s) => ({ ...s, [key]: !s[key] }));
-
-  const stores = ["TechStore", "WearTech", "AudioShop", "GameZone", "UrbanGear", "PowerUp"];
 
   const content = (
     <div className="space-y-6">
@@ -66,9 +81,9 @@ const FilterSidebar = ({ selectedCategory, onCategoryChange, mobileOpen, onClose
               <input
                 type="range"
                 min={0}
-                max={1000}
+                max={5000}
                 value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                onChange={(e) => onPriceRangeChange([priceRange[0], Number(e.target.value)])}
                 className="w-full accent-accent"
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -89,20 +104,26 @@ const FilterSidebar = ({ selectedCategory, onCategoryChange, mobileOpen, onClose
         <AnimatePresence>
           {openSections.rating && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
-              {[4, 3, 2, 1].map((r) => (
+              {[4, 3, 2, 1, 0].map((r) => (
                 <button
                   key={r}
-                  onClick={() => setMinRating(r)}
+                  onClick={() => onMinRatingChange(r)}
                   className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm transition-all ${
                     minRating === r ? "bg-accent/10" : "hover:bg-secondary"
                   }`}
                 >
                   <div className="flex">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`w-3.5 h-3.5 ${i < r ? "fill-warning text-warning" : "text-muted"}`} />
-                    ))}
+                    {r === 0 ? (
+                       <span className="text-sm">Todas as avaliações</span>
+                    ) : (
+                      <>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3.5 h-3.5 ${i < r ? "fill-warning text-warning" : "text-muted"}`} />
+                        ))}
+                        <span className="text-muted-foreground ml-2">& acima</span>
+                      </>
+                    )}
                   </div>
-                  <span className="text-muted-foreground">& acima</span>
                 </button>
               ))}
             </motion.div>
@@ -111,37 +132,42 @@ const FilterSidebar = ({ selectedCategory, onCategoryChange, mobileOpen, onClose
       </div>
 
       {/* Stores */}
-      <div>
-        <button onClick={() => toggleSection("store")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
-          Loja
-          <ChevronDown className={`w-4 h-4 transition-transform ${openSections.store ? "rotate-180" : ""}`} />
-        </button>
-        <AnimatePresence>
-          {openSections.store && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
-              {stores.map((store) => (
-                <label key={store} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
-                  <input type="checkbox" className="rounded border-border accent-accent w-4 h-4" />
-                  <span className="text-sm text-foreground">{store}</span>
-                </label>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {availableStores.length > 0 && (
+        <div>
+          <button onClick={() => toggleSection("store")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
+            Lojas
+            <ChevronDown className={`w-4 h-4 transition-transform ${openSections.store ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {openSections.store && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
+                {availableStores.map((store) => (
+                  <label key={store} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border accent-accent w-4 h-4" 
+                      checked={selectedStores.includes(store)}
+                      onChange={() => onStoreToggle(store)}
+                    />
+                    <span className="text-sm text-foreground">{store}</span>
+                  </label>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 
   return (
     <>
-      {/* Desktop */}
       <aside className="hidden lg:block w-64 shrink-0">
         <div className="sticky top-20 bg-card rounded-xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
           {content}
         </div>
       </aside>
 
-      {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <>
