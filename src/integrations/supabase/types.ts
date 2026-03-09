@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          id: string
+          image_url: string
+          title: string | null
+          subtitle: string | null
+          cta_text: string | null
+          link_url: string | null
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          image_url: string
+          title?: string | null
+          subtitle?: string | null
+          cta_text?: string | null
+          link_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          image_url?: string
+          title?: string | null
+          subtitle?: string | null
+          cta_text?: string | null
+          link_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           affiliate_url: string

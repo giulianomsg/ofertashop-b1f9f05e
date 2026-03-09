@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+  { icon: Image, label: "Banners", path: "/admin/banners" },
   { icon: Package, label: "Produtos", path: "/admin/produtos" },
   { icon: Users, label: "Colaboradores", path: "/admin/colaboradores" },
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
@@ -50,11 +51,10 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                  active
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active
                     ? "bg-sidebar-accent text-sidebar-primary font-medium"
                     : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
                 {!collapsed && <span>{item.label}</span>}

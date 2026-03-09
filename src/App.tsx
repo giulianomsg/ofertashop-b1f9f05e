@@ -9,6 +9,7 @@ import ProductDetail from "./pages/ProductDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminBanners from "./pages/admin/AdminBanners";
 import AdminCollaborators from "./pages/admin/AdminCollaborators";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminStats from "./pages/admin/AdminStats";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="banners" element={<AdminBanners />} />
               <Route path="produtos" element={<AdminProducts />} />
               <Route path="colaboradores" element={<AdminCollaborators />} />
               <Route path="denuncias" element={<AdminReports />} />
