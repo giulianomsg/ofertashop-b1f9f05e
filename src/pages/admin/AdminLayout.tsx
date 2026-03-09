@@ -26,6 +26,10 @@ const AdminLayout = () => {
     );
   }
 
+  if (!loading && userRole !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
   if (!user) {
     return <Navigate to="/admin/login" replace />;
   }
@@ -52,8 +56,8 @@ const AdminLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active
-                    ? "bg-sidebar-accent text-sidebar-primary font-medium"
-                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-sidebar-accent text-sidebar-primary font-medium"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                   }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
