@@ -13,13 +13,14 @@ interface FilterSidebarProps {
   availableStores: string[];
   selectedStores: string[];
   onStoreToggle: (store: string) => void;
+  onClearFilters?: () => void;
   mobileOpen?: boolean;
   onClose?: () => void;
 }
 
-const FilterSidebar = ({ 
-  selectedCategory, 
-  onCategoryChange, 
+const FilterSidebar = ({
+  selectedCategory,
+  onCategoryChange,
   priceRange,
   onPriceRangeChange,
   minRating,
@@ -27,8 +28,9 @@ const FilterSidebar = ({
   availableStores,
   selectedStores,
   onStoreToggle,
-  mobileOpen, 
-  onClose 
+  onClearFilters,
+  mobileOpen,
+  onClose
 }: FilterSidebarProps) => {
   const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, store: true });
 
@@ -37,9 +39,19 @@ const FilterSidebar = ({
 
   const content = (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-2">
-        <SlidersHorizontal className="w-4 h-4 text-accent" />
-        <h3 className="font-display font-semibold text-foreground">Filtros</h3>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4 text-accent" />
+          <h3 className="font-display font-semibold text-foreground">Filtros</h3>
+        </div>
+        {onClearFilters && (
+          <button
+            onClick={onClearFilters}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary px-2 py-1 rounded-md"
+          >
+            Limpar
+          </button>
+        )}
       </div>
 
       {/* Categories */}
@@ -55,11 +67,10 @@ const FilterSidebar = ({
                 <button
                   key={cat}
                   onClick={() => { onCategoryChange(cat); onClose?.(); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                    selectedCategory === cat
-                      ? "bg-accent/10 text-accent font-medium"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === cat
+                    ? "bg-accent/10 text-accent font-medium"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
                 >
                   {cat}
                 </button>
@@ -107,14 +118,13 @@ const FilterSidebar = ({
               {[4, 3, 2, 1, 0].map((r) => (
                 <button
                   key={r}
-                  onClick={() => onMinRatingChange(r)}
-                  className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm transition-all ${
-                    minRating === r ? "bg-accent/10" : "hover:bg-secondary"
-                  }`}
+                  onClick={() => onMinRatingChange(minRating === r ? 0 : r)}
+                  className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm transition-all ${minRating === r ? "bg-accent/10" : "hover:bg-secondary"
+                    }`}
                 >
                   <div className="flex">
                     {r === 0 ? (
-                       <span className="text-sm">Todas as avaliações</span>
+                      <span className="text-sm">Todas as avaliações</span>
                     ) : (
                       <>
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -143,9 +153,9 @@ const FilterSidebar = ({
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
                 {availableStores.map((store) => (
                   <label key={store} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-border accent-accent w-4 h-4" 
+                    <input
+                      type="checkbox"
+                      className="rounded border-border accent-accent w-4 h-4"
                       checked={selectedStores.includes(store)}
                       onChange={() => onStoreToggle(store)}
                     />

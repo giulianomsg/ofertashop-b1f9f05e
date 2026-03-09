@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SlidersHorizontal } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -8,6 +9,9 @@ import HeroCarousel from "@/components/HeroCarousel";
 import { useProducts } from "@/hooks/useProducts";
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [minRating, setMinRating] = useState(0);
@@ -26,12 +30,20 @@ const Index = () => {
     );
   };
 
+  const handleClearFilters = () => {
+    setSelectedCategory("Todos");
+    setPriceRange([0, 5000]);
+    setMinRating(0);
+    setSelectedStores([]);
+  };
+
   const filtered = products.filter((p) => {
+    const matchesSearch = query === "" || p.title.toLowerCase().includes(query.toLowerCase()) || (p.description && p.description.toLowerCase().includes(query.toLowerCase()));
     const categoryMatch = selectedCategory === "Todos" || p.category === selectedCategory;
     const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
     const ratingMatch = p.rating >= minRating;
     const storeMatch = selectedStores.length === 0 || selectedStores.includes(p.store);
-    return categoryMatch && priceMatch && ratingMatch && storeMatch;
+    return matchesSearch && categoryMatch && priceMatch && ratingMatch && storeMatch;
   });
 
   return (
@@ -65,6 +77,7 @@ const Index = () => {
             availableStores={availableStores}
             selectedStores={selectedStores}
             onStoreToggle={handleStoreToggle}
+            onClearFilters={handleClearFilters}
             mobileOpen={mobileFilters}
             onClose={() => setMobileFilters(false)}
           />
