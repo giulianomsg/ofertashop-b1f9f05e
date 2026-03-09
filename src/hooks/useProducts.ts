@@ -104,9 +104,99 @@ export const useCollaborators = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("*, profiles(full_name, avatar_url, user_id)");
+        .select("*, profiles(full_name, avatar_url, user_id, is_active)");
       if (error) throw error;
       return data;
+    },
+  });
+};
+
+export const useUpdateCollaboratorRole = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+      const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["collaborators"] }),
+  });
+};
+
+export const useRemoveCollaborator = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      // Remove da tabela user_roles e insere back como 'viewer'
+      const { error } = await supabase.from("user_roles").update({ role: "viewer" }).eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["collaborators"] }),
+  });
+};
+
+export const useUsers = () => {
+  return useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*, user_roles(role)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+export const useUpdateUserStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string, isActive: boolean }) => {
+      const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+};
+
+export const useAllReviews = () => {
+  return useQuery({
+    queryKey: ["all_reviews"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, products(title)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+export const useUpdateReviewStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+      const { error } = await supabase.from("reviews").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all_reviews"] });
+      qc.invalidateQueries({ queryKey: ["reviews"] });
+    },
+  });
+};
+
+export const useDeleteReview = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("reviews").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["all_reviews"] });
+      qc.invalidateQueries({ queryKey: ["reviews"] });
     },
   });
 };

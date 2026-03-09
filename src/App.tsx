@@ -13,6 +13,8 @@ import AdminBanners from "./pages/admin/AdminBanners";
 import AdminCollaborators from "./pages/admin/AdminCollaborators";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminStats from "./pages/admin/AdminStats";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminReviews from "./pages/admin/AdminReviews";
 import AdminLogin from "./pages/admin/AdminLogin";
 import NotFound from "./pages/NotFound";
 
@@ -33,7 +35,9 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="banners" element={<AdminBanners />} />
               <Route path="produtos" element={<AdminProducts />} />
+              <Route path="usuarios" element={<AdminUsers />} />
               <Route path="colaboradores" element={<AdminCollaborators />} />
+              <Route path="avaliacoes" element={<AdminReviews />} />
               <Route path="denuncias" element={<AdminReports />} />
               <Route path="estatisticas" element={<AdminStats />} />
             </Route>

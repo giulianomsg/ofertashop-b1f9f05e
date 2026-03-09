@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image } from "lucide-react";
+import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,7 +8,9 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Image, label: "Banners", path: "/admin/banners" },
   { icon: Package, label: "Produtos", path: "/admin/produtos" },
-  { icon: Users, label: "Colaboradores", path: "/admin/colaboradores" },
+  { icon: Users, label: "Usuários", path: "/admin/usuarios" },
+  { icon: ShoppingBag, label: "Colaboradores", path: "/admin/colaboradores" },
+  { icon: MessageSquare, label: "Avaliações", path: "/admin/avaliacoes" },
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
   { icon: BarChart3, label: "Estatísticas", path: "/admin/estatisticas" },
 ];
