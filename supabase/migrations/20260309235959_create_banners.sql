@@ -31,6 +31,8 @@ CREATE POLICY "Admin can delete banners" ON public.banners
     USING (has_role(auth.uid(), 'admin'::app_role));
 
 -- Trigger for updated_at
+CREATE EXTENSION IF NOT EXISTS moddatetime SCHEMA extensions;
+
 CREATE TRIGGER handle_updated_at BEFORE UPDATE ON public.banners
     FOR EACH ROW EXECUTE FUNCTION extensions.moddatetime('updated_at');
 
