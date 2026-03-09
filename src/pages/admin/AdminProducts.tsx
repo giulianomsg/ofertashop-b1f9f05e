@@ -19,6 +19,7 @@ const emptyForm = {
   original_price: "",
   discount: "",
   badge: "",
+  gallery_urls: [] as string[],
 };
 
 const categories = ["Eletrônicos", "Wearables", "Áudio", "Periféricos", "Acessórios", "Casa & Decoração", "Esportes"];
@@ -34,6 +35,7 @@ const AdminProducts = () => {
   const [form, setForm] = useState(emptyForm);
   const [importingImage, setImportingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const openCreate = () => {
     setEditingId(null);
@@ -54,6 +56,7 @@ const AdminProducts = () => {
       original_price: product.original_price ? String(product.original_price).replace(".", ",") : "",
       discount: product.discount ? String(product.discount) : "",
       badge: product.badge || "",
+      gallery_urls: product.gallery_urls || [],
     });
     setShowModal(true);
   };
@@ -119,6 +122,75 @@ const AdminProducts = () => {
     }
   };
 
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (form.gallery_urls.length >= 5) {
+      toast.error("Limite máximo de 5 fotos adicionais alcançado.");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem.");
+      return;
+    }
+
+    setImportingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(fileName, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(fileName);
+
+      setForm((f) => ({ ...f, gallery_urls: [...f.gallery_urls, urlData.publicUrl] }));
+      toast.success("Foto adicional enviada com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar imagem.");
+    } finally {
+      setImportingImage(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setForm(f => ({
+      ...f,
+      gallery_urls: f.gallery_urls.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAffiliatePaste = async (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData("text");
+    if (pastedText.startsWith("http") && !form.image_url) {
+      setTimeout(async () => {
+        setImportingImage(true);
+        try {
+          const { data, error } = await supabase.functions.invoke("image-proxy", {
+            body: { imageUrl: pastedText },
+          });
+          if (!error && data?.publicUrl) {
+            setForm((f) => ({ ...f, image_url: data.publicUrl }));
+            toast.success("Imagem importada automaticamente a partir do link!");
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setImportingImage(false);
+        }
+      }, 0);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.title || !form.affiliate_url || !form.price || !form.store) {
       toast.error("Preencha todos os campos obrigatórios.");
@@ -136,6 +208,7 @@ const AdminProducts = () => {
       original_price: form.original_price ? parseFloat(form.original_price.replace(",", ".")) : null,
       discount: form.discount ? parseInt(form.discount) : null,
       badge: form.badge || null,
+      gallery_urls: form.gallery_urls,
     };
 
     try {
@@ -273,7 +346,7 @@ const AdminProducts = () => {
                     value={form.image_url}
                     onChange={(e) => setForm({ ...form, image_url: e.target.value })}
                     className="flex-1 h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
-                    placeholder="Cole a URL ou link de compartilhamento"
+                    placeholder="URL da imagem (opcional, pode ser importada)"
                   />
                   <button
                     type="button"
@@ -300,9 +373,53 @@ const AdminProducts = () => {
                   className="mt-2 w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50"
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  Enviar foto do computador
+                  Enviar foto principal do computador
                 </button>
-                <p className="text-[11px] text-muted-foreground mt-1">Cole um link (direto ou de compartilhamento) e clique Importar, ou envie uma foto manualmente.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  A foto principal pode ser importada colando o link de afiliado abaixo, ou inserindo uma URL ou arquivo diretamente.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Galeria de Fotos ({form.gallery_urls.length}/5)
+                </label>
+                {form.gallery_urls.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {form.gallery_urls.map((url, idx) => (
+                      <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden bg-secondary border border-border">
+                        <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(idx)}
+                          className="absolute top-0.5 right-0.5 bg-background/80 text-foreground p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {form.gallery_urls.length < 5 && (
+                  <>
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleGalleryUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      disabled={importingImage}
+                      className="w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Adicionar foto extra (máx. 5)
+                    </button>
+                  </>
+                )}
               </div>
 
               <div>
@@ -312,7 +429,13 @@ const AdminProducts = () => {
 
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Link de Afiliado *</label>
-                <input value={form.affiliate_url} onChange={(e) => setForm({ ...form, affiliate_url: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="https://..." />
+                <input
+                  value={form.affiliate_url}
+                  onChange={(e) => setForm({ ...form, affiliate_url: e.target.value })}
+                  onPaste={handleAffiliatePaste}
+                  className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  placeholder="Cole aqui (ex: https://...)"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">

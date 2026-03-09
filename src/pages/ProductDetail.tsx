@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -13,6 +13,14 @@ import { toast } from "sonner";
 const ProductDetail = () => {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id);
+  const [mainImage, setMainImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.image_url || "/placeholder.svg");
+    }
+  }, [product]);
+
   const { data: products = [] } = useProducts();
   const { data: reviews = [] } = useReviews(id);
   const { user } = useAuth();
@@ -95,10 +103,36 @@ const ProductDetail = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-2xl border border-border overflow-hidden aspect-square"
-            style={{ boxShadow: "var(--shadow-card)" }}
+            className="space-y-4"
           >
-            <img src={imageUrl} alt={product.title} className="w-full h-full object-cover" />
+            <div
+              className="bg-card rounded-2xl border border-border overflow-hidden aspect-square"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <img src={mainImage || imageUrl} alt={product.title} className="w-full h-full object-cover" />
+            </div>
+            {/* Gallery Thumbnails */}
+            {product.gallery_urls && product.gallery_urls.length > 0 && (
+              <div className="grid grid-cols-6 gap-2 sm:gap-4">
+                <button
+                  onClick={() => setMainImage(product.image_url || "/placeholder.svg")}
+                  className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${mainImage === (product.image_url || "/placeholder.svg") ? "border-accent opacity-100 ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"
+                    }`}
+                >
+                  <img src={product.image_url || "/placeholder.svg"} className="w-full h-full object-cover" />
+                </button>
+                {product.gallery_urls.map((url, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setMainImage(url)}
+                    className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${mainImage === url ? "border-accent opacity-100 ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"
+                      }`}
+                  >
+                    <img src={url} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
