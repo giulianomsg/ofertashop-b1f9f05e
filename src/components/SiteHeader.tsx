@@ -1,8 +1,17 @@
-import { Search, User, Bell, ShoppingBag } from "lucide-react";
+import { Search, User, Bell, ShoppingBag, LogOut, Settings, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const SiteHeader = () => {
   const [searchParams] = useSearchParams();
@@ -10,6 +19,7 @@ const SiteHeader = () => {
   const [suggestions, setSuggestions] = useState<{ id: string; title: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
+  const { user, userRole, signOut } = useAuth();
 
   useEffect(() => {
     setSearchQuery(searchParams.get("q") || "");
@@ -93,9 +103,40 @@ const SiteHeader = () => {
             <button className="relative p-2.5 rounded-xl hover:bg-secondary transition-colors">
               <Bell className="w-5 h-5 text-muted-foreground" />
             </button>
-            <Link to="/admin" className="p-2.5 rounded-xl hover:bg-secondary transition-colors">
-              <User className="w-5 h-5 text-muted-foreground" />
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2.5 rounded-xl hover:bg-secondary transition-colors outline-none">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || 'Usuário'}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {userRole === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer w-full flex items-center">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Painel Admin</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={async () => { await signOut(); navigate("/"); }} className="cursor-pointer text-red-600 focus:text-red-600 w-full flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/admin/login" className="p-2.5 rounded-xl hover:bg-secondary transition-colors">
+                <User className="w-5 h-5 text-muted-foreground" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
