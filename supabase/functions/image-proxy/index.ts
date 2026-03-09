@@ -48,8 +48,27 @@ async function fetchImageFromUrl(url: string): Promise<{ data: ArrayBuffer; cont
 
 async function extractOgImage(url: string): Promise<string | null> {
   try {
+    // 1. First attempt: use a free metatags extractor API (simulates full browser exactly like WhatsApp/iMessage)
+    const mlResponse = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+    if (mlResponse.ok) {
+      const mlData = await mlResponse.json();
+      if (mlData?.data?.image?.url) {
+        return mlData.data.image.url;
+      }
+    }
+  } catch (e) {
+    console.error("Microlink error:", e);
+  }
+
+  try {
+    // 2. Fallback attempt: Manual fetch using Facebook/WhatsApp bot user agent
+    // Many CDNs like Cloudflare whitelist the facebookexternalhit user-agent used by WhatsApp to generate link previews.
     const response = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
+      headers: {
+        "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"
+      },
       redirect: "follow",
     });
 
@@ -60,16 +79,16 @@ async function extractOgImage(url: string): Promise<string | null> {
     const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
 
-    if (ogMatch?.[1]) return ogMatch[1];
+    if (ogMatch?.[1]) return ogMatch[1].replace(/&amp;/g, '&');
 
     const twMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["']/i);
 
-    if (twMatch?.[1]) return twMatch[1];
+    if (twMatch?.[1]) return twMatch[1].replace(/&amp;/g, '&');
 
     return null;
   } catch (e) {
-    console.error("OG extraction error:", e);
+    console.error("Manual OG extraction error:", e);
     return null;
   }
 }
