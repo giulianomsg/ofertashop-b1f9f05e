@@ -21,16 +21,17 @@ const roleLabels: Record<string, string> = {
   viewer: "Visualizador",
 };
 
-const { data: collaborators = [], isLoading } = useCollaborators();
+const AdminCollaborators = () => {
+  const { data: collaborators = [], isLoading } = useCollaborators();
 const { mutate: updateRole } = useUpdateCollaboratorRole();
 const { mutate: removeRole } = useRemoveCollaborator();
 
-const handleUpdateRole = (userId: string, newRole: string) => {
-  updateRole({ userId, role: newRole }, {
-    onSuccess: () => toast.success(`Cargo atualizado com sucesso.`),
-    onError: () => toast.error(`Erro ao atualizar cargo.`),
-  });
-};
+  const handleUpdateRole = (userId: string, newRole: "admin" | "editor" | "viewer") => {
+    updateRole({ userId, role: newRole }, {
+      onSuccess: () => toast.success(`Cargo atualizado com sucesso.`),
+      onError: () => toast.error(`Erro ao atualizar cargo.`),
+    });
+  };
 
 const handleRemove = (userId: string) => {
   if (confirm("Deseja remover este colaborador e torná-o visualizador?")) {
@@ -78,9 +79,9 @@ return (
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "admin")}>Admin</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "editor")}>Editor</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "viewer")}>Visualizador</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "admin" as const)}>Admin</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "editor" as const)}>Editor</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "viewer" as const)}>Visualizador</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 

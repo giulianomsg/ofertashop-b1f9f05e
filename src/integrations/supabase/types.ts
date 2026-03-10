@@ -125,6 +125,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_active: boolean
           updated_at: string
           user_id: string
         }
@@ -133,6 +134,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean
           updated_at?: string
           user_id: string
         }
@@ -141,6 +143,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -192,6 +195,7 @@ export type Database = {
           id: string
           product_id: string
           rating: number
+          status: string
           user_id: string | null
           user_name: string
         }
@@ -202,6 +206,7 @@ export type Database = {
           id?: string
           product_id: string
           rating: number
+          status?: string
           user_id?: string | null
           user_name: string
         }
@@ -212,6 +217,7 @@ export type Database = {
           id?: string
           product_id?: string
           rating?: number
+          status?: string
           user_id?: string | null
           user_name?: string
         }

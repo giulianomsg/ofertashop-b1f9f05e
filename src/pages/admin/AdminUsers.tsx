@@ -34,7 +34,7 @@ const AdminUsers = () => {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                     <p className="font-semibold text-sm text-foreground">{u.full_name || "Sem nome"}</p>
-                                    {u.user_roles?.[0]?.role === "admin" && (
+                                    {(u.user_roles as any)?.[0]?.role === "admin" && (
                                         <span className="badge-hot text-[10px]">Admin</span>
                                     )}
                                 </div>
@@ -46,7 +46,7 @@ const AdminUsers = () => {
                                     {u.is_active ? "Ativo" : "Suspenso"}
                                 </span>
 
-                                {u.user_roles?.[0]?.role !== "admin" && (
+                                {(u.user_roles as any)?.[0]?.role !== "admin" && (
                                     <button
                                         title={u.is_active ? "Suspender acesso" : "Restaurar acesso"}
                                         className="p-1.5 hover:bg-secondary rounded"
