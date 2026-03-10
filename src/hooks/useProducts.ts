@@ -114,7 +114,7 @@ export const useCollaborators = () => {
 export const useUpdateCollaboratorRole = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+    mutationFn: async ({ userId, role }: { userId: string, role: "admin" | "editor" | "viewer" }) => {
       const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", userId);
       if (error) throw error;
     },

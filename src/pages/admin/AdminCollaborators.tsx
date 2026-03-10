@@ -79,9 +79,9 @@ return (
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "admin")}>Admin</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "editor")}>Editor</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "viewer")}>Visualizador</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "admin" as const)}>Admin</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "editor" as const)}>Editor</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleUpdateRole(c.user_id, "viewer" as const)}>Visualizador</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
