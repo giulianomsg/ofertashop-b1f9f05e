@@ -46,7 +46,7 @@ const AdminUsers = () => {
                                     {u.is_active ? "Ativo" : "Suspenso"}
                                 </span>
 
-                                {u.user_roles?.[0]?.role !== "admin" && (
+                                {(u.user_roles as any)?.[0]?.role !== "admin" && (
                                     <button
                                         title={u.is_active ? "Suspender acesso" : "Restaurar acesso"}
                                         className="p-1.5 hover:bg-secondary rounded"

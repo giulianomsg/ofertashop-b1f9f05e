@@ -26,12 +26,12 @@ const AdminCollaborators = () => {
 const { mutate: updateRole } = useUpdateCollaboratorRole();
 const { mutate: removeRole } = useRemoveCollaborator();
 
-const handleUpdateRole = (userId: string, newRole: string) => {
-  updateRole({ userId, role: newRole }, {
-    onSuccess: () => toast.success(`Cargo atualizado com sucesso.`),
-    onError: () => toast.error(`Erro ao atualizar cargo.`),
-  });
-};
+  const handleUpdateRole = (userId: string, newRole: "admin" | "editor" | "viewer") => {
+    updateRole({ userId, role: newRole }, {
+      onSuccess: () => toast.success(`Cargo atualizado com sucesso.`),
+      onError: () => toast.error(`Erro ao atualizar cargo.`),
+    });
+  };
 
 const handleRemove = (userId: string) => {
   if (confirm("Deseja remover este colaborador e torná-o visualizador?")) {
