@@ -124,6 +124,7 @@ $$;
 -- Política RLS para permitir Admin atualizar profiles de qualquer um 
 -- (antes, apenas users podiam atualizar seu proprio profile)
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
 
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Admins can update any profile" ON public.profiles FOR UPDATE USING (public.has_role(auth.uid(), 'admin'));
