@@ -1,5 +1,6 @@
 -- View para listar usuários de forma simples combinando profile, role e email
-CREATE OR REPLACE VIEW public.admin_users_view WITH (security_invoker = true) AS
+-- NÃO USAMOS security_invoker = true senão a role authenticated não consegue ler auth.users
+CREATE OR REPLACE VIEW public.admin_users_view AS
 SELECT 
   p.id as profile_id,
   p.user_id,
@@ -11,7 +12,8 @@ SELECT
   u.email
 FROM public.profiles p
 LEFT JOIN public.user_roles r ON p.user_id = r.user_id
-LEFT JOIN auth.users u ON p.user_id = u.id;
+LEFT JOIN auth.users u ON p.user_id = u.id
+WHERE public.has_role(auth.uid(), 'admin');
 
 -- Função para deletar um usuário (Apenas Admin)
 CREATE OR REPLACE FUNCTION public.admin_delete_user(target_user_id UUID)
