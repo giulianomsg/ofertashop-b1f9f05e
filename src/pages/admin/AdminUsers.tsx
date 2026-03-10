@@ -91,7 +91,7 @@ const AdminUsers = () => {
         }
 
         updateUserProfile(
-            { userId: selectedUser.user_id, fullName: formData.fullName, role: formData.role },
+            { userId: selectedUser.user_id, fullName: formData.fullName, email: formData.email, role: formData.role },
             {
                 onSuccess: () => {
                     toast.success("Usuário atualizado com sucesso!");
@@ -126,7 +126,7 @@ const AdminUsers = () => {
     const openEditDialog = (user: any) => {
         setSelectedUser(user);
         setFormData({
-            email: "", // We don't edit email in this MVP
+            email: user.email || "",
             password: "",
             fullName: user.full_name || "",
             role: user.role || "viewer"
@@ -296,6 +296,16 @@ const AdminUsers = () => {
                                 id="edit-fullname"
                                 value={formData.fullName}
                                 onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-email">E-mail</Label>
+                            <Input
+                                id="edit-email"
+                                type="email"
+                                value={formData.email}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 required
                             />
                         </div>

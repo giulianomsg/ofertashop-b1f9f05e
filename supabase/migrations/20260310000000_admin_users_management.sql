@@ -1,4 +1,4 @@
--- View para listar usuários de forma simples combinando profile e role
+-- View para listar usuários de forma simples combinando profile, role e email
 CREATE OR REPLACE VIEW public.admin_users_view WITH (security_invoker = true) AS
 SELECT 
   p.id as profile_id,
@@ -7,9 +7,11 @@ SELECT
   p.avatar_url,
   p.is_active,
   p.created_at,
-  r.role
+  r.role,
+  u.email
 FROM public.profiles p
-LEFT JOIN public.user_roles r ON p.user_id = r.user_id;
+LEFT JOIN public.user_roles r ON p.user_id = r.user_id
+LEFT JOIN auth.users u ON p.user_id = u.id;
 
 -- Função para deletar um usuário (Apenas Admin)
 CREATE OR REPLACE FUNCTION public.admin_delete_user(target_user_id UUID)
@@ -90,6 +92,32 @@ BEGIN
 
   -- Atualizar a role
   UPDATE public.user_roles SET role = new_role WHERE user_id = target_user_id;
+END;
+$$;
+
+-- Função para atualizar o email de um usuário de forma segura
+CREATE OR REPLACE FUNCTION public.admin_update_user_email(target_user_id UUID, new_email TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  caller_id UUID;
+  caller_role app_role;
+BEGIN
+  caller_id := auth.uid();
+  
+  -- Verificar se quem chama é admin
+  SELECT role INTO caller_role FROM public.user_roles WHERE user_id = caller_id;
+  IF caller_role != 'admin' THEN
+    RAISE EXCEPTION 'Apenas administradores podem alterar emails.';
+  END IF;
+
+  -- Atualizar o email na tabela auth.users e forçar confirmação
+  UPDATE auth.users 
+  SET email = new_email, email_confirmed_at = now() 
+  WHERE id = target_user_id;
 END;
 $$;
 

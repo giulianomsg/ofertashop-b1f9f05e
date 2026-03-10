@@ -163,7 +163,7 @@ export const useUpdateUserStatus = () => {
 export const useUpdateUserProfile = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, fullName, role }: { userId: string, fullName: string, role: string }) => {
+    mutationFn: async ({ userId, fullName, email, role }: { userId: string, fullName: string, email?: string, role: string }) => {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ full_name: fullName })
@@ -175,6 +175,14 @@ export const useUpdateUserProfile = () => {
         new_role: role as any
       });
       if (roleError) throw roleError;
+
+      if (email) {
+        const { error: emailError } = await supabase.rpc("admin_update_user_email" as any, {
+          target_user_id: userId,
+          new_email: email
+        });
+        if (emailError) throw emailError;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });

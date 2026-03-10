@@ -9,7 +9,6 @@ const menuItems = [
   { icon: Image, label: "Banners", path: "/admin/banners" },
   { icon: Package, label: "Produtos", path: "/admin/produtos" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
-  { icon: ShoppingBag, label: "Colaboradores", path: "/admin/colaboradores" },
   { icon: MessageSquare, label: "Avaliações", path: "/admin/avaliacoes" },
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
   { icon: BarChart3, label: "Estatísticas", path: "/admin/estatisticas" },
