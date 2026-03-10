@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { createClient } from "@supabase/supabase-js";
 
 export type Product = Tables<"products">;
 
@@ -139,8 +140,8 @@ export const useUsers = () => {
     queryKey: ["users"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*, user_roles(role)")
+        .from("admin_users_view" as any)
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -154,6 +155,74 @@ export const useUpdateUserStatus = () => {
     mutationFn: async ({ userId, isActive }: { userId: string, isActive: boolean }) => {
       const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("user_id", userId);
       if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+};
+
+export const useUpdateUserProfile = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, fullName, role }: { userId: string, fullName: string, role: string }) => {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("user_id", userId);
+      if (profileError) throw profileError;
+
+      const { error: roleError } = await supabase.rpc("admin_update_user_role" as any, {
+        target_user_id: userId,
+        new_role: role as any
+      });
+      if (roleError) throw roleError;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+};
+
+export const useDeleteUser = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.rpc("admin_delete_user" as any, {
+        target_user_id: userId
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+};
+
+const secondarySupabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  { auth: { persistSession: false, autoRefreshToken: false } }
+);
+
+export const useCreateUser = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ email, password, fullName, role }: any) => {
+      const { data, error } = await secondarySupabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName }
+        }
+      });
+      if (error) throw error;
+
+      const newUserId = data.user?.id;
+      if (!newUserId) throw new Error("Falha ao criar usuário (sem ID retornado).");
+
+      // wait a tiny bit for the triggers to insert the profile and default role
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const { error: roleError } = await supabase.rpc("admin_update_user_role" as any, {
+        target_user_id: newUserId,
+        new_role: role as any
+      });
+      if (roleError) throw roleError;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
