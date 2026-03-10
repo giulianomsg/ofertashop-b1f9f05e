@@ -21,7 +21,8 @@ const roleLabels: Record<string, string> = {
   viewer: "Visualizador",
 };
 
-const { data: collaborators = [], isLoading } = useCollaborators();
+const AdminCollaborators = () => {
+  const { data: collaborators = [], isLoading } = useCollaborators();
 const { mutate: updateRole } = useUpdateCollaboratorRole();
 const { mutate: removeRole } = useRemoveCollaborator();
 
