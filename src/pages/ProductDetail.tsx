@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import ProductCard from "@/components/ProductCard";
@@ -55,6 +56,15 @@ const ProductDetail = () => {
 
   const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
   const imageUrl = product.image_url || "/placeholder.svg";
+  
+  // Safely strip HTML from description for meta tags
+  const plainDescription = product.description 
+    ? product.description.replace(/<[^>]+>/g, '').trim() 
+    : "Confira esta oferta incrível no OfertaShop!";
+
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
+  const ogImage = product.image_url || (product.gallery_urls && product.gallery_urls.length > 0 ? product.gallery_urls[0] : defaultImage);
 
   const handleReview = async () => {
     if (!user) { toast.error("Faça login para avaliar."); return; }
@@ -93,6 +103,25 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{product.title} | OfertaShop</title>
+        <meta name="description" content={plainDescription.substring(0, 160)} />
+        
+        {/* Open Graph / Facebook / WhatsApp */}
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:title" content={product.title} />
+        <meta property="og:description" content={plainDescription} />
+        <meta property="og:image" content={ogImage} />
+        
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={currentUrl} />
+        <meta property="twitter:title" content={product.title} />
+        <meta property="twitter:description" content={plainDescription} />
+        <meta property="twitter:image" content={ogImage} />
+      </Helmet>
+
       <SiteHeader />
       <main className="container mx-auto px-4 lg:px-8 py-6">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
