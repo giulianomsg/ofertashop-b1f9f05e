@@ -53,7 +53,7 @@ serve(async (req) => {
 
     const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
     const ogImage = product.image_url || (product.gallery_urls && product.gallery_urls.length > 0 ? product.gallery_urls[0] : defaultImage);
-    const ogUrl = targetUrl || req.url;
+    const ogUrl = targetUrl || `https://ofertashop.lovable.app/produto/${productId}`;
 
     // Fetch the original index.html
     // If targetUrl is provided, we fetch from there origin. Otherwise we use a generic placeholder or relative url.
