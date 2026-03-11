@@ -67,21 +67,24 @@ const ProductDetail = () => {
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
   const ogImage = product.image_url || (product.gallery_urls && product.gallery_urls.length > 0 ? product.gallery_urls[0] : defaultImage);
 
+  // URL de partilha via og-proxy (bots recebem OG tags, utilizadores são redirecionados)
+  const shareUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-proxy?productId=${id}`;
+
   const handleShare = (platform: "whatsapp" | "facebook" | "twitter" | "copy") => {
     const text = `Confira esta oferta incrível: ${product.title}`;
     
     switch (platform) {
       case "whatsapp":
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " - " + currentUrl)}`, "_blank");
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " - " + shareUrl)}`, "_blank");
         break;
       case "facebook":
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`, "_blank");
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
         break;
       case "twitter":
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentUrl)}`, "_blank");
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, "_blank");
         break;
       case "copy":
-        navigator.clipboard.writeText(currentUrl);
+        navigator.clipboard.writeText(shareUrl);
         setCopied(true);
         toast.success("Link copiado para a área de transferência!");
         setTimeout(() => setCopied(false), 2000);
