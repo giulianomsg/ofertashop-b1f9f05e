@@ -15,7 +15,7 @@ const AdminStats = () => {
 
   const totalReviews = reviews.length;
   const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.is_active).length;
+  const activeUsers = users.filter((u: any) => u.is_active).length;
 
   return (
     <div className="space-y-6">
