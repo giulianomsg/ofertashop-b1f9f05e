@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles } from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
@@ -30,6 +30,7 @@ const ProductDetail = () => {
   const [showExpired, setShowExpired] = useState(false);
   const [reportEmail, setReportEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (isLoading) {
     return (
@@ -65,6 +66,28 @@ const ProductDetail = () => {
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
   const ogImage = product.image_url || (product.gallery_urls && product.gallery_urls.length > 0 ? product.gallery_urls[0] : defaultImage);
+
+  const handleShare = (platform: "whatsapp" | "facebook" | "twitter" | "copy") => {
+    const text = `Confira esta oferta incrível: ${product.title}`;
+    
+    switch (platform) {
+      case "whatsapp":
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " - " + currentUrl)}`, "_blank");
+        break;
+      case "facebook":
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`, "_blank");
+        break;
+      case "twitter":
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentUrl)}`, "_blank");
+        break;
+      case "copy":
+        navigator.clipboard.writeText(currentUrl);
+        setCopied(true);
+        toast.success("Link copiado para a área de transferência!");
+        setTimeout(() => setCopied(false), 2000);
+        break;
+    }
+  };
 
   const handleReview = async () => {
     if (!user) { toast.error("Faça login para avaliar."); return; }
@@ -239,6 +262,39 @@ const ProductDetail = () => {
               <ExternalLink className="w-5 h-5" />
               Acessar Oferta
             </a>
+
+            {/* Repartição de Partilha Social */}
+            <div className="flex items-center gap-2 pt-2">
+              <span className="text-sm text-muted-foreground mr-2 font-medium flex items-center gap-1.5"><Share2 className="w-4 h-4" /> Partilhar:</span>
+              <button 
+                onClick={() => handleShare("whatsapp")} 
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
+                title="Partilhar no WhatsApp"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              </button>
+              <button 
+                onClick={() => handleShare("facebook")} 
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors"
+                title="Partilhar no Facebook"
+              >
+                <Facebook className="w-[18px] h-[18px]" />
+              </button>
+              <button 
+                onClick={() => handleShare("twitter")} 
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1DA1F2]/10 text-[#0f1419] dark:text-white hover:bg-[#1DA1F2]/20 transition-colors"
+                title="Partilhar no X (Twitter)"
+              >
+                <Twitter className="w-[18px] h-[18px]" />
+              </button>
+              <button 
+                onClick={() => handleShare("copy")} 
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors ml-auto"
+                title="Copiar Link"
+              >
+                {copied ? <Check className="w-[18px] h-[18px] text-success" /> : <ExternalLink className="w-[18px] h-[18px]" />}
+              </button>
+            </div>
 
             <button
               onClick={() => setShowExpired(!showExpired)}
