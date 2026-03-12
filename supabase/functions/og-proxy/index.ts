@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const BOT_REGEX = /bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|pinterest|slackbot|telegrambot|discordbot|googlebot|bingbot|yandex|crawler|spider|preview/i;
-const SITE_URL = "https://ofertashop.lovable.app";
+const SITE_URL = "https://ofertashop.com.br";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
