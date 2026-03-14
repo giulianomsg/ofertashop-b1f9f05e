@@ -1,0 +1,8 @@
+# Netlify não suporta rewrite condicional por User-Agent nativamente.
+# Use o Netlify Edge Function abaixo para deteção de bots.
+# Ative também o Prerendering nativo: Site Settings > Build & deploy > Prerendering.
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
