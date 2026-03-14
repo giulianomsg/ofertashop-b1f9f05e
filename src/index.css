@@ -107,7 +107,12 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
   }
 }
@@ -117,6 +122,7 @@
     @apply bg-card rounded-xl border border-border overflow-hidden transition-all duration-300;
     box-shadow: var(--shadow-card);
   }
+
   .card-product:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-4px);
@@ -146,6 +152,7 @@
     color: hsl(var(--accent-foreground));
     box-shadow: 0 4px 14px hsl(24 95% 55% / 0.3);
   }
+
   .btn-accent:hover {
     box-shadow: 0 6px 20px hsl(24 95% 55% / 0.4);
     transform: translateY(-1px);
@@ -161,4 +168,11 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+}
+
+#lovable-badge,
+a[href*="lovable.dev"],
+iframe[src*="lovable.dev"],
+div[style*="Edit with Lovable"] {
+  display: none !important;
 }
