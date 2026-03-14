@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    {
+      "source": "/produto/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|pinterest|slackbot|telegrambot|discordbot|googlebot|bingbot|yandex|crawler|spider|preview).*"
+        }
+      ],
+      "destination": "https://smfndfyuscgfjedeqysu.supabase.co/functions/v1/og-proxy?productId=:id"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
