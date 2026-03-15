@@ -23,6 +23,7 @@ import AdminPlatforms from "./pages/admin/AdminPlatforms";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminSpecialPages from "./pages/admin/AdminSpecialPages";
 import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
+import AdminNewsletters from "./pages/admin/AdminNewsletters";
 import SpecialPage from "./pages/SpecialPage";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="paginas-especiais" element={<AdminSpecialPages />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
+              <Route path="newsletters" element={<AdminNewsletters />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

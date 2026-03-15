@@ -11,6 +11,7 @@ import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useVisitorSession } from "@/hooks/useVisitorSession";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useRef } from "react";
 
@@ -41,6 +42,10 @@ const ProductDetail = () => {
   const { data: wishlistIds = [] } = useWishlist(user?.id);
   const toggleWishlist = useToggleWishlist();
   const navigate = useNavigate();
+  const visitorToken = useVisitorSession();
+
+  const [trustVotes, setTrustVotes] = useState(0);
+  const [hasVotedTrust, setHasVotedTrust] = useState(false);
 
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -73,6 +78,25 @@ const ProductDetail = () => {
       videoRef.current.pause();
     }
   }, [current, product]);
+
+  useEffect(() => {
+    if (!product || !visitorToken) return;
+    const fetchVotes = async () => {
+      const { count } = await (supabase as any).from('product_trust_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('product_id', product.id);
+      setTrustVotes(count || 0);
+
+      const matchQuery = user ? { user_id: user.id } : { session_token: visitorToken };
+      const { data } = await (supabase as any).from('product_trust_votes')
+        .select('id')
+        .eq('product_id', product.id)
+        .match(matchQuery)
+        .maybeSingle();
+      if (data) setHasVotedTrust(true);
+    };
+    fetchVotes();
+  }, [product, user, visitorToken]);
 
   if (isLoading) {
     return (
@@ -135,6 +159,29 @@ const ProductDetail = () => {
       return; 
     }
     toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
+  };
+
+  const handleTrustVote = async () => {
+    if (hasVotedTrust) return;
+    setTrustVotes(prev => prev + 1);
+    setHasVotedTrust(true);
+    try {
+      const insertData = {
+        product_id: product.id,
+        ...(user ? { user_id: user.id } : { session_token: visitorToken })
+      };
+      await (supabase as any).from('product_trust_votes').insert(insertData);
+    } catch (e) {}
+  };
+
+  const handleAccessOffer = async () => {
+    try {
+      const insertData = {
+        product_id: product.id,
+        ...(user ? { user_id: user.id } : { session_token: visitorToken })
+      };
+      await (supabase as any).from('product_clicks').insert(insertData);
+    } catch (e) {}
   };
 
   const handleShare = (platform: "whatsapp" | "facebook" | "twitter" | "copy") => {
@@ -200,8 +247,8 @@ const ProductDetail = () => {
           <ArrowLeft className="w-4 h-4" /> Voltar às ofertas
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-8 mb-12 max-w-full overflow-hidden">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4 w-full md:w-1/2 max-w-full overflow-hidden">
             <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
                 {allImages.map((url, i) => (
@@ -261,7 +308,7 @@ const ProductDetail = () => {
             )}
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5 w-full md:w-1/2">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 {platform?.logo_url && <img src={platform.logo_url} alt={platform.name} className="w-4 h-4 object-contain" />}
@@ -308,13 +355,13 @@ const ProductDetail = () => {
                 <TrendingUp className="w-4 h-4 text-accent" />
                 <span className="text-foreground font-medium">{product.clicks.toLocaleString()} cliques</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
-                <Shield className="w-4 h-4 text-success" />
-                <span className="text-foreground font-medium">Confiável</span>
-              </div>
+              <button onClick={handleTrustVote} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${hasVotedTrust ? "bg-success/10 border-success/30 text-success" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Marcar como confiável">
+                <Shield className={`w-4 h-4 ${hasVotedTrust ? "fill-current" : "text-success"}`} />
+                <span className="font-medium">{hasVotedTrust ? "Confiável" : "Confiar"} {trustVotes > 0 && `(${trustVotes})`}</span>
+              </button>
             </div>
 
-            <a href={product.affiliate_url} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5" aria-label="Acessar oferta">
+            <a href={product.affiliate_url} target="_blank" rel="noopener noreferrer" onClick={handleAccessOffer} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5" aria-label="Acessar oferta">
               <ExternalLink className="w-5 h-5" /> Acessar Oferta
             </a>
 
