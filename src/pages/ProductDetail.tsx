@@ -7,10 +7,11 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import ProductCard from "@/components/ProductCard";
 import { useProduct, useProducts, useReviews } from "@/hooks/useProducts";
-import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist, useToggleWishlist } from "@/hooks/useEntities";
+import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist, useToggleWishlist, useCategories } from "@/hooks/useEntities";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const getVideoEmbedUrl = (url: string) => {
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
@@ -23,14 +24,9 @@ const getVideoEmbedUrl = (url: string) => {
 const ProductDetail = () => {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id);
-  const [mainImage, setMainImage] = useState<string | null>(null);
-  const [showVideo, setShowVideo] = useState(false);
-
-  useEffect(() => {
-    if (product) setMainImage(product.image_url || "/placeholder.svg");
-  }, [product]);
 
   const { data: products = [] } = useProducts();
+  const { data: categories = [] } = useCategories();
   const { data: reviews = [] } = useReviews(id);
   const { data: platforms = [] } = usePlatforms();
   const { user } = useAuth();
@@ -72,8 +68,9 @@ const ProductDetail = () => {
     );
   }
 
-  const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
+  const related = products.filter((p) => p.id !== product.id && p.category_id === product.category_id).slice(0, 3);
   const imageUrl = product.image_url || "/placeholder.svg";
+  const categoryName = categories.find(c => c.id === product.category_id)?.name || "Outros";
   const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
@@ -82,6 +79,8 @@ const ProductDetail = () => {
 
   const videoUrl = (product as any).video_url;
   const embedUrl = videoUrl ? getVideoEmbedUrl(videoUrl) : null;
+  const isMp4 = videoUrl && videoUrl.toLowerCase().endsWith(".mp4");
+  const allImages = [product.image_url || "/placeholder.svg", ...(product.gallery_urls || [])];
 
   // Price comparison: same brand_id + model_id, different platform
   const productAny = product as any;
@@ -162,37 +161,43 @@ const ProductDetail = () => {
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-            {/* Main image / video */}
-            <div className="bg-card rounded-2xl border border-border overflow-hidden aspect-square" style={{ boxShadow: "var(--shadow-card)" }}>
-              {showVideo && embedUrl ? (
-                <iframe src={embedUrl} className="w-full h-full" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="Vídeo do produto" />
-              ) : (
-                <img src={mainImage || imageUrl} alt={product.title} className="w-full h-full object-cover" />
-              )}
-            </div>
-            {/* Thumbnails */}
-            <div className="grid grid-cols-7 gap-2">
-              {embedUrl && (
-                <button onClick={() => { setShowVideo(true); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all flex items-center justify-center bg-secondary ${showVideo ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label="Ver vídeo">
-                  <span className="text-lg">▶️</span>
-                </button>
-              )}
-              <button onClick={() => { setMainImage(product.image_url || "/placeholder.svg"); setShowVideo(false); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${!showVideo && mainImage === (product.image_url || "/placeholder.svg") ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label="Imagem principal">
-                <img src={product.image_url || "/placeholder.svg"} alt="Principal" className="w-full h-full object-cover" />
-              </button>
-              {product.gallery_urls?.map((url, i) => (
-                <button key={i} onClick={() => { setMainImage(url); setShowVideo(false); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${!showVideo && mainImage === url ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label={`Imagem ${i + 2}`}>
-                  <img src={url} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent>
+                {allImages.map((url, i) => (
+                  <CarouselItem key={i}>
+                    <div className="bg-card rounded-2xl border border-border overflow-hidden aspect-square flex items-center justify-center p-2" style={{ boxShadow: "var(--shadow-card)" }}>
+                      <img src={url} alt={`${product.title} - Imagem ${i + 1}`} className="w-full h-full object-contain rounded-xl" />
+                    </div>
+                  </CarouselItem>
+                ))}
+                {videoUrl && (
+                  <CarouselItem>
+                    <div className="bg-card rounded-2xl border border-border overflow-hidden aspect-square flex items-center justify-center p-4 bg-black" style={{ boxShadow: "var(--shadow-card)" }}>
+                      {embedUrl ? (
+                        <iframe src={embedUrl} className="w-full h-full rounded-xl" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="Vídeo do produto" />
+                      ) : isMp4 ? (
+                        <video src={videoUrl} controls className="w-full h-full object-contain rounded-xl" />
+                      ) : (
+                        <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="btn-accent" aria-label="Abrir vídeo">
+                          <ExternalLink className="w-5 h-5 mr-2" /> Assistir Vídeo Adicional
+                        </a>
+                      )}
+                    </div>
+                  </CarouselItem>
+                )}
+              </CarouselContent>
+              <div className="hidden sm:block">
+                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background border-border backdrop-blur-sm" />
+                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background border-border backdrop-blur-sm" />
+              </div>
+            </Carousel>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 {platform?.logo_url && <img src={platform.logo_url} alt={platform.name} className="w-4 h-4 object-contain" />}
-                <p className="text-sm text-muted-foreground">{platform?.name || product.store} · {product.category}</p>
+                <p className="text-sm text-muted-foreground">{platform?.name || product.store} · {categoryName}</p>
               </div>
               <h1 className="font-display font-bold text-2xl lg:text-3xl text-foreground">{product.title}</h1>
             </div>

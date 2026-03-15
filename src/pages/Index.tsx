@@ -7,17 +7,19 @@ import FilterSidebar from "@/components/FilterSidebar";
 import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
 import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useEntities";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [minRating, setMinRating] = useState(0);
   const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
   const { data: products = [], isLoading } = useProducts();
+  const { data: categories = [] } = useCategories();
 
   const availableStores = useMemo(() => {
     const stores = products.map(p => p.store).filter(Boolean);
@@ -31,7 +33,7 @@ const Index = () => {
   };
 
   const handleClearFilters = () => {
-    setSelectedCategory("Todos");
+    setSelectedCategoryId("");
     setPriceRange([0, 5000]);
     setMinRating(0);
     setSelectedStores([]);
@@ -39,7 +41,7 @@ const Index = () => {
 
   const filtered = products.filter((p) => {
     const matchesSearch = query === "" || p.title.toLowerCase().includes(query.toLowerCase()) || (p.description && p.description.toLowerCase().includes(query.toLowerCase()));
-    const categoryMatch = selectedCategory === "Todos" || p.category === selectedCategory;
+    const categoryMatch = selectedCategoryId === "" || (p as any).category_id === selectedCategoryId;
     const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
     const ratingMatch = p.rating >= minRating;
     const storeMatch = selectedStores.length === 0 || selectedStores.includes(p.store);
@@ -68,8 +70,9 @@ const Index = () => {
 
         <div className="flex gap-8">
           <FilterSidebar
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            selectedCategoryId={selectedCategoryId}
+            onCategoryChange={setSelectedCategoryId}
+            categories={categories}
             priceRange={priceRange}
             onPriceRangeChange={setPriceRange}
             minRating={minRating}
@@ -85,7 +88,7 @@ const Index = () => {
           <section className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display font-bold text-xl text-foreground">
-                {selectedCategory === "Todos" ? "Todas as Ofertas" : selectedCategory}
+                {selectedCategoryId === "" ? "Todas as Ofertas" : categories.find(c => c.id === selectedCategoryId)?.name}
               </h2>
               <span className="text-sm text-muted-foreground">{filtered.length} ofertas</span>
             </div>

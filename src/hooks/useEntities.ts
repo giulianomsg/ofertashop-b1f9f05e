@@ -195,11 +195,11 @@ export const useWhatsAppGroups = () =>
     },
   });
 
-export const useActiveWhatsAppGroup = () =>
+export const useActiveWhatsAppGroups = () =>
   useQuery({
     queryKey: ["whatsapp_group_active"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("whatsapp_groups").select("*").eq("active", true).maybeSingle();
+      const { data, error } = await supabase.from("whatsapp_groups").select("*").eq("active", true).order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -208,8 +208,8 @@ export const useActiveWhatsAppGroup = () =>
 export const useCreateWhatsAppGroup = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ link, active }: { link: string; active?: boolean }) => {
-      const { data, error } = await supabase.from("whatsapp_groups").insert({ link, active: active || false }).select().single();
+    mutationFn: async ({ name, link, active }: { name: string; link: string; active?: boolean }) => {
+      const { data, error } = await supabase.from("whatsapp_groups").insert({ name, link, active: active || false }).select().single();
       if (error) throw error;
       return data;
     },
@@ -223,7 +223,7 @@ export const useCreateWhatsAppGroup = () => {
 export const useUpdateWhatsAppGroup = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; link?: string; active?: boolean }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; name?: string; link?: string; active?: boolean }) => {
       const { error } = await supabase.from("whatsapp_groups").update(updates).eq("id", id);
       if (error) throw error;
     },

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Star, ChevronDown, SlidersHorizontal, Check } from "lucide-react";
-import { categories } from "@/data/products";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FilterSidebarProps {
-  selectedCategory: string;
-  onCategoryChange: (cat: string) => void;
+  selectedCategoryId: string;
+  onCategoryChange: (id: string) => void;
+  categories: any[];
   priceRange: number[];
   onPriceRangeChange: (range: number[]) => void;
   minRating: number;
@@ -19,8 +19,9 @@ interface FilterSidebarProps {
 }
 
 const FilterSidebar = ({
-  selectedCategory,
+  selectedCategoryId,
   onCategoryChange,
+  categories,
   priceRange,
   onPriceRangeChange,
   minRating,
@@ -63,16 +64,25 @@ const FilterSidebar = ({
         <AnimatePresence>
           {openSections.category && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-1">
+              <button
+                onClick={() => { onCategoryChange(""); onClose?.(); }}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategoryId === ""
+                  ? "bg-accent/10 text-accent font-medium"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+              >
+                Todas
+              </button>
               {categories.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => { onCategoryChange(cat); onClose?.(); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === cat
+                  key={cat.id}
+                  onClick={() => { onCategoryChange(cat.id); onClose?.(); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategoryId === cat.id
                     ? "bg-accent/10 text-accent font-medium"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                 >
-                  {cat}
+                  {cat.name}
                 </button>
               ))}
             </motion.div>

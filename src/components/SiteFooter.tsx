@@ -1,11 +1,13 @@
-import { ShoppingBag, Shield, Lock, CreditCard } from "lucide-react";
+import { ShoppingBag, Shield, Lock, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { useActiveSpecialPages, useActiveWhatsAppGroup } from "@/hooks/useEntities";
+import { useState } from "react";
+import { useActiveSpecialPages, useActiveWhatsAppGroups } from "@/hooks/useEntities";
 
 const SiteFooter = () => {
   const { data: specialPages = [] } = useActiveSpecialPages();
-  const { data: whatsappGroup } = useActiveWhatsAppGroup();
+  const { data: whatsappGroups = [] } = useActiveWhatsAppGroups();
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
 
   return (
     <footer className="bg-primary text-primary-foreground mt-16">
@@ -49,13 +51,40 @@ const SiteFooter = () => {
             </div>
           </div>
           <div>
-            {whatsappGroup ? (
+            {whatsappGroups.length > 0 ? (
               <>
-                <h4 className="font-display font-semibold mb-3 text-sm">Grupo WhatsApp</h4>
-                <p className="text-xs text-primary-foreground/60 mb-3">Escaneie o QR Code para entrar no nosso grupo de ofertas!</p>
-                <a href={whatsappGroup.link} target="_blank" rel="noopener noreferrer" className="inline-block bg-primary-foreground/10 p-2 rounded-xl hover:bg-primary-foreground/20 transition-colors" aria-label="Entrar no grupo do WhatsApp">
-                  <QRCodeSVG value={whatsappGroup.link} size={96} bgColor="transparent" fgColor="currentColor" className="text-primary-foreground" />
-                </a>
+                <h4 className="font-display font-semibold mb-3 text-sm">Grupos de WhatsApp</h4>
+                <p className="text-xs text-primary-foreground/60 mb-3">
+                  Escaneie o QR Code para entrar no {whatsappGroups[activeGroupIndex]?.name}!
+                </p>
+                
+                {whatsappGroups.length > 1 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={() => setActiveGroupIndex(prev => prev === 0 ? whatsappGroups.length - 1 : prev - 1)}
+                      className="p-1 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors disabled:opacity-50"
+                      aria-label="Grupo anterior"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-medium flex-1 text-center truncate px-2">
+                      {whatsappGroups[activeGroupIndex]?.name}
+                    </span>
+                    <button
+                      onClick={() => setActiveGroupIndex(prev => prev === whatsappGroups.length - 1 ? 0 : prev + 1)}
+                      className="p-1 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors disabled:opacity-50"
+                      aria-label="Próximo grupo"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex justify-center md:justify-start">
+                  <a href={whatsappGroups[activeGroupIndex]?.link} target="_blank" rel="noopener noreferrer" className="inline-block bg-primary-foreground/10 p-2 rounded-xl hover:bg-primary-foreground/20 transition-colors" aria-label={`Entrar no grupo ${whatsappGroups[activeGroupIndex]?.name}`}>
+                    <QRCodeSVG value={whatsappGroups[activeGroupIndex]?.link || ""} size={96} bgColor="transparent" fgColor="currentColor" className="text-primary-foreground" />
+                  </a>
+                </div>
               </>
             ) : (
               <>

@@ -9,13 +9,35 @@ import { toast } from "sonner";
 // @ts-ignore
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+const SortableImage = ({ url, onRemove }: { url: string; onRemove: () => void }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: url });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative group rounded-lg overflow-hidden border border-border aspect-square w-24">
+      <div {...attributes} {...listeners} className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"></div>
+      <img src={url} alt="Galeria" className="w-full h-full object-cover" />
+      <button 
+        type="button"
+        onPointerDown={(e) => { e.stopPropagation(); onRemove(); }}
+        className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
 
 const emptyForm = {
   title: "",
   affiliate_url: "",
   price: "",
   store: "",
-  category: "",
+  category_id: "",
   description: "",
   image_url: "",
   original_price: "",
@@ -45,6 +67,22 @@ const AdminProducts = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setForm((prev) => {
+        const oldIndex = (prev.gallery_urls || []).indexOf(active.id as string);
+        const newIndex = (prev.gallery_urls || []).indexOf(over?.id as string);
+        return { ...prev, gallery_urls: arrayMove(prev.gallery_urls || [], oldIndex, newIndex) };
+      });
+    }
+  };
+
   // Filter models by selected brand
   const { data: models = [] } = useModels(form.brand_id || undefined);
 
@@ -69,7 +107,7 @@ const AdminProducts = () => {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ ...emptyForm, category: categories[0]?.name || "" });
+    setForm({ ...emptyForm, category_id: categories.length > 0 ? categories[0].id : "" });
     setShowModal(true);
   };
 
@@ -80,7 +118,7 @@ const AdminProducts = () => {
       affiliate_url: product.affiliate_url,
       price: String(product.price).replace(".", ","),
       store: product.store,
-      category: product.category,
+      category_id: (product as any).category_id || "",
       description: product.description || "",
       image_url: product.image_url || "",
       original_price: product.original_price ? String(product.original_price).replace(".", ",") : "",
@@ -125,24 +163,36 @@ const AdminProducts = () => {
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (form.gallery_urls.length >= 15) { toast.error("Limite máximo de 15 fotos alcançado."); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem."); return; }
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const currentLength = form.gallery_urls?.length || 0;
+    if (currentLength + files.length > 15) {
+      toast.error("Máximo de 15 imagens na galeria total.");
+      return;
+    }
+
     setImportingImage(true);
     try {
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split(".").pop() || "jpg"}`;
-      const { error } = await supabase.storage.from("product-images").upload(fileName, file, { contentType: file.type });
-      if (error) throw error;
-      const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-      setForm((f) => ({ ...f, gallery_urls: [...f.gallery_urls, data.publicUrl] }));
-      toast.success("Foto adicional enviada!");
-    } catch { toast.error("Erro ao enviar imagem."); }
-    finally { setImportingImage(false); if (galleryInputRef.current) galleryInputRef.current.value = ""; }
-  };
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+        const { error: uploadError } = await supabase.storage.from("product-images").upload(filePath, file);
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
+        return data.publicUrl;
+      });
 
-  const removeGalleryImage = (index: number) => {
-    setForm(f => ({ ...f, gallery_urls: f.gallery_urls.filter((_, i) => i !== index) }));
+      const urls = await Promise.all(uploadPromises);
+      setForm((f) => ({ ...f, gallery_urls: [...(f.gallery_urls || []), ...urls] }));
+      toast.success(`${urls.length} foto(s) adicional(is) enviada(s)!`);
+    } catch (error: any) {
+      toast.error("Erro no upload múltiplo.");
+    } finally {
+      setImportingImage(false);
+      if (e.target) e.target.value = "";
+    }
   };
 
   const handleAffiliatePaste = async (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -173,7 +223,7 @@ const AdminProducts = () => {
       affiliate_url: form.affiliate_url,
       price: parseFloat(form.price.replace(",", ".")),
       store: form.store,
-      category: form.category || categories[0]?.name || "Outros",
+      category_id: form.category_id || (categories.length > 0 ? categories[0].id : null),
       description: form.description || null,
       image_url: form.image_url || null,
       original_price: form.original_price ? parseFloat(form.original_price.replace(",", ".")) : null,
@@ -314,29 +364,28 @@ const AdminProducts = () => {
 
               {/* Gallery */}
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Galeria de Fotos ({form.gallery_urls.length}/15)
-                </label>
-                {form.gallery_urls.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {form.gallery_urls.map((url, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden bg-secondary border border-border">
-                        <img src={url} alt={`Galeria ${idx + 1}`} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => removeGalleryImage(idx)} className="absolute top-0.5 right-0.5 bg-background/80 text-foreground p-1 rounded hover:bg-destructive hover:text-destructive-foreground transition-colors" aria-label="Remover imagem">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {form.gallery_urls.length < 15 && (
-                  <>
-                    <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleGalleryUpload} className="hidden" />
-                    <button type="button" onClick={() => galleryInputRef.current?.click()} disabled={importingImage} className="w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50" aria-label="Adicionar foto à galeria">
-                      <Upload className="w-3.5 h-3.5" /> Adicionar foto (máx. 15)
-                    </button>
-                  </>
-                )}
+                <label className="text-xs font-semibold text-foreground mb-1 block">Galeria ({form.gallery_urls?.length || 0}/15)</label>
+                <div className="flex flex-wrap gap-2 mb-2 items-center">
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={form.gallery_urls || []} strategy={rectSortingStrategy}>
+                      {form.gallery_urls?.map((url, i) => (
+                        <SortableImage 
+                          key={url} 
+                          url={url} 
+                          onRemove={() => setForm(f => ({ ...f, gallery_urls: f.gallery_urls?.filter((_, index) => index !== i) }))} 
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                  
+                  {(form.gallery_urls?.length || 0) < 15 && (
+                    <label className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/50 transition-colors shrink-0">
+                      <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                      <span className="text-[10px] text-muted-foreground font-medium text-center px-1">Adicionar<br />várias fotos</span>
+                      <input type="file" className="hidden" accept="image/*" multiple onChange={handleGalleryUpload} disabled={importingImage} />
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* Video URL */}
@@ -389,9 +438,9 @@ const AdminProducts = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Categoria</label>
-                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30">
+                  <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30">
                     <option value="">Selecione</option>
-                    {categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
