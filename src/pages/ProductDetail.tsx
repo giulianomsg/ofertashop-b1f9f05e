@@ -296,12 +296,12 @@ const ProductDetail = () => {
 
             {/* Like, Wishlist, Info badges */}
             <div className="flex flex-wrap gap-3">
-              <button onClick={handleLike} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${userLiked ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Curtir produto">
-                <Heart className={`w-4 h-4 ${userLiked ? "fill-current" : ""}`} />
+              <button onClick={handleLike} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${userLiked ? "bg-accent/10 border-accent/30 text-accent" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Curtir produto">
+                <ThumbsUp className={`w-4 h-4 ${userLiked ? "fill-current" : ""}`} />
                 <span className="font-medium">{likesData?.count || 0}</span>
               </button>
-              <button onClick={handleWishlist} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isWished ? "bg-accent/10 border-accent/30 text-accent" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Adicionar à lista de desejos">
-                <Bookmark className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />
+              <button onClick={handleWishlist} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isWished ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Adicionar à lista de desejos">
+                <Heart className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />
                 <span className="font-medium">{isWished ? "Salvo" : "Salvar"}</span>
               </button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">

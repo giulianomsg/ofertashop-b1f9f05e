@@ -60,7 +60,7 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
           )}
           <button 
             onClick={handleWishlistClick}
-            className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-md transition-all ${isWished ? 'bg-accent/90 text-white' : 'bg-background/80 text-foreground hover:bg-background'} ${product.discount ? 'mt-8' : ''}`}
+            className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-md transition-all ${isWished ? 'bg-destructive/90 text-white' : 'bg-background/80 text-foreground hover:bg-background'} ${product.discount ? 'mt-8' : ''}`}
             aria-label="Adicionar aos favoritos"
           >
             <Heart className={`w-4 h-4 ${isWished ? 'fill-current' : ''}`} />
