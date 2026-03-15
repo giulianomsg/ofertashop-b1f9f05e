@@ -2,6 +2,7 @@ import { Star, ExternalLink, BadgeCheck, Flame, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Product } from "@/data/products";
+import { usePlatforms } from "@/hooks/useEntities";
 
 const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; className: string }> = {
   verified: { icon: BadgeCheck, label: "Verificado", className: "badge-verified" },
@@ -13,6 +14,11 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
   const predefinedBadge = product.badge ? badgeConfig[product.badge.toLowerCase()] : null;
   const customBadge = !predefinedBadge && product.badge ? { label: product.badge, className: "badge-hot" } : null;
   const badge = predefinedBadge || customBadge;
+  const { data: platforms = [] } = usePlatforms();
+
+  const platform = (product as any).platform_id
+    ? platforms.find((p) => p.id === (product as any).platform_id)
+    : null;
 
   const imageUrl = product.image_url || "/placeholder.svg";
 
@@ -40,10 +46,25 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
               {badge.label}
             </span>
           )}
+          {/* Platform logo badge */}
+          {platform?.logo_url && (
+            <div className="absolute bottom-2 left-2 w-7 h-7 rounded-md bg-card/90 backdrop-blur-sm border border-border flex items-center justify-center">
+              <img src={platform.logo_url} alt={platform.name} className="w-5 h-5 object-contain" />
+            </div>
+          )}
         </div>
 
         <div className="p-4 space-y-2">
-          <p className="text-xs text-muted-foreground">{product.store}</p>
+          <div className="flex items-center gap-1.5">
+            {platform ? (
+              <div className="flex items-center gap-1">
+                {platform.logo_url && <img src={platform.logo_url} alt={platform.name} className="w-3.5 h-3.5 object-contain" />}
+                <p className="text-xs text-muted-foreground">{platform.name}</p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">{product.store}</p>
+            )}
+          </div>
           <h3 className="font-display font-semibold text-sm text-foreground leading-snug line-clamp-2 group-hover:text-accent transition-colors">
             {product.title}
           </h3>
@@ -70,7 +91,7 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
             )}
           </div>
 
-          <button className="btn-accent w-full flex items-center justify-center gap-2 mt-2 text-xs">
+          <button className="btn-accent w-full flex items-center justify-center gap-2 mt-2 text-xs" aria-label={`Ver oferta de ${product.title}`}>
             <ExternalLink className="w-3.5 h-3.5" />
             Ver Oferta
           </button>
