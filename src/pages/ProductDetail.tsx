@@ -40,6 +40,7 @@ const ProductDetail = () => {
   const toggleLike = useToggleLike();
   const { data: wishlistIds = [] } = useWishlist(user?.id);
   const toggleWishlist = useToggleWishlist();
+  const navigate = useNavigate();
 
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -117,8 +118,6 @@ const ProductDetail = () => {
     : [];
 
   const platform = productAny.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
-
-  const navigate = useNavigate();
 
   const handleLike = () => {
     if (!user) { 
