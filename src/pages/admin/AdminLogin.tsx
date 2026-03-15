@@ -32,19 +32,10 @@ const AdminLogin = () => {
         navigate("/admin");
       }
     } else {
-      const { error, data } = await signUp(email, password, fullName);
+      const { error } = await signUp(email, password, fullName);
       if (error) {
         toast.error(error.message);
       } else {
-        // Update profile preferences after signup
-        if (data?.user?.id && (priceAlertOptIn || newsletterOptIn)) {
-          setTimeout(async () => {
-            await supabase.from("profiles").update({
-              price_alert_opt_in: priceAlertOptIn,
-              newsletter_opt_in: newsletterOptIn,
-            }).eq("user_id", data.user!.id);
-          }, 1500);
-        }
         toast.success("Cadastro realizado! Verifique seu email para confirmar.");
       }
     }
