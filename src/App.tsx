@@ -17,6 +17,13 @@ import AdminStats from "./pages/admin/AdminStats";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminBrands from "./pages/admin/AdminBrands";
+import AdminModels from "./pages/admin/AdminModels";
+import AdminPlatforms from "./pages/admin/AdminPlatforms";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminSpecialPages from "./pages/admin/AdminSpecialPages";
+import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
+import SpecialPage from "./pages/SpecialPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +39,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
+            <Route path="/especial/:slug" element={<SpecialPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
@@ -42,6 +50,12 @@ const App = () => (
               <Route path="avaliacoes" element={<AdminReviews />} />
               <Route path="denuncias" element={<AdminReports />} />
               <Route path="estatisticas" element={<AdminStats />} />
+              <Route path="marcas" element={<AdminBrands />} />
+              <Route path="modelos" element={<AdminModels />} />
+              <Route path="plataformas" element={<AdminPlatforms />} />
+              <Route path="categorias" element={<AdminCategories />} />
+              <Route path="paginas-especiais" element={<AdminSpecialPages />} />
+              <Route path="whatsapp" element={<AdminWhatsApp />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

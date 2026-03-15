@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare, Tag, Layers, Monitor, FolderOpen, FileText, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,6 +8,12 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Image, label: "Banners", path: "/admin/banners" },
   { icon: Package, label: "Produtos", path: "/admin/produtos" },
+  { icon: Tag, label: "Marcas", path: "/admin/marcas" },
+  { icon: Layers, label: "Modelos", path: "/admin/modelos" },
+  { icon: Monitor, label: "Plataformas", path: "/admin/plataformas" },
+  { icon: FolderOpen, label: "Categorias", path: "/admin/categorias" },
+  { icon: FileText, label: "Páginas Especiais", path: "/admin/paginas-especiais" },
+  { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
   { icon: MessageSquare, label: "Avaliações", path: "/admin/avaliacoes" },
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
@@ -49,7 +55,7 @@ const AdminLayout = () => {
           {!collapsed && <span className="font-display font-bold text-lg text-sidebar-foreground">OfertaShop</span>}
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
