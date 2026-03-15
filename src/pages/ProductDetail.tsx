@@ -1,36 +1,53 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check } from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import ProductCard from "@/components/ProductCard";
 import { useProduct, useProducts, useReviews } from "@/hooks/useProducts";
+import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist, useToggleWishlist } from "@/hooks/useEntities";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const getVideoEmbedUrl = (url: string) => {
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return null;
+};
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id);
   const [mainImage, setMainImage] = useState<string | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
-    if (product) {
-      setMainImage(product.image_url || "/placeholder.svg");
-    }
+    if (product) setMainImage(product.image_url || "/placeholder.svg");
   }, [product]);
 
   const { data: products = [] } = useProducts();
   const { data: reviews = [] } = useReviews(id);
+  const { data: platforms = [] } = usePlatforms();
   const { user } = useAuth();
+  const { data: likesData } = useProductLikes(id);
+  const { data: userLiked = false } = useUserLiked(user?.id, id);
+  const toggleLike = useToggleLike();
+  const { data: wishlistIds = [] } = useWishlist(user?.id);
+  const toggleWishlist = useToggleWishlist();
+
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState("");
   const [showExpired, setShowExpired] = useState(false);
   const [reportEmail, setReportEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const isWished = wishlistIds.includes(id || "");
 
   if (isLoading) {
     return (
@@ -57,36 +74,43 @@ const ProductDetail = () => {
 
   const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
   const imageUrl = product.image_url || "/placeholder.svg";
-  
-  // Safely strip HTML from description for meta tags
-  const plainDescription = product.description 
-    ? product.description.replace(/<[^>]+>/g, '').trim() 
-    : "Confira esta oferta incrível no OfertaShop!";
-
+  const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
   const ogImage = product.image_url || (product.gallery_urls && product.gallery_urls.length > 0 ? product.gallery_urls[0] : defaultImage);
-
-  // URL de partilha via og-proxy (bots recebem OG tags, utilizadores são redirecionados)
   const shareUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-proxy?productId=${id}`;
+
+  const videoUrl = (product as any).video_url;
+  const embedUrl = videoUrl ? getVideoEmbedUrl(videoUrl) : null;
+
+  // Price comparison: same brand_id + model_id, different platform
+  const productAny = product as any;
+  const comparisons = productAny.brand_id && productAny.model_id
+    ? products.filter((p: any) => p.id !== product.id && p.brand_id === productAny.brand_id && p.model_id === productAny.model_id && p.platform_id !== productAny.platform_id)
+    : [];
+
+  const platform = productAny.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
+
+  const handleLike = () => {
+    if (!user) { toast.error("Faça login para curtir."); return; }
+    toggleLike.mutate({ userId: user.id, productId: product.id, isLiked: userLiked });
+  };
+
+  const handleWishlist = () => {
+    if (!user) { toast.error("Faça login para adicionar à lista de desejos."); return; }
+    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
+  };
 
   const handleShare = (platform: "whatsapp" | "facebook" | "twitter" | "copy") => {
     const text = `Confira esta oferta incrível: ${product.title}`;
-    
     switch (platform) {
-      case "whatsapp":
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " - " + shareUrl)}`, "_blank");
-        break;
-      case "facebook":
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
-        break;
-      case "twitter":
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, "_blank");
-        break;
+      case "whatsapp": window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " - " + shareUrl)}`, "_blank"); break;
+      case "facebook": window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank"); break;
+      case "twitter": window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, "_blank"); break;
       case "copy":
         navigator.clipboard.writeText(shareUrl);
         setCopied(true);
-        toast.success("Link copiado para a área de transferência!");
+        toast.success("Link copiado!");
         setTimeout(() => setCopied(false), 2000);
         break;
     }
@@ -97,34 +121,20 @@ const ProductDetail = () => {
     if (userRating === 0) { toast.error("Selecione uma avaliação."); return; }
     setSubmitting(true);
     const { error } = await supabase.from("reviews").insert({
-      product_id: product.id,
-      user_id: user.id,
+      product_id: product.id, user_id: user.id,
       user_name: user.user_metadata?.full_name || user.email || "Anônimo",
-      rating: userRating,
-      comment: comment || null,
+      rating: userRating, comment: comment || null,
     });
     if (error) toast.error("Erro ao enviar avaliação.");
-    else {
-      toast.success("Avaliação enviada!");
-      setUserRating(0);
-      setComment("");
-    }
+    else { toast.success("Avaliação enviada!"); setUserRating(0); setComment(""); }
     setSubmitting(false);
   };
 
   const handleReport = async () => {
     if (!reportEmail) { toast.error("Informe seu email."); return; }
-    const { error } = await supabase.from("reports").insert({
-      product_id: product.id,
-      reporter_email: reportEmail,
-      report_type: "Oferta Expirada",
-    });
+    const { error } = await supabase.from("reports").insert({ product_id: product.id, reporter_email: reportEmail, report_type: "Oferta Expirada" });
     if (error) toast.error("Erro ao enviar denúncia.");
-    else {
-      toast.success("Denúncia enviada! Vamos verificar.");
-      setShowExpired(false);
-      setReportEmail("");
-    }
+    else { toast.success("Denúncia enviada!"); setShowExpired(false); setReportEmail(""); }
   };
 
   return (
@@ -132,15 +142,11 @@ const ProductDetail = () => {
       <Helmet>
         <title>{product.title} | OfertaShop</title>
         <meta name="description" content={plainDescription.substring(0, 160)} />
-        
-        {/* Open Graph / Facebook / WhatsApp */}
         <meta property="og:type" content="product" />
         <meta property="og:url" content={currentUrl} />
         <meta property="og:title" content={product.title} />
         <meta property="og:description" content={plainDescription} />
         <meta property="og:image" content={ogImage} />
-        
-        {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={currentUrl} />
         <meta property="twitter:title" content={product.title} />
@@ -155,44 +161,39 @@ const ProductDetail = () => {
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-4"
-          >
-            <div
-              className="bg-card rounded-2xl border border-border overflow-hidden aspect-square"
-              style={{ boxShadow: "var(--shadow-card)" }}
-            >
-              <img src={mainImage || imageUrl} alt={product.title} className="w-full h-full object-cover" />
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+            {/* Main image / video */}
+            <div className="bg-card rounded-2xl border border-border overflow-hidden aspect-square" style={{ boxShadow: "var(--shadow-card)" }}>
+              {showVideo && embedUrl ? (
+                <iframe src={embedUrl} className="w-full h-full" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="Vídeo do produto" />
+              ) : (
+                <img src={mainImage || imageUrl} alt={product.title} className="w-full h-full object-cover" />
+              )}
             </div>
-            {/* Gallery Thumbnails */}
-            {product.gallery_urls && product.gallery_urls.length > 0 && (
-              <div className="grid grid-cols-6 gap-2 sm:gap-4">
-                <button
-                  onClick={() => setMainImage(product.image_url || "/placeholder.svg")}
-                  className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${mainImage === (product.image_url || "/placeholder.svg") ? "border-accent opacity-100 ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"
-                    }`}
-                >
-                  <img src={product.image_url || "/placeholder.svg"} className="w-full h-full object-cover" />
+            {/* Thumbnails */}
+            <div className="grid grid-cols-7 gap-2">
+              {embedUrl && (
+                <button onClick={() => { setShowVideo(true); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all flex items-center justify-center bg-secondary ${showVideo ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label="Ver vídeo">
+                  <span className="text-lg">▶️</span>
                 </button>
-                {product.gallery_urls.map((url, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setMainImage(url)}
-                    className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${mainImage === url ? "border-accent opacity-100 ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"
-                      }`}
-                  >
-                    <img src={url} className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+              )}
+              <button onClick={() => { setMainImage(product.image_url || "/placeholder.svg"); setShowVideo(false); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${!showVideo && mainImage === (product.image_url || "/placeholder.svg") ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label="Imagem principal">
+                <img src={product.image_url || "/placeholder.svg"} alt="Principal" className="w-full h-full object-cover" />
+              </button>
+              {product.gallery_urls?.map((url, i) => (
+                <button key={i} onClick={() => { setMainImage(url); setShowVideo(false); }} className={`border-2 rounded-xl overflow-hidden aspect-square transition-all ${!showVideo && mainImage === url ? "border-accent ring-2 ring-accent/30" : "border-border opacity-70 hover:opacity-100"}`} aria-label={`Imagem ${i + 2}`}>
+                  <img src={url} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">{product.store} · {product.category}</p>
+              <div className="flex items-center gap-2 mb-1">
+                {platform?.logo_url && <img src={platform.logo_url} alt={platform.name} className="w-4 h-4 object-contain" />}
+                <p className="text-sm text-muted-foreground">{platform?.name || product.store} · {product.category}</p>
+              </div>
               <h1 className="font-display font-bold text-2xl lg:text-3xl text-foreground">{product.title}</h1>
             </div>
 
@@ -208,28 +209,28 @@ const ProductDetail = () => {
 
             <div className="bg-secondary rounded-xl p-5 space-y-2">
               <div className="flex items-baseline gap-3">
-                <span className="font-display font-bold text-3xl text-foreground">
-                  R$ {Number(product.price).toFixed(2).replace(".", ",")}
-                </span>
+                <span className="font-display font-bold text-3xl text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
                 {product.original_price && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    R$ {Number(product.original_price).toFixed(2).replace(".", ",")}
-                  </span>
+                  <span className="text-lg text-muted-foreground line-through">R$ {Number(product.original_price).toFixed(2).replace(".", ",")}</span>
                 )}
               </div>
               {product.discount && (
-                <span className="badge-hot">
-                  <Flame className="w-3 h-3" /> Economia de {product.discount}%
-                </span>
+                <span className="badge-hot"><Flame className="w-3 h-3" /> Economia de {product.discount}%</span>
               )}
             </div>
 
-            <div
-              dangerouslySetInnerHTML={{ __html: product.description || '' }}
-              className="text-muted-foreground leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-xl [&>h1]:font-bold [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold [&_a]:text-accent [&_a]:underline"
-            />
+            <div dangerouslySetInnerHTML={{ __html: product.description || '' }} className="text-muted-foreground leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-xl [&>h1]:font-bold [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold [&_a]:text-accent [&_a]:underline" />
 
+            {/* Like, Wishlist, Info badges */}
             <div className="flex flex-wrap gap-3">
+              <button onClick={handleLike} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${userLiked ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Curtir produto">
+                <Heart className={`w-4 h-4 ${userLiked ? "fill-current" : ""}`} />
+                <span className="font-medium">{likesData?.count || 0}</span>
+              </button>
+              <button onClick={handleWishlist} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isWished ? "bg-accent/10 border-accent/30 text-accent" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Adicionar à lista de desejos">
+                <Bookmark className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />
+                <span className="font-medium">{isWished ? "Salvo" : "Salvar"}</span>
+              </button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
                 <TrendingUp className="w-4 h-4 text-accent" />
                 <span className="text-foreground font-medium">{product.clicks.toLocaleString()} cliques</span>
@@ -238,116 +239,102 @@ const ProductDetail = () => {
                 <Shield className="w-4 h-4 text-success" />
                 <span className="text-foreground font-medium">Confiável</span>
               </div>
-              {(() => {
-                const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; color: string }> = {
-                  verified: { icon: BadgeCheck, label: "Verificado", color: "text-info" },
-                  hot: { icon: Flame, label: "Top Oferta", color: "text-orange-500" },
-                  new: { icon: Sparkles, label: "Novo", color: "text-yellow-500" },
-                };
-                const predefinedBadge = product.badge ? badgeConfig[product.badge.toLowerCase()] : null;
-                const customBadge = !predefinedBadge && product.badge ? { label: product.badge, color: "text-accent" } : null;
-                const badgeToDisplay = predefinedBadge || customBadge;
-
-                if (!badgeToDisplay) return null;
-
-                const IconComponent = predefinedBadge ? predefinedBadge.icon : Flame;
-
-                return (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
-                    <IconComponent className={`w-4 h-4 ${badgeToDisplay.color}`} />
-                    <span className="text-foreground font-medium">{badgeToDisplay.label}</span>
-                  </div>
-                );
-              })()}
             </div>
 
-            <a href={product.affiliate_url} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5">
-              <ExternalLink className="w-5 h-5" />
-              Acessar Oferta
+            <a href={product.affiliate_url} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5" aria-label="Acessar oferta">
+              <ExternalLink className="w-5 h-5" /> Acessar Oferta
             </a>
 
-            {/* Repartição de Partilha Social */}
+            {/* Share buttons */}
             <div className="flex items-center gap-2 pt-2">
               <span className="text-sm text-muted-foreground mr-2 font-medium flex items-center gap-1.5"><Share2 className="w-4 h-4" /> Partilhar:</span>
-              <button 
-                onClick={() => handleShare("whatsapp")} 
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
-                title="Partilhar no WhatsApp"
-              >
+              <button onClick={() => handleShare("whatsapp")} className="w-9 h-9 flex items-center justify-center rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors" aria-label="Partilhar no WhatsApp">
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
               </button>
-              <button 
-                onClick={() => handleShare("facebook")} 
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors"
-                title="Partilhar no Facebook"
-              >
+              <button onClick={() => handleShare("facebook")} className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors" aria-label="Partilhar no Facebook">
                 <Facebook className="w-[18px] h-[18px]" />
               </button>
-              <button 
-                onClick={() => handleShare("twitter")} 
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1DA1F2]/10 text-[#0f1419] dark:text-white hover:bg-[#1DA1F2]/20 transition-colors"
-                title="Partilhar no X (Twitter)"
-              >
+              <button onClick={() => handleShare("twitter")} className="w-9 h-9 flex items-center justify-center rounded-full bg-[#1DA1F2]/10 text-[#0f1419] dark:text-white hover:bg-[#1DA1F2]/20 transition-colors" aria-label="Partilhar no X (Twitter)">
                 <Twitter className="w-[18px] h-[18px]" />
               </button>
-              <button 
-                onClick={() => handleShare("copy")} 
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors ml-auto"
-                title="Copiar Link"
-              >
+              <button onClick={() => handleShare("copy")} className="w-9 h-9 flex items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors ml-auto" aria-label="Copiar link">
                 {copied ? <Check className="w-[18px] h-[18px] text-success" /> : <ExternalLink className="w-[18px] h-[18px]" />}
               </button>
             </div>
 
-            <button
-              onClick={() => setShowExpired(!showExpired)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              Oferta expirada?
+            <button onClick={() => setShowExpired(!showExpired)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors" aria-label="Reportar oferta expirada">
+              <AlertTriangle className="w-4 h-4" /> Oferta expirada?
             </button>
             {showExpired && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 text-sm text-foreground space-y-3">
                 <p>Informe seu email para confirmar a denúncia:</p>
-                <input
-                  type="email"
-                  value={reportEmail}
-                  onChange={(e) => setReportEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
-                />
-                <button onClick={handleReport} className="btn-accent !text-xs">Confirmar Denúncia</button>
+                <input type="email" value={reportEmail} onChange={(e) => setReportEmail(e.target.value)} placeholder="seu@email.com" className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" aria-label="Email para denúncia" />
+                <button onClick={handleReport} className="btn-accent !text-xs" aria-label="Confirmar denúncia">Confirmar Denúncia</button>
               </motion.div>
             )}
           </motion.div>
         </div>
 
+        {/* Price Comparison */}
+        {comparisons.length > 0 && (
+          <section className="mb-12">
+            <h2 className="font-display font-bold text-xl text-foreground mb-6">Comparar preços em outras lojas</h2>
+            <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary">
+                    <th className="text-left p-4 font-semibold text-foreground">Plataforma</th>
+                    <th className="text-left p-4 font-semibold text-foreground">Loja</th>
+                    <th className="text-right p-4 font-semibold text-foreground">Preço</th>
+                    <th className="text-right p-4 font-semibold text-foreground"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisons.map((comp: any) => {
+                    const compPlatform = platforms.find((p) => p.id === comp.platform_id);
+                    return (
+                      <tr key={comp.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            {compPlatform?.logo_url && <img src={compPlatform.logo_url} alt={compPlatform.name} className="w-5 h-5 object-contain" />}
+                            <span className="text-foreground">{compPlatform?.name || "—"}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-muted-foreground">{comp.store}</td>
+                        <td className="p-4 text-right font-semibold text-foreground">R$ {Number(comp.price).toFixed(2).replace(".", ",")}</td>
+                        <td className="p-4 text-right">
+                          <a href={comp.affiliate_url} target="_blank" rel="noopener noreferrer" className="btn-accent !text-xs !px-3 !py-1.5 inline-flex items-center gap-1" aria-label={`Ver oferta em ${compPlatform?.name}`}>
+                            <ExternalLink className="w-3 h-3" /> Ver Oferta
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         {/* Reviews */}
         <section className="mb-12">
           <h2 className="font-display font-bold text-xl text-foreground mb-6">Avaliações e Comentários</h2>
-
           {user && (
             <div className="bg-card rounded-xl border border-border p-5 mb-6" style={{ boxShadow: "var(--shadow-card)" }}>
               <h3 className="font-display font-semibold text-foreground mb-3">Deixe sua avaliação</h3>
               <div className="flex gap-1 mb-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <button key={i} onClick={() => setUserRating(i + 1)}>
+                  <button key={i} onClick={() => setUserRating(i + 1)} aria-label={`${i + 1} estrela${i > 0 ? "s" : ""}`}>
                     <Star className={`w-6 h-6 transition-colors ${i < userRating ? "fill-warning text-warning" : "text-muted hover:text-warning"}`} />
                   </button>
                 ))}
               </div>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Compartilhe sua experiência..."
-                className="w-full p-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none h-24"
-              />
-              <button onClick={handleReview} disabled={submitting} className="btn-accent mt-3 flex items-center gap-2 text-xs disabled:opacity-50">
+              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Compartilhe sua experiência..." className="w-full p-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none h-24" aria-label="Comentário da avaliação" />
+              <button onClick={handleReview} disabled={submitting} className="btn-accent mt-3 flex items-center gap-2 text-xs disabled:opacity-50" aria-label="Enviar avaliação">
                 <Send className="w-3.5 h-3.5" /> Enviar Avaliação
               </button>
             </div>
           )}
-
           {!user && (
             <div className="bg-secondary rounded-xl p-5 mb-6 text-center">
               <p className="text-sm text-muted-foreground">
@@ -355,15 +342,12 @@ const ProductDetail = () => {
               </p>
             </div>
           )}
-
           <div className="space-y-4">
             {reviews.map((review) => (
               <div key={review.id} className="bg-card rounded-xl border border-border p-5" style={{ boxShadow: "var(--shadow-card)" }}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center font-display font-bold text-sm text-accent">
-                      {review.user_name[0]}
-                    </div>
+                    <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center font-display font-bold text-sm text-accent">{review.user_name[0]}</div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{review.user_name}</p>
                       <p className="text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("pt-BR")}</p>
@@ -376,7 +360,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 {review.comment && <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>}
-                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors" aria-label="Marcar como útil">
                   <ThumbsUp className="w-3.5 h-3.5" /> Útil ({review.helpful_count})
                 </button>
               </div>

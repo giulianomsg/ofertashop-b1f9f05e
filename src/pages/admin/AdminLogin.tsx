@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingBag, Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { ShoppingBag, Mail, Lock, User as UserIcon, Eye, EyeOff, Bell, Newspaper } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
@@ -13,6 +14,8 @@ const AdminLogin = () => {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [priceAlertOptIn, setPriceAlertOptIn] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -74,15 +77,13 @@ const AdminLogin = () => {
           <div className="flex gap-1 bg-secondary rounded-lg p-1">
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${isLogin ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${isLogin ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
             >
               Entrar
             </button>
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${!isLogin ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${!isLogin ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
             >
               Cadastrar
             </button>
@@ -106,6 +107,7 @@ const AdminLogin = () => {
                     placeholder="Seu nome"
                     required={!isLogin}
                     className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    aria-label="Nome completo"
                   />
                 </div>
               </div>
@@ -121,6 +123,7 @@ const AdminLogin = () => {
                   placeholder="seu@email.com"
                   required
                   className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  aria-label="Email"
                 />
               </div>
             </div>
@@ -136,24 +139,56 @@ const AdminLogin = () => {
                   required
                   minLength={6}
                   className="w-full h-10 pl-10 pr-10 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  aria-label="Senha"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
                 </button>
               </div>
             </div>
+
+            {/* Opt-in checkboxes (signup only) */}
+            {!isLogin && (
+              <div className="space-y-3 pt-1">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={priceAlertOptIn}
+                    onChange={(e) => setPriceAlertOptIn(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-border text-accent focus:ring-accent/30"
+                    aria-label="Receber alertas de preço por e-mail"
+                  />
+                  <div className="flex items-start gap-2">
+                    <Bell className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Receber alertas de preço por e-mail</span>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={newsletterOptIn}
+                    onChange={(e) => setNewsletterOptIn(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-border text-accent focus:ring-accent/30"
+                    aria-label="Assinar Newsletter"
+                  />
+                  <div className="flex items-start gap-2">
+                    <Newspaper className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Assinar Newsletter com as melhores ofertas</span>
+                  </div>
+                </label>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
               className="btn-accent w-full disabled:opacity-50"
+              aria-label={isLogin ? "Entrar" : "Criar conta"}
             >
               {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar Conta"}
             </button>
@@ -169,6 +204,7 @@ const AdminLogin = () => {
               onClick={handleGoogleLogin}
               disabled={loading}
               className="w-full h-10 flex items-center justify-center gap-2 rounded-lg bg-card border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+              aria-label="Entrar com Google"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
