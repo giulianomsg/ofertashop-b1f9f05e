@@ -126,6 +126,12 @@ const SiteHeader = () => {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil" className="cursor-pointer w-full flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Meu Perfil</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={async () => { await signOut(); navigate("/"); }} className="cursor-pointer text-red-600 focus:text-red-600 w-full flex items-center">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sair</span>
@@ -133,7 +139,7 @@ const SiteHeader = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/admin/login" className="p-2.5 rounded-xl hover:bg-secondary transition-colors">
+              <Link to="/login" className="p-2.5 rounded-xl hover:bg-secondary transition-colors">
                 <User className="w-5 h-5 text-muted-foreground" />
               </Link>
             )}

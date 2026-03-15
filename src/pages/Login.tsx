@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShoppingBag, Mail, Lock, User as UserIcon, Eye, EyeOff, Bell, Newspaper } from "lucide-react";
@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
-const AdminLogin = () => {
+const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,8 +16,19 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [priceAlertOptIn, setPriceAlertOptIn] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, userRole, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      if (userRole === "admin") {
+        navigate("/admin");
+      } else if (userRole !== null) { // Make sure role is loaded
+        navigate("/");
+      }
+    }
+  }, [user, userRole, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +38,10 @@ const AdminLogin = () => {
       const { error } = await signIn(email, password);
       if (error) {
         toast.error(error.message);
+        setLoading(false);
       } else {
         toast.success("Login realizado com sucesso!");
-        navigate("/admin");
+        // Navigation handled by useEffect
       }
     } else {
       const { error } = await signUp(email, password, fullName);
@@ -38,8 +50,8 @@ const AdminLogin = () => {
       } else {
         toast.success("Cadastro realizado! Verifique seu email para confirmar.");
       }
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogleLogin = async () => {
@@ -67,7 +79,7 @@ const AdminLogin = () => {
           <h1 className="font-display font-bold text-2xl text-foreground">
             Oferta<span className="gradient-text">Shop</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Central de Administração</p>
+          <p className="text-sm text-muted-foreground mt-1">Acesse sua conta ou cadastre-se</p>
         </div>
 
         <div
@@ -92,7 +104,7 @@ const AdminLogin = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="text-xs text-muted-foreground bg-accent/10 p-3 rounded-lg border border-accent/20 mb-4">
-                <strong>Atenção:</strong> Novos registros criam perfis com acesso comum. Para privilégios administrativos, contate o administrador.
+                <strong>Bem-vindo(a)!</strong> Crie sua conta para gerir favoritos, receber alertas e ofertas em primeira mão.
               </div>
             )}
             {!isLogin && (
@@ -221,4 +233,4 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin;
+export default Login;

@@ -1,8 +1,10 @@
-import { Star, ExternalLink, BadgeCheck, Flame, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Star, ExternalLink, BadgeCheck, Flame, Sparkles, Heart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Product } from "@/data/products";
-import { usePlatforms } from "@/hooks/useEntities";
+import { usePlatforms, useWishlist, useToggleWishlist } from "@/hooks/useEntities";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const badgeConfig: Record<string, { icon: typeof BadgeCheck; label: string; className: string }> = {
   verified: { icon: BadgeCheck, label: "Verificado", className: "badge-verified" },
@@ -15,10 +17,26 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
   const customBadge = !predefinedBadge && product.badge ? { label: product.badge, className: "badge-hot" } : null;
   const badge = predefinedBadge || customBadge;
   const { data: platforms = [] } = usePlatforms();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: wishlistIds = [] } = useWishlist(user?.id);
+  const toggleWishlist = useToggleWishlist();
+
+  const isWished = wishlistIds.includes(product.id);
 
   const platform = (product as any).platform_id
     ? platforms.find((p) => p.id === (product as any).platform_id)
     : null;
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Faça login para adicionar à lista de desejos.");
+      navigate("/login");
+      return;
+    }
+    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
+  };
 
   const imageUrl = product.image_url || "/placeholder.svg";
 
@@ -40,6 +58,13 @@ const ProductCard = ({ product, index }: { product: Product; index: number }) =>
               -{product.discount}%
             </span>
           )}
+          <button 
+            onClick={handleWishlistClick}
+            className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-md transition-all ${isWished ? 'bg-accent/90 text-white' : 'bg-background/80 text-foreground hover:bg-background'} ${product.discount ? 'mt-8' : ''}`}
+            aria-label="Adicionar aos favoritos"
+          >
+            <Heart className={`w-4 h-4 ${isWished ? 'fill-current' : ''}`} />
+          </button>
           {badge && (
             <span className={`absolute top-3 right-3 ${badge.className}`}>
               {predefinedBadge && <predefinedBadge.icon className="w-3 h-3" />}

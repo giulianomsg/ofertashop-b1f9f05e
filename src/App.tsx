@@ -16,7 +16,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminStats from "./pages/admin/AdminStats";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReviews from "./pages/admin/AdminReviews";
-import AdminLogin from "./pages/admin/AdminLogin";
+import Login from "./pages/Login";
 import AdminBrands from "./pages/admin/AdminBrands";
 import AdminModels from "./pages/admin/AdminModels";
 import AdminPlatforms from "./pages/admin/AdminPlatforms";
@@ -25,6 +25,7 @@ import AdminSpecialPages from "./pages/admin/AdminSpecialPages";
 import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
 import SpecialPage from "./pages/SpecialPage";
 import NotFound from "./pages/NotFound";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/especial/:slug" element={<SpecialPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/perfil" element={<UserProfile />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="banners" element={<AdminBanners />} />

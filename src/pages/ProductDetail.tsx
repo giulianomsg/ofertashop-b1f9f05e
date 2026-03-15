@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
@@ -11,7 +11,8 @@ import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+import { useRef } from "react";
 
 const getVideoEmbedUrl = (url: string) => {
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
@@ -24,6 +25,10 @@ const getVideoEmbedUrl = (url: string) => {
 const ProductDetail = () => {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id);
+
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: products = [] } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -44,6 +49,29 @@ const ProductDetail = () => {
   const [copied, setCopied] = useState(false);
 
   const isWished = wishlistIds.includes(id || "");
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    
+    // If the video slide is active (usually the last slide if there's a video)
+    const videoIndex = product?.gallery_urls ? (product.image_url ? 1 : 0) + product.gallery_urls.length : (product?.image_url ? 1 : 0);
+    
+    if (current === videoIndex) {
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
+    }
+  }, [current, product]);
 
   if (isLoading) {
     return (
@@ -90,13 +118,23 @@ const ProductDetail = () => {
 
   const platform = productAny.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
 
+  const navigate = useNavigate();
+
   const handleLike = () => {
-    if (!user) { toast.error("Faça login para curtir."); return; }
+    if (!user) { 
+      toast.error("Faça login para curtir."); 
+      navigate("/login");
+      return; 
+    }
     toggleLike.mutate({ userId: user.id, productId: product.id, isLiked: userLiked });
   };
 
   const handleWishlist = () => {
-    if (!user) { toast.error("Faça login para adicionar à lista de desejos."); return; }
+    if (!user) { 
+      toast.error("Faça login para adicionar à lista de desejos."); 
+      navigate("/login");
+      return; 
+    }
     toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
   };
 
@@ -116,7 +154,11 @@ const ProductDetail = () => {
   };
 
   const handleReview = async () => {
-    if (!user) { toast.error("Faça login para avaliar."); return; }
+    if (!user) { 
+      toast.error("Faça login para avaliar."); 
+      navigate("/login");
+      return; 
+    }
     if (userRating === 0) { toast.error("Selecione uma avaliação."); return; }
     setSubmitting(true);
     const { error } = await supabase.from("reviews").insert({
@@ -161,7 +203,7 @@ const ProductDetail = () => {
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-            <Carousel className="w-full">
+            <Carousel setApi={setApi} className="w-full">
               <CarouselContent>
                 {allImages.map((url, i) => (
                   <CarouselItem key={i}>
@@ -176,7 +218,7 @@ const ProductDetail = () => {
                       {embedUrl ? (
                         <iframe src={embedUrl} className="w-full h-full rounded-xl" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="Vídeo do produto" />
                       ) : isMp4 ? (
-                        <video src={videoUrl} controls className="w-full h-full object-contain rounded-xl" />
+                        <video ref={videoRef} src={videoUrl} controls className="w-full h-full object-contain rounded-xl" />
                       ) : (
                         <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="btn-accent" aria-label="Abrir vídeo">
                           <ExternalLink className="w-5 h-5 mr-2" /> Assistir Vídeo Adicional
@@ -191,6 +233,33 @@ const ProductDetail = () => {
                 <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background border-border backdrop-blur-sm" />
               </div>
             </Carousel>
+            
+            {/* Thumbnails */}
+            {(allImages.length > 1 || videoUrl) && (
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x">
+                {allImages.map((url, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => api?.scrollTo(i)}
+                    className={`relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all snap-start ${current === i ? "border-accent ring-2 ring-accent/30" : "border-transparent opacity-70 hover:opacity-100"}`}
+                  >
+                    <img src={url} alt={`Amostra ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+                {videoUrl && (
+                  <button 
+                    onClick={() => api?.scrollTo(allImages.length)}
+                    className={`relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border-2 bg-black flex items-center justify-center transition-all snap-start ${current === allImages.length ? "border-accent ring-2 ring-accent/30" : "border-transparent opacity-70 hover:opacity-100"}`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-accent/80 flex items-center justify-center">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 3L19 12L5 21V3Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </button>
+                )}
+              </div>
+            )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-5">
