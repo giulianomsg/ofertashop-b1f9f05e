@@ -109,6 +109,14 @@ const ProductDetail = () => {
     fetchVotes();
   }, [product, user, visitorToken]);
 
+  const chartData = useMemo(() => {
+    return priceHistory.map((ph: any) => ({
+      date: new Date(ph.created_at).toLocaleDateString("pt-BR"),
+      price: Number(ph.price),
+      loja: ph.products?.store || "Desconhecido",
+    }));
+  }, [priceHistory]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -152,14 +160,6 @@ const ProductDetail = () => {
     : [];
 
   const platform = productAny?.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
-
-  const chartData = useMemo(() => {
-    return priceHistory.map((ph: any) => ({
-      date: new Date(ph.created_at).toLocaleDateString("pt-BR"),
-      price: Number(ph.price),
-      loja: ph.products?.store || "Desconhecido",
-    }));
-  }, [priceHistory]);
 
   const handleLike = () => {
     if (!user) { 
