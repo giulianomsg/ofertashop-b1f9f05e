@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS public.price_history (
 );
 
 ALTER TABLE public.price_history ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can view price history" ON public.price_history;
 CREATE POLICY "Anyone can view price history" ON public.price_history FOR SELECT TO public USING (true);
+DROP POLICY IF EXISTS "Admins can manage price history" ON public.price_history;
 CREATE POLICY "Admins can manage price history" ON public.price_history FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
 );
@@ -75,10 +77,13 @@ CREATE TABLE IF NOT EXISTS public.institutional_pages (
 );
 
 ALTER TABLE public.institutional_pages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can view active institutional pages" ON public.institutional_pages;
 CREATE POLICY "Anyone can view active institutional pages" ON public.institutional_pages FOR SELECT TO public USING (active = true);
+DROP POLICY IF EXISTS "Admins can view all institutional pages" ON public.institutional_pages;
 CREATE POLICY "Admins can view all institutional pages" ON public.institutional_pages FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
 );
+DROP POLICY IF EXISTS "Admins can manage institutional pages" ON public.institutional_pages;
 CREATE POLICY "Admins can manage institutional pages" ON public.institutional_pages FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
 );
@@ -94,7 +99,9 @@ CREATE TABLE IF NOT EXISTS public.coupons (
 );
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can view active coupons" ON public.coupons;
 CREATE POLICY "Anyone can view active coupons" ON public.coupons FOR SELECT TO public USING (active = true);
+DROP POLICY IF EXISTS "Admins can manage coupons" ON public.coupons;
 CREATE POLICY "Admins can manage coupons" ON public.coupons FOR ALL TO authenticated USING (
     EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
 );
@@ -112,5 +119,7 @@ CREATE TABLE IF NOT EXISTS public.coupon_votes (
 );
 
 ALTER TABLE public.coupon_votes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can insert coupon votes" ON public.coupon_votes;
 CREATE POLICY "Anyone can insert coupon votes" ON public.coupon_votes FOR INSERT TO public WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can view coupon votes" ON public.coupon_votes;
 CREATE POLICY "Anyone can view coupon votes" ON public.coupon_votes FOR SELECT TO public USING (true);
