@@ -14,6 +14,9 @@ CREATE POLICY "Anyone can view trust votes" ON public.product_trust_votes FOR SE
 -- Add is_trusted to trust votes if not exists
 ALTER TABLE public.product_trust_votes ADD COLUMN IF NOT EXISTS is_trusted BOOLEAN DEFAULT true;
 
+-- Remove whatsapp group trigger to allow multiple active
+DROP TRIGGER IF EXISTS trg_single_active_whatsapp ON public.whatsapp_groups;
+DROP FUNCTION IF EXISTS public.enforce_single_active_whatsapp();
 -- Create price_history table
 CREATE TABLE IF NOT EXISTS public.price_history (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

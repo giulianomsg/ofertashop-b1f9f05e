@@ -147,21 +147,4 @@ CREATE TRIGGER trg_calc_discount
   FOR EACH ROW
   EXECUTE FUNCTION public.calc_discount_percentage();
 
--- Trigger to enforce only one active whatsapp group
-CREATE OR REPLACE FUNCTION public.enforce_single_active_whatsapp()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path TO 'public'
-AS $$
-BEGIN
-  IF NEW.active = true THEN
-    UPDATE public.whatsapp_groups SET active = false WHERE id != NEW.id AND active = true;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_single_active_whatsapp
-  BEFORE INSERT OR UPDATE ON public.whatsapp_groups
-  FOR EACH ROW
-  EXECUTE FUNCTION public.enforce_single_active_whatsapp();
+-- Removed enforcement of single active whatsapp group to allow multiple active.

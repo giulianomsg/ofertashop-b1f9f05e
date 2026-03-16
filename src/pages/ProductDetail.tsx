@@ -238,7 +238,7 @@ const ProductDetail = () => {
         is_trusted: isTrusted,
         user_id: user.id
       };
-      await (supabase as any).from('product_trust_votes').insert(insertData);
+      await (supabase as any).from('product_trust_votes').upsert(insertData, { onConflict: 'product_id,user_id' });
     } catch (e) {}
   };
 
