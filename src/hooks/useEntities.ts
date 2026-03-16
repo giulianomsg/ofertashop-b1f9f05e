@@ -144,7 +144,7 @@ export const useInstitutionalPages = () =>
   useQuery({
     queryKey: ["institutional_pages"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("institutional_pages" as any).select("*").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("institutional_pages").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -154,7 +154,7 @@ export const useActiveInstitutionalPages = () =>
   useQuery({
     queryKey: ["active_institutional_pages"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("institutional_pages" as any).select("*").eq("active", true).order("title");
+      const { data, error } = await (supabase as any).from("institutional_pages").select("*").eq("active", true).order("title");
       if (error) throw error;
       return data;
     },
@@ -163,8 +163,8 @@ export const useActiveInstitutionalPages = () =>
 export const useCreateInstitutionalPage = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (page: { title: string; slug: string; content_html?: string; active?: boolean }) => {
-      const { data, error } = await supabase.from("institutional_pages" as any).insert(page).select().single();
+    mutationFn: async (page: { title: string; slug: string; content_html?: string; active?: boolean; section_type?: string }) => {
+      const { data, error } = await (supabase as any).from("institutional_pages").insert(page).select().single();
       if (error) throw error;
       return data;
     },
@@ -178,8 +178,8 @@ export const useCreateInstitutionalPage = () => {
 export const useUpdateInstitutionalPage = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; active?: boolean; title?: string; slug?: string; content_html?: string }) => {
-      const { error } = await supabase.from("institutional_pages" as any).update(updates).eq("id", id);
+    mutationFn: async ({ id, ...updates }: { id: string; active?: boolean; title?: string; slug?: string; content_html?: string; section_type?: string }) => {
+      const { error } = await (supabase as any).from("institutional_pages").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -193,7 +193,7 @@ export const useDeleteInstitutionalPage = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("institutional_pages" as any).delete().eq("id", id);
+      const { error } = await (supabase as any).from("institutional_pages").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -208,7 +208,7 @@ export const useCoupons = () =>
   useQuery({
     queryKey: ["coupons"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("coupons" as any).select("*, platforms(name)").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("coupons").select("*, platforms(name)").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -219,8 +219,8 @@ export const useActiveCoupons = (platformId?: string | null) =>
     queryKey: ["active_coupons", platformId],
     queryFn: async () => {
       if (!platformId) return [];
-      const { data, error } = await supabase
-        .from("coupons" as any)
+      const { data, error } = await (supabase as any)
+        .from("coupons")
         .select("*")
         .eq("active", true)
         .eq("platform_id", platformId)
@@ -235,7 +235,7 @@ export const useCreateCoupon = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (coupon: any) => {
-      const { data, error } = await supabase.from("coupons" as any).insert(coupon).select().single();
+      const { data, error } = await (supabase as any).from("coupons").insert(coupon).select().single();
       if (error) throw error;
       return data;
     },
@@ -250,7 +250,7 @@ export const useUpdateCoupon = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: any) => {
-      const { error } = await supabase.from("coupons" as any).update(updates).eq("id", id);
+      const { error } = await (supabase as any).from("coupons").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -264,7 +264,7 @@ export const useDeleteCoupon = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
+      const { error } = await (supabase as any).from("coupons").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -278,7 +278,7 @@ export const useCouponStats = (couponId: string) =>
   useQuery({
     queryKey: ["coupon_stats", couponId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("coupon_votes" as any).select("is_working").eq("coupon_id", couponId);
+      const { data, error } = await (supabase as any).from("coupon_votes").select("is_working").eq("coupon_id", couponId);
       if (error) throw error;
       const total = data.length;
       const working = data.filter((v: any) => v.is_working).length;
@@ -290,12 +290,12 @@ export const useCouponStats = (couponId: string) =>
 export const useVoteCoupon = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ couponId, isWorking, sessionToken }: { couponId: string; isWorking: boolean; sessionToken: string }) => {
-      const { error } = await supabase.from("coupon_votes" as any).insert({
+    mutationFn: async ({ couponId, isWorking, sessionToken }: { couponId: string; isWorking: boolean; sessionToken: string | null }) => {
+      const { error } = await (supabase as any).from("coupon_votes").upsert({
         coupon_id: couponId,
         is_working: isWorking,
-        session_token: sessionToken
-      });
+        session_token: sessionToken || crypto.randomUUID()
+      }, { onConflict: "coupon_id,session_token" });
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
@@ -374,7 +374,7 @@ export const useCreateWhatsAppGroup = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ name, link, active }: { name: string; link: string; active?: boolean }) => {
-      const { data, error } = await supabase.from("whatsapp_groups").insert({ name, link, active: active || false }).select().single();
+      const { data, error } = await (supabase as any).from("whatsapp_groups").insert({ name, link, active: active || false }).select().single();
       if (error) throw error;
       return data;
     },
@@ -389,7 +389,7 @@ export const useUpdateWhatsAppGroup = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; name?: string; link?: string; active?: boolean }) => {
-      const { error } = await supabase.from("whatsapp_groups").update(updates).eq("id", id);
+      const { error } = await (supabase as any).from("whatsapp_groups").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -429,12 +429,14 @@ export const useWishlist = (userId?: string) =>
 export const useToggleWishlist = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ userId, productId, isWished }: { userId: string; productId: string; isWished: boolean }) => {
+    mutationFn: async ({ userId, productId, isWished, currentPrice }: { userId: string; productId: string; isWished: boolean; currentPrice?: number }) => {
       if (isWished) {
         const { error } = await supabase.from("wishlists").delete().eq("user_id", userId).eq("product_id", productId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("wishlists").insert({ user_id: userId, product_id: productId });
+        const insertData: any = { user_id: userId, product_id: productId };
+        if (currentPrice !== undefined) insertData.price_when_favorited = currentPrice;
+        const { error } = await (supabase as any).from("wishlists").insert(insertData);
         if (error) throw error;
       }
     },
@@ -493,5 +495,26 @@ export const useActiveSpecialPages = () =>
       const { data, error } = await supabase.from("special_pages").select("*").eq("active", true).order("title");
       if (error) throw error;
       return data;
+    },
+  });
+
+// ─── Trust Votes by Platform (for admin stats) ───
+export const useTrustVotesByPlatform = () =>
+  useQuery({
+    queryKey: ["trust_votes_by_platform"],
+    queryFn: async () => {
+      // Get all trust votes with their product's platform_id
+      const { data: votes, error } = await (supabase as any)
+        .from("product_trust_votes")
+        .select("is_trusted, products!inner(platform_id)");
+      if (error) throw error;
+
+      // Get clicks per product
+      const { data: clicks, error: clicksErr } = await (supabase as any)
+        .from("product_clicks")
+        .select("product_id, products!inner(platform_id)");
+      if (clicksErr) throw clicksErr;
+
+      return { votes: votes || [], clicks: clicks || [] };
     },
   });

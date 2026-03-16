@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Code } from "lucide-react";
 import { motion } from "framer-motion";
 import { useInstitutionalPages, useCreateInstitutionalPage, useUpdateInstitutionalPage, useDeleteInstitutionalPage } from "@/hooks/useEntities";
 import { toast } from "sonner";
@@ -15,17 +15,20 @@ const AdminInstitutionalPages = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: "", slug: "", content_html: "", active: true });
+  const [form, setForm] = useState({ title: "", slug: "", content_html: "", active: true, section_type: "support" });
+  const [showSource, setShowSource] = useState(false);
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ title: "", slug: "", content_html: "", active: true });
+    setForm({ title: "", slug: "", content_html: "", active: true, section_type: "support" });
+    setShowSource(false);
     setShowModal(true);
   };
 
   const openEdit = (page: any) => {
     setEditingId(page.id);
-    setForm({ title: page.title, slug: page.slug, content_html: page.content_html || "", active: page.active });
+    setForm({ title: page.title, slug: page.slug, content_html: page.content_html || "", active: page.active, section_type: page.section_type || "support" });
+    setShowSource(false);
     setShowModal(true);
   };
 
@@ -81,17 +84,23 @@ const AdminInstitutionalPages = () => {
             <tr className="border-b border-border bg-secondary">
               <th className="text-left p-4 font-semibold text-foreground">Título</th>
               <th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Slug</th>
+              <th className="text-left p-4 font-semibold text-foreground hidden md:table-cell">Seção</th>
               <th className="text-center p-4 font-semibold text-foreground">Status</th>
               <th className="text-right p-4 font-semibold text-foreground">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {isLoading ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
-              pages.length === 0 ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Nenhuma página.</td></tr> :
+            {isLoading ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
+              pages.length === 0 ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhuma página.</td></tr> :
                 pages.map((p: any) => (
                   <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
                     <td className="p-4 font-medium text-foreground">{p.title}</td>
                     <td className="p-4 text-muted-foreground hidden sm:table-cell">/p/{p.slug}</td>
+                    <td className="p-4 text-muted-foreground hidden md:table-cell">
+                      <span className={`text-xs px-2 py-1 rounded-full ${p.section_type === 'special' ? 'bg-accent/10 text-accent' : 'bg-secondary text-muted-foreground'}`}>
+                        {p.section_type === 'special' ? 'Especial' : 'Suporte'}
+                      </span>
+                    </td>
                     <td className="p-4 text-center">
                       <button onClick={() => handleToggle(p.id, p.active)} aria-label="Alternar status">
                         {p.active ? <ToggleRight className="w-7 h-7 text-success" /> : <ToggleLeft className="w-7 h-7 text-muted-foreground" />}
@@ -117,19 +126,47 @@ const AdminInstitutionalPages = () => {
               <button onClick={() => setShowModal(false)} className="p-1 rounded-lg hover:bg-secondary" aria-label="Fechar"><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold block mb-1">Título</label>
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold block mb-1">Slug (URL)</label>
-                <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold block mb-1">Conteúdo (HTML)</label>
-                <div className="bg-secondary rounded-lg">
-                  <ReactQuill theme="snow" value={form.content_html} onChange={(v: string) => setForm({ ...form, content_html: v })} className="min-h-[200px]" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Título</label>
+                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none" />
                 </div>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Slug (URL)</label>
+                  <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold block mb-1">Seção no Rodapé</label>
+                <select value={form.section_type} onChange={(e) => setForm({ ...form, section_type: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none">
+                  <option value="support">Suporte</option>
+                  <option value="special">Página Especial</option>
+                </select>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold">Conteúdo</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowSource(!showSource)}
+                    className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors ${showSource ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}
+                    aria-label="Alternar código fonte"
+                  >
+                    <Code className="w-3.5 h-3.5" /> {showSource ? "Editor Visual" : "Código Fonte"}
+                  </button>
+                </div>
+                {showSource ? (
+                  <textarea
+                    value={form.content_html}
+                    onChange={(e) => setForm({ ...form, content_html: e.target.value })}
+                    className="w-full min-h-[300px] px-3 py-2 rounded-lg bg-secondary border-none font-mono text-xs"
+                    placeholder="Cole seu HTML aqui..."
+                  />
+                ) : (
+                  <div className="bg-secondary rounded-lg">
+                    <ReactQuill theme="snow" value={form.content_html} onChange={(v: string) => setForm({ ...form, content_html: v })} className="min-h-[200px]" />
+                  </div>
+                )}
               </div>
             </div>
             <button onClick={handleSave} className="btn-accent w-full mt-4" aria-label="Salvar">Salvar</button>
