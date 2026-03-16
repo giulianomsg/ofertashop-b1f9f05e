@@ -95,6 +95,151 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_votes: {
+        Row: {
+          coupon_id: string
+          created_at: string | null
+          id: string
+          is_working: boolean
+          session_token: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string | null
+          id?: string
+          is_working: boolean
+          session_token: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string | null
+          id?: string
+          is_working?: boolean
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_votes_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          active: boolean | null
+          code: string
+          conditions: string | null
+          created_at: string | null
+          description: string | null
+          discount_amount: string | null
+          discount_value: string | null
+          id: string
+          is_link_only: boolean | null
+          platform_id: string | null
+          reports_inactive: number | null
+          subtitle: string | null
+          title: string
+        }
+        Insert: {
+          active?: boolean | null
+          code?: string
+          conditions?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_amount?: string | null
+          discount_value?: string | null
+          id?: string
+          is_link_only?: boolean | null
+          platform_id?: string | null
+          reports_inactive?: number | null
+          subtitle?: string | null
+          title?: string
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          conditions?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_amount?: string | null
+          discount_value?: string | null
+          id?: string
+          is_link_only?: boolean | null
+          platform_id?: string | null
+          reports_inactive?: number | null
+          subtitle?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "platforms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_queue: {
+        Row: {
+          created_at: string | null
+          html_content: string | null
+          id: string
+          status: string | null
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          status?: string | null
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          status?: string | null
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      institutional_pages: {
+        Row: {
+          active: boolean | null
+          content_html: string | null
+          created_at: string | null
+          id: string
+          section_type: string | null
+          slug: string
+          title: string
+        }
+        Insert: {
+          active?: boolean | null
+          content_html?: string | null
+          created_at?: string | null
+          id?: string
+          section_type?: string | null
+          slug: string
+          title: string
+        }
+        Update: {
+          active?: boolean | null
+          content_html?: string | null
+          created_at?: string | null
+          id?: string
+          section_type?: string | null
+          slug?: string
+          title?: string
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           brand_id: string
@@ -124,6 +269,63 @@ export type Database = {
           },
         ]
       }
+      newsletter_products: {
+        Row: {
+          id: string
+          newsletter_id: string
+          product_id: string
+        }
+        Insert: {
+          id?: string
+          newsletter_id: string
+          product_id: string
+        }
+        Update: {
+          id?: string
+          newsletter_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_products_newsletter_id_fkey"
+            columns: ["newsletter_id"]
+            isOneToOne: false
+            referencedRelation: "newsletters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletters: {
+        Row: {
+          created_at: string | null
+          html_content: string | null
+          id: string
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          status?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
       platforms: {
         Row: {
           created_at: string
@@ -144,6 +346,67 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      price_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          price: number
+          product_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          price: number
+          product_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          price?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_clicks: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          session_token: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          session_token?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          session_token?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_likes: {
         Row: {
@@ -174,12 +437,47 @@ export type Database = {
           },
         ]
       }
+      product_trust_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_trusted: boolean
+          product_id: string
+          session_token: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_trusted?: boolean
+          product_id: string
+          session_token?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_trusted?: boolean
+          product_id?: string
+          session_token?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_trust_votes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           affiliate_url: string
           badge: string | null
           brand_id: string | null
-          category_id: string
+          category: string
           clicks: number
           created_at: string
           created_by: string | null
@@ -206,7 +504,7 @@ export type Database = {
           affiliate_url: string
           badge?: string | null
           brand_id?: string | null
-          category_id: string
+          category: string
           clicks?: number
           created_at?: string
           created_by?: string | null
@@ -233,7 +531,7 @@ export type Database = {
           affiliate_url?: string
           badge?: string | null
           brand_id?: string | null
-          category_id?: string
+          category?: string
           clicks?: number
           created_at?: string
           created_by?: string | null
@@ -262,13 +560,6 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
           {
@@ -489,21 +780,21 @@ export type Database = {
           created_at: string
           id: string
           link: string
-          name: string
+          name: string | null
         }
         Insert: {
           active?: boolean
           created_at?: string
           id?: string
           link: string
-          name?: string
+          name?: string | null
         }
         Update: {
           active?: boolean
           created_at?: string
           id?: string
           link?: string
-          name?: string
+          name?: string | null
         }
         Relationships: []
       }
@@ -511,18 +802,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          price_when_favorited: number | null
           product_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          price_when_favorited?: number | null
           product_id: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          price_when_favorited?: number | null
           product_id?: string
           user_id?: string
         }
@@ -568,6 +862,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      generate_price_alerts: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

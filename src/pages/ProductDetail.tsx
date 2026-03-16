@@ -150,9 +150,9 @@ const ProductDetail = () => {
     );
   }
 
-  const related = products.filter((p) => p.id !== product.id && p.category_id === product.category_id).slice(0, 3);
+  const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
   const imageUrl = product.image_url || "/placeholder.svg";
-  const categoryName = categories.find(c => c.id === product.category_id)?.name || "Outros";
+  const categoryName = categories.find(c => c.slug === product.category)?.name || product.category || "Outros";
   const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
@@ -186,7 +186,7 @@ const ProductDetail = () => {
       navigate("/login");
       return; 
     }
-    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
+    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished, currentPrice: Number(product.price) });
   };
 
   const handleTrustVote = async (isTrusted: boolean) => {
@@ -554,7 +554,7 @@ const ProductDetail = () => {
             <h2 className="font-display font-bold text-xl text-foreground mb-6">Cupons de Desconto ({platform?.name || 'Loja'})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {coupons.map((coupon: any) => (
-                <CouponItem key={coupon.id} coupon={coupon} />
+                <CouponItem key={coupon.id} coupon={coupon} affiliateUrl={product.affiliate_url} />
               ))}
             </div>
           </section>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, Shield, Lock, CreditCard, ExternalLink, Users, Phone, Target, Zap, LayoutDashboard, ChevronRight, ChevronLeft } from "lucide-react";
+import { ShoppingBag, Shield, Lock, CreditCard } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useActiveSpecialPages, useWhatsAppGroups, useActiveInstitutionalPages } from "@/hooks/useEntities";
 
@@ -13,10 +13,15 @@ const SiteFooter = () => {
   const { data: institutionalPages = [] } = useActiveInstitutionalPages();
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
 
+  // Split institutional pages by section_type
+  const supportPages = institutionalPages.filter((p: any) => (p.section_type || 'support') === 'support');
+  const specialInstitutionalPages = institutionalPages.filter((p: any) => p.section_type === 'special');
+
   return (
     <footer className="bg-primary text-primary-foreground mt-16">
       <div className="container mx-auto px-4 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
@@ -26,54 +31,66 @@ const SiteFooter = () => {
             </div>
             <p className="text-sm text-primary-foreground/60">As melhores ofertas da internet, verificadas e atualizadas diariamente.</p>
           </div>
+
+          {/* Navigation + Support */}
           <div>
-            <h3 className="font-display font-semibold text-primary-foreground mb-4">Navegação</h3>
+            <h3 className="font-display font-semibold text-primary-foreground mb-4">Suporte</h3>
             <ul className="space-y-3">
               <li>
                 <Link to="/" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
                   Início
                 </Link>
               </li>
-              {institutionalPages.map((page: any) => (
-                <li key={page.id}>
-                  <Link to={`/p/${page.slug}`} className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
-                    {page.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-display font-semibold mb-3 text-sm">
-              {specialPages.length > 0 ? "Páginas Especiais" : "Suporte"}
-            </h4>
-            <div className="space-y-2 text-sm text-primary-foreground/60">
-              {specialPages.length > 0 ? (
-                specialPages.map((page) => (
-                  <Link key={page.id} to={`/especial/${page.slug}`} className="block hover:text-primary-foreground transition-colors">
-                    {page.title}
-                  </Link>
+              {supportPages.length > 0 ? (
+                supportPages.map((page: any) => (
+                  <li key={page.id}>
+                    <Link to={`/p/${page.slug}`} className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
+                      {page.title}
+                    </Link>
+                  </li>
                 ))
               ) : (
                 <>
-                  <Link to="/" className="block hover:text-primary-foreground transition-colors">Central de Ajuda</Link>
-                  <Link to="/" className="block hover:text-primary-foreground transition-colors">Termos de Uso</Link>
-                  <Link to="/" className="block hover:text-primary-foreground transition-colors">Política de Privacidade</Link>
+                  <li><Link to="/" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">Central de Ajuda</Link></li>
+                  <li><Link to="/" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">Termos de Uso</Link></li>
+                  <li><Link to="/" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">Política de Privacidade</Link></li>
                 </>
+              )}
+            </ul>
+          </div>
+
+          {/* Special Pages */}
+          <div>
+            <h4 className="font-display font-semibold mb-3 text-sm">Páginas Especiais</h4>
+            <div className="space-y-2 text-sm text-primary-foreground/60">
+              {specialPages.map((page) => (
+                <Link key={page.id} to={`/especial/${page.slug}`} className="block hover:text-primary-foreground transition-colors">
+                  {page.title}
+                </Link>
+              ))}
+              {specialInstitutionalPages.map((page: any) => (
+                <Link key={page.id} to={`/p/${page.slug}`} className="block hover:text-primary-foreground transition-colors">
+                  {page.title}
+                </Link>
+              ))}
+              {specialPages.length === 0 && specialInstitutionalPages.length === 0 && (
+                <p className="text-primary-foreground/40 text-xs">Nenhuma página especial ainda.</p>
               )}
             </div>
           </div>
+
+          {/* WhatsApp QR / Security */}
           <div>
             {whatsappGroups.length > 0 ? (
               <>
                 <h4 className="font-display font-semibold mb-3 text-sm">Grupos de WhatsApp</h4>
                 <p className="text-xs text-primary-foreground/60 mb-3">
-                  Escaneie o QR Code para entrar no {whatsappGroups[activeGroupIndex]?.name}!
+                  Escaneie o QR Code para entrar no {whatsappGroups[activeGroupIndex]?.name || 'grupo'}!
                 </p>
                 
                 {whatsappGroups.length > 1 && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {whatsappGroups.map((group, index) => (
+                    {whatsappGroups.map((group: any, index: number) => (
                       <button
                         key={group.id}
                         onClick={() => setActiveGroupIndex(index)}
@@ -84,7 +101,7 @@ const SiteFooter = () => {
                         }`}
                         aria-label={`Selecionar grupo ${group.name}`}
                       >
-                        {group.name}
+                        {group.name || `Grupo ${index + 1}`}
                       </button>
                     ))}
                   </div>
