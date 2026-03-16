@@ -196,61 +196,76 @@ const ProductDetail = () => {
       return;
     }
 
+    const prevVotes = { ...trustVotes };
+    const prevHasVoted = hasVotedTrust;
+
     if (hasVotedTrust === isTrusted) {
-      // Undo vote
+      // Undo vote — optimistic
       setTrustVotes(prev => ({
         sim: isTrusted ? prev.sim - 1 : prev.sim,
         nao: !isTrusted ? prev.nao - 1 : prev.nao
       }));
       setHasVotedTrust(null);
-      try {
-        await (supabase as any).from('product_trust_votes')
-          .delete()
-          .eq('product_id', product.id)
-          .eq('user_id', user.id);
-      } catch (e) {}
+      const { error } = await (supabase as any).from('product_trust_votes')
+        .delete()
+        .eq('product_id', product.id)
+        .eq('user_id', user.id);
+      if (error) {
+        console.error('Trust vote delete error:', error);
+        setTrustVotes(prevVotes);
+        setHasVotedTrust(prevHasVoted);
+        toast.error("Erro ao remover voto. Tente novamente.");
+      }
       return;
     } else if (hasVotedTrust !== null) {
-      // Change vote
+      // Change vote — optimistic
       setTrustVotes(prev => ({
         sim: isTrusted ? prev.sim + 1 : prev.sim - 1,
         nao: !isTrusted ? prev.nao + 1 : prev.nao - 1
       }));
       setHasVotedTrust(isTrusted);
-      try {
-        await (supabase as any).from('product_trust_votes')
-          .update({ is_trusted: isTrusted })
-          .eq('product_id', product.id)
-          .eq('user_id', user.id);
-      } catch (e) {}
+      const { error } = await (supabase as any).from('product_trust_votes')
+        .update({ is_trusted: isTrusted })
+        .eq('product_id', product.id)
+        .eq('user_id', user.id);
+      if (error) {
+        console.error('Trust vote update error:', error);
+        setTrustVotes(prevVotes);
+        setHasVotedTrust(prevHasVoted);
+        toast.error("Erro ao alterar voto. Tente novamente.");
+      }
       return;
     }
 
-    // New vote
+    // New vote — optimistic
     setTrustVotes(prev => ({ 
       sim: isTrusted ? prev.sim + 1 : prev.sim, 
       nao: !isTrusted ? prev.nao + 1 : prev.nao 
     }));
     setHasVotedTrust(isTrusted);
-    try {
-      const insertData = {
+    const { error } = await (supabase as any).from('product_trust_votes')
+      .upsert({
         product_id: product.id,
         is_trusted: isTrusted,
         user_id: user.id
-      };
-      await (supabase as any).from('product_trust_votes').upsert(insertData, { onConflict: 'product_id,user_id' });
-    } catch (e) {}
+      }, { onConflict: 'product_id,user_id' });
+    if (error) {
+      console.error('Trust vote insert error:', error);
+      setTrustVotes(prevVotes);
+      setHasVotedTrust(prevHasVoted);
+      toast.error("Erro ao registrar voto. Tente novamente.");
+    }
   };
 
   const handleAccessOffer = async () => {
     setLocalClicks(prev => prev + 1);
-    try {
-      const insertData = {
-        product_id: product.id,
-        ...(user ? { user_id: user.id } : { session_token: visitorToken })
-      };
-      await (supabase as any).from('product_clicks').insert(insertData);
-    } catch (e) {
+    const insertData = {
+      product_id: product.id,
+      ...(user ? { user_id: user.id } : { session_token: visitorToken })
+    };
+    const { error } = await (supabase as any).from('product_clicks').insert(insertData);
+    if (error) {
+      console.error('Click tracking error:', error);
       setLocalClicks(prev => Math.max(0, prev - 1));
     }
   };
