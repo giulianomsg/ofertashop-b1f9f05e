@@ -218,14 +218,17 @@ export const useActiveCoupons = (platformId?: string | null) =>
   useQuery({
     queryKey: ["active_coupons", platformId],
     queryFn: async () => {
-      let query = supabase.from("coupons" as any).select("*").eq("active", true);
-      if (platformId) {
-        query = query.eq("platform_id", platformId);
-      }
-      const { data, error } = await query.order("created_at", { ascending: false });
+      if (!platformId) return [];
+      const { data, error } = await supabase
+        .from("coupons" as any)
+        .select("*")
+        .eq("active", true)
+        .eq("platform_id", platformId)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+    enabled: !!platformId,
   });
 
 export const useCreateCoupon = () => {

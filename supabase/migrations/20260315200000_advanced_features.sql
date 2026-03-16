@@ -47,6 +47,23 @@ AFTER INSERT OR UPDATE ON public.products
 FOR EACH ROW
 EXECUTE FUNCTION log_price_change();
 
+-- Trigger for product clicks
+CREATE OR REPLACE FUNCTION increment_product_clicks()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE public.products
+    SET clicks = clicks + 1
+    WHERE id = NEW.product_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_increment_product_clicks ON public.product_clicks;
+CREATE TRIGGER trg_increment_product_clicks
+AFTER INSERT ON public.product_clicks
+FOR EACH ROW
+EXECUTE FUNCTION increment_product_clicks();
+
 -- Create institutional_pages table
 CREATE TABLE IF NOT EXISTS public.institutional_pages (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

@@ -52,6 +52,7 @@ const ProductDetail = () => {
 
   const [trustVotes, setTrustVotes] = useState({ sim: 0, nao: 0 });
   const [hasVotedTrust, setHasVotedTrust] = useState<boolean | null>(null); // null = no vote, true = sim, false = nao
+  const [localClicks, setLocalClicks] = useState<number>(0);
 
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -73,6 +74,12 @@ const ProductDetail = () => {
   }, [api]);
 
   useEffect(() => {
+    if (product) {
+      setLocalClicks(product.clicks);
+    }
+  }, [product]);
+
+  useEffect(() => {
     if (!videoRef.current) return;
     
     // If the video slide is active (usually the last slide if there's a video)
@@ -86,8 +93,10 @@ const ProductDetail = () => {
   }, [current, product]);
 
   useEffect(() => {
-    if (!product || !visitorToken) return;
+    if (!product) return;
     const fetchVotes = async () => {
+      if (!product) return;
+      
       const { data: allVotes } = await (supabase as any).from('product_trust_votes')
         .select('is_trusted')
         .eq('product_id', product.id);
@@ -98,16 +107,17 @@ const ProductDetail = () => {
         setTrustVotes({ sim, nao });
       }
 
-      const matchQuery = user ? { user_id: user.id } : { session_token: visitorToken };
-      const { data } = await (supabase as any).from('product_trust_votes')
-        .select('is_trusted')
-        .eq('product_id', product.id)
-        .match(matchQuery)
-        .maybeSingle();
-      if (data) setHasVotedTrust(data.is_trusted !== false);
+      if (user) {
+        const { data } = await (supabase as any).from('product_trust_votes')
+          .select('is_trusted')
+          .eq('product_id', product.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data) setHasVotedTrust(data.is_trusted !== false);
+      }
     };
     fetchVotes();
-  }, [product, user, visitorToken]);
+  }, [product, user]);
 
   const chartData = useMemo(() => {
     return priceHistory.map((ph: any) => ({
@@ -180,7 +190,43 @@ const ProductDetail = () => {
   };
 
   const handleTrustVote = async (isTrusted: boolean) => {
-    if (hasVotedTrust !== null) return;
+    if (!user) {
+      toast.error("Faça login para avaliar a confiança da oferta.");
+      navigate("/login");
+      return;
+    }
+
+    if (hasVotedTrust === isTrusted) {
+      // Undo vote
+      setTrustVotes(prev => ({
+        sim: isTrusted ? prev.sim - 1 : prev.sim,
+        nao: !isTrusted ? prev.nao - 1 : prev.nao
+      }));
+      setHasVotedTrust(null);
+      try {
+        await (supabase as any).from('product_trust_votes')
+          .delete()
+          .eq('product_id', product.id)
+          .eq('user_id', user.id);
+      } catch (e) {}
+      return;
+    } else if (hasVotedTrust !== null) {
+      // Change vote
+      setTrustVotes(prev => ({
+        sim: isTrusted ? prev.sim + 1 : prev.sim - 1,
+        nao: !isTrusted ? prev.nao + 1 : prev.nao - 1
+      }));
+      setHasVotedTrust(isTrusted);
+      try {
+        await (supabase as any).from('product_trust_votes')
+          .update({ is_trusted: isTrusted })
+          .eq('product_id', product.id)
+          .eq('user_id', user.id);
+      } catch (e) {}
+      return;
+    }
+
+    // New vote
     setTrustVotes(prev => ({ 
       sim: isTrusted ? prev.sim + 1 : prev.sim, 
       nao: !isTrusted ? prev.nao + 1 : prev.nao 
@@ -190,20 +236,23 @@ const ProductDetail = () => {
       const insertData = {
         product_id: product.id,
         is_trusted: isTrusted,
-        ...(user ? { user_id: user.id } : { session_token: visitorToken })
+        user_id: user.id
       };
       await (supabase as any).from('product_trust_votes').insert(insertData);
     } catch (e) {}
   };
 
   const handleAccessOffer = async () => {
+    setLocalClicks(prev => prev + 1);
     try {
       const insertData = {
         product_id: product.id,
         ...(user ? { user_id: user.id } : { session_token: visitorToken })
       };
       await (supabase as any).from('product_clicks').insert(insertData);
-    } catch (e) {}
+    } catch (e) {
+      setLocalClicks(prev => Math.max(0, prev - 1));
+    }
   };
 
   const handleShare = (platform: "whatsapp" | "facebook" | "twitter" | "copy") => {
@@ -375,7 +424,7 @@ const ProductDetail = () => {
               </button>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm">
                 <TrendingUp className="w-4 h-4 text-accent" />
-                <span className="text-foreground font-medium">{product.clicks.toLocaleString()} cliques</span>
+                <span className="text-foreground font-medium">{localClicks.toLocaleString()} cliques</span>
               </div>
             </div>
 
@@ -396,15 +445,13 @@ const ProductDetail = () => {
               <div className="flex gap-2">
                 <button 
                   onClick={() => handleTrustVote(true)} 
-                  disabled={hasVotedTrust !== null}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === true ? "bg-success text-success-foreground" : "bg-secondary text-foreground hover:bg-success/20 hover:text-success disabled:opacity-50 disabled:hover:bg-secondary disabled:hover:text-foreground"}`}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === true ? "bg-success text-success-foreground" : "bg-secondary text-foreground hover:bg-success/20 hover:text-success"}`}
                 >
                   Sim ({trustVotes.sim})
                 </button>
                 <button 
                   onClick={() => handleTrustVote(false)} 
-                  disabled={hasVotedTrust !== null}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === false ? "bg-destructive text-destructive-foreground" : "bg-secondary text-foreground hover:bg-destructive/20 hover:text-destructive disabled:opacity-50 disabled:hover:bg-secondary disabled:hover:text-foreground"}`}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === false ? "bg-destructive text-destructive-foreground" : "bg-secondary text-foreground hover:bg-destructive/20 hover:text-destructive"}`}
                 >
                   Não ({trustVotes.nao})
                 </button>
