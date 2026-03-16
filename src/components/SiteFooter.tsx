@@ -1,12 +1,16 @@
-import { ShoppingBag, Shield, Lock, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ShoppingBag, Shield, Lock, CreditCard, ExternalLink, Users, Phone, Target, Zap, LayoutDashboard, ChevronRight, ChevronLeft } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
-import { useActiveSpecialPages, useActiveWhatsAppGroups } from "@/hooks/useEntities";
+import { useActiveSpecialPages, useWhatsAppGroups, useActiveInstitutionalPages } from "@/hooks/useEntities";
 
 const SiteFooter = () => {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
+
   const { data: specialPages = [] } = useActiveSpecialPages();
-  const { data: whatsappGroups = [] } = useActiveWhatsAppGroups();
+  const { data: whatsappGroups = [] } = useWhatsAppGroups();
+  const { data: institutionalPages = [] } = useActiveInstitutionalPages();
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
 
   return (
@@ -23,12 +27,21 @@ const SiteFooter = () => {
             <p className="text-sm text-primary-foreground/60">As melhores ofertas da internet, verificadas e atualizadas diariamente.</p>
           </div>
           <div>
-            <h4 className="font-display font-semibold mb-3 text-sm">Navegação</h4>
-            <div className="space-y-2 text-sm text-primary-foreground/60">
-              <Link to="/" className="block hover:text-primary-foreground transition-colors">Início</Link>
-              <Link to="/" className="block hover:text-primary-foreground transition-colors">Categorias</Link>
-              <Link to="/" className="block hover:text-primary-foreground transition-colors">Mais Clicados</Link>
-            </div>
+            <h3 className="font-display font-semibold text-primary-foreground mb-4">Navegação</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link to="/" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
+                  Início
+                </Link>
+              </li>
+              {institutionalPages.map((page: any) => (
+                <li key={page.id}>
+                  <Link to={`/p/${page.slug}`} className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
+                    {page.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
           <div>
             <h4 className="font-display font-semibold mb-3 text-sm">
@@ -59,24 +72,21 @@ const SiteFooter = () => {
                 </p>
                 
                 {whatsappGroups.length > 1 && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <button
-                      onClick={() => setActiveGroupIndex(prev => prev === 0 ? whatsappGroups.length - 1 : prev - 1)}
-                      className="p-1 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors disabled:opacity-50"
-                      aria-label="Grupo anterior"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-sm font-medium flex-1 text-center truncate px-2">
-                      {whatsappGroups[activeGroupIndex]?.name}
-                    </span>
-                    <button
-                      onClick={() => setActiveGroupIndex(prev => prev === whatsappGroups.length - 1 ? 0 : prev + 1)}
-                      className="p-1 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 transition-colors disabled:opacity-50"
-                      aria-label="Próximo grupo"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {whatsappGroups.map((group, index) => (
+                      <button
+                        key={group.id}
+                        onClick={() => setActiveGroupIndex(index)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                          activeGroupIndex === index
+                            ? "bg-accent text-accent-foreground"
+                            : "bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground/80"
+                        }`}
+                        aria-label={`Selecionar grupo ${group.name}`}
+                      >
+                        {group.name}
+                      </button>
+                    ))}
                   </div>
                 )}
 

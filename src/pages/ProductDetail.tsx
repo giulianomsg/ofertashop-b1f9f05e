@@ -6,14 +6,16 @@ import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import ProductCard from "@/components/ProductCard";
-import { useProduct, useProducts, useReviews } from "@/hooks/useProducts";
-import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist, useToggleWishlist, useCategories } from "@/hooks/useEntities";
+import { useProduct, useProducts, useReviews, usePriceHistory } from "@/hooks/useProducts";
+import { usePlatforms, useProductLikes, useUserLiked, useToggleLike, useWishlist, useToggleWishlist, useCategories, useActiveCoupons } from "@/hooks/useEntities";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useVisitorSession } from "@/hooks/useVisitorSession";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { CouponItem } from "@/components/CouponItem";
 
 const getVideoEmbedUrl = (url: string) => {
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
@@ -44,8 +46,12 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const visitorToken = useVisitorSession();
 
-  const [trustVotes, setTrustVotes] = useState(0);
-  const [hasVotedTrust, setHasVotedTrust] = useState(false);
+  const productAny = product as any;
+  const { data: priceHistory = [] } = usePriceHistory(productAny?.brand_id, productAny?.model_id);
+  const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id);
+
+  const [trustVotes, setTrustVotes] = useState({ sim: 0, nao: 0 });
+  const [hasVotedTrust, setHasVotedTrust] = useState<boolean | null>(null); // null = no vote, true = sim, false = nao
 
   const [userRating, setUserRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -82,18 +88,23 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!product || !visitorToken) return;
     const fetchVotes = async () => {
-      const { count } = await (supabase as any).from('product_trust_votes')
-        .select('*', { count: 'exact', head: true })
+      const { data: allVotes } = await (supabase as any).from('product_trust_votes')
+        .select('is_trusted')
         .eq('product_id', product.id);
-      setTrustVotes(count || 0);
+        
+      if (allVotes) {
+        const sim = allVotes.filter((v: any) => v.is_trusted !== false).length;
+        const nao = allVotes.filter((v: any) => v.is_trusted === false).length;
+        setTrustVotes({ sim, nao });
+      }
 
       const matchQuery = user ? { user_id: user.id } : { session_token: visitorToken };
       const { data } = await (supabase as any).from('product_trust_votes')
-        .select('id')
+        .select('is_trusted')
         .eq('product_id', product.id)
         .match(matchQuery)
         .maybeSingle();
-      if (data) setHasVotedTrust(true);
+      if (data) setHasVotedTrust(data.is_trusted !== false);
     };
     fetchVotes();
   }, [product, user, visitorToken]);
@@ -136,12 +147,19 @@ const ProductDetail = () => {
   const allImages = [product.image_url || "/placeholder.svg", ...(product.gallery_urls || [])];
 
   // Price comparison: same brand_id + model_id, different platform
-  const productAny = product as any;
-  const comparisons = productAny.brand_id && productAny.model_id
+  const comparisons = productAny?.brand_id && productAny?.model_id
     ? products.filter((p: any) => p.id !== product.id && p.brand_id === productAny.brand_id && p.model_id === productAny.model_id && p.platform_id !== productAny.platform_id)
     : [];
 
-  const platform = productAny.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
+  const platform = productAny?.platform_id ? platforms.find((p) => p.id === productAny.platform_id) : null;
+
+  const chartData = useMemo(() => {
+    return priceHistory.map((ph: any) => ({
+      date: new Date(ph.created_at).toLocaleDateString("pt-BR"),
+      price: Number(ph.price),
+      loja: ph.products?.store || "Desconhecido",
+    }));
+  }, [priceHistory]);
 
   const handleLike = () => {
     if (!user) { 
@@ -161,13 +179,17 @@ const ProductDetail = () => {
     toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
   };
 
-  const handleTrustVote = async () => {
-    if (hasVotedTrust) return;
-    setTrustVotes(prev => prev + 1);
-    setHasVotedTrust(true);
+  const handleTrustVote = async (isTrusted: boolean) => {
+    if (hasVotedTrust !== null) return;
+    setTrustVotes(prev => ({ 
+      sim: isTrusted ? prev.sim + 1 : prev.sim, 
+      nao: !isTrusted ? prev.nao + 1 : prev.nao 
+    }));
+    setHasVotedTrust(isTrusted);
     try {
       const insertData = {
         product_id: product.id,
+        is_trusted: isTrusted,
         ...(user ? { user_id: user.id } : { session_token: visitorToken })
       };
       await (supabase as any).from('product_trust_votes').insert(insertData);
@@ -355,10 +377,38 @@ const ProductDetail = () => {
                 <TrendingUp className="w-4 h-4 text-accent" />
                 <span className="text-foreground font-medium">{product.clicks.toLocaleString()} cliques</span>
               </div>
-              <button onClick={handleTrustVote} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${hasVotedTrust ? "bg-success/10 border-success/30 text-success" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Marcar como confiável">
-                <Shield className={`w-4 h-4 ${hasVotedTrust ? "fill-current" : "text-success"}`} />
-                <span className="font-medium">{hasVotedTrust ? "Confiável" : "Confiar"} {trustVotes > 0 && `(${trustVotes})`}</span>
-              </button>
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-success" /> É confiável?
+                </h3>
+                {trustVotes.sim + trustVotes.nao > 0 && (
+                  <span className="text-xs text-muted-foreground">{Math.round((trustVotes.sim / (trustVotes.sim + trustVotes.nao)) * 100)}% confiam</span>
+                )}
+              </div>
+              {trustVotes.sim + trustVotes.nao > 0 && (
+                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden mb-3">
+                  <div className="h-full bg-success transition-all duration-500" style={{ width: `${(trustVotes.sim / (trustVotes.sim + trustVotes.nao)) * 100}%` }} />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => handleTrustVote(true)} 
+                  disabled={hasVotedTrust !== null}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === true ? "bg-success text-success-foreground" : "bg-secondary text-foreground hover:bg-success/20 hover:text-success disabled:opacity-50 disabled:hover:bg-secondary disabled:hover:text-foreground"}`}
+                >
+                  Sim ({trustVotes.sim})
+                </button>
+                <button 
+                  onClick={() => handleTrustVote(false)} 
+                  disabled={hasVotedTrust !== null}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${hasVotedTrust === false ? "bg-destructive text-destructive-foreground" : "bg-secondary text-foreground hover:bg-destructive/20 hover:text-destructive disabled:opacity-50 disabled:hover:bg-secondary disabled:hover:text-foreground"}`}
+                >
+                  Não ({trustVotes.nao})
+                </button>
+              </div>
             </div>
 
             <a href={product.affiliate_url} target="_blank" rel="noopener noreferrer" onClick={handleAccessOffer} className="btn-accent flex items-center justify-center gap-2 w-full text-base py-3.5" aria-label="Acessar oferta">
@@ -432,6 +482,67 @@ const ProductDetail = () => {
                   })}
                 </tbody>
               </table>
+            </div>
+          </section>
+        )}
+
+        {/* Coupons */}
+        {coupons.length > 0 && (
+          <section className="mb-12">
+            <h2 className="font-display font-bold text-xl text-foreground mb-6">Cupons de Desconto ({platform?.name || 'Loja'})</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {coupons.map((coupon: any) => (
+                <CouponItem key={coupon.id} coupon={coupon} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Price History Chart */}
+        {chartData.length > 0 && (
+          <section className="mb-12">
+            <h2 className="font-display font-bold text-xl text-foreground mb-6">Histórico de Preços</h2>
+            <div className="bg-card rounded-xl border border-border p-6 h-[400px]" style={{ boxShadow: "var(--shadow-card)" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `R$${value}`}
+                    domain={['auto', 'auto']}
+                  />
+                  <RechartsTooltip
+                    content={({ active, payload, label }: any) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-card border border-border p-3 rounded-lg shadow-xl text-sm">
+                            <p className="font-semibold text-foreground mb-2">{label}</p>
+                            {payload.map((entry: any, index: number) => (
+                              <div key={index} className="flex flex-col mb-1 last:mb-0">
+                                <span className="text-xs text-muted-foreground">{entry.payload.loja}</span>
+                                <span className="font-bold text-accent">R$ {entry.value.toFixed(2).replace(".", ",")}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="price" 
+                    stroke="hsl(var(--accent))" 
+                    strokeWidth={3}
+                    dot={{ fill: "hsl(var(--accent))", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "hsl(var(--accent))" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </section>
         )}

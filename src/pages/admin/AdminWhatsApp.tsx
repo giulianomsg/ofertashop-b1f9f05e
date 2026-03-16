@@ -14,7 +14,7 @@ const AdminWhatsApp = () => {
   const handleCreate = async () => {
     if (!name.trim() || !link.trim()) return toast.error("Informe o nome e o link do grupo.");
     try {
-      await createGroup.mutateAsync({ name: name.trim(), link: link.trim(), active: groups.length === 0 });
+      await createGroup.mutateAsync({ name: name.trim(), link: link.trim(), active: true });
       setName("");
       setLink("");
       toast.success("Grupo adicionado!");

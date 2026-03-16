@@ -24,7 +24,10 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminSpecialPages from "./pages/admin/AdminSpecialPages";
 import AdminWhatsApp from "./pages/admin/AdminWhatsApp";
 import AdminNewsletters from "./pages/admin/AdminNewsletters";
+import AdminInstitutionalPages from "./pages/admin/AdminInstitutionalPages";
+import AdminCoupons from "./pages/admin/AdminCoupons";
 import SpecialPage from "./pages/SpecialPage";
+import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
 
@@ -42,6 +45,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/especial/:slug" element={<SpecialPage />} />
+            <Route path="/p/:slug" element={<InstitutionalPage />} />
             <Route path="/perfil" element={<UserProfile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
@@ -58,6 +62,8 @@ const App = () => (
               <Route path="plataformas" element={<AdminPlatforms />} />
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="paginas-especiais" element={<AdminSpecialPages />} />
+              <Route path="paginas-institucionais" element={<AdminInstitutionalPages />} />
+              <Route path="cupons" element={<AdminCoupons />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
             </Route>

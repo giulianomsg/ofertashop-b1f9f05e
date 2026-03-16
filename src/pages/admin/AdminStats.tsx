@@ -1,5 +1,6 @@
-import { Users, Info, Flag, Package, CheckCircle, Clock } from "lucide-react";
-import { useProducts, useReports, useAllReviews, useUsers } from "@/hooks/useProducts";
+import { Users, Info, Flag, Package, CheckCircle, Clock, Shield } from "lucide-react";
+import { useProducts, useReports, useAllReviews, useUsers, useAllTrustVotes } from "@/hooks/useProducts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const AdminStats = () => {
   const { data: products = [] } = useProducts(false); // Retorna todos os produtos inclusive não ativos
@@ -16,6 +17,18 @@ const AdminStats = () => {
   const totalReviews = reviews.length;
   const totalUsers = users.length;
   const activeUsers = users.filter((u: any) => u.is_active).length;
+
+  const { data: trustVotes = [] } = useAllTrustVotes();
+  
+  const simVotes = trustVotes.filter((v: any) => v.is_trusted !== false).length;
+  const naoVotes = trustVotes.filter((v: any) => v.is_trusted === false).length;
+
+  const trustData = [
+    { name: 'Confiam (Sim)', value: simVotes },
+    { name: 'Não Confiam (Não)', value: naoVotes },
+  ];
+  
+  const COLORS = ['#22c55e', '#ef4444'];
 
   return (
     <div className="space-y-6">
@@ -63,6 +76,41 @@ const AdminStats = () => {
               <span className="text-lg font-bold text-success">{resolvedReports}</span>
               <p className="text-[10px] text-success/80 flex items-center justify-center gap-1"><CheckCircle className="w-3 h-3" />Resolvidas</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-card rounded-xl border border-border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+          <h3 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-success" /> Estatísticas de Confiança (Ofertas)
+          </h3>
+          <div className="h-64">
+            {trustVotes.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={trustData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {trustData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip wrapperClassName="!bg-card !border-border !rounded-lg" />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                Sem dados de confiança ainda.
+              </div>
+            )}
           </div>
         </div>
       </div>

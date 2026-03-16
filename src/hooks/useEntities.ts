@@ -139,6 +139,168 @@ export const useDeleteCategory = () => {
   });
 };
 
+// ─── Institutional Pages ───
+export const useInstitutionalPages = () =>
+  useQuery({
+    queryKey: ["institutional_pages"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("institutional_pages" as any).select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useActiveInstitutionalPages = () =>
+  useQuery({
+    queryKey: ["active_institutional_pages"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("institutional_pages" as any).select("*").eq("active", true).order("title");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useCreateInstitutionalPage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (page: { title: string; slug: string; content_html?: string; active?: boolean }) => {
+      const { data, error } = await supabase.from("institutional_pages" as any).insert(page).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["institutional_pages"] });
+      qc.invalidateQueries({ queryKey: ["active_institutional_pages"] });
+    },
+  });
+};
+
+export const useUpdateInstitutionalPage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; active?: boolean; title?: string; slug?: string; content_html?: string }) => {
+      const { error } = await supabase.from("institutional_pages" as any).update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["institutional_pages"] });
+      qc.invalidateQueries({ queryKey: ["active_institutional_pages"] });
+    },
+  });
+};
+
+export const useDeleteInstitutionalPage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("institutional_pages" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["institutional_pages"] });
+      qc.invalidateQueries({ queryKey: ["active_institutional_pages"] });
+    },
+  });
+};
+
+// ─── Coupons ───
+export const useCoupons = () =>
+  useQuery({
+    queryKey: ["coupons"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("coupons" as any).select("*, platforms(name)").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useActiveCoupons = (platformId?: string | null) =>
+  useQuery({
+    queryKey: ["active_coupons", platformId],
+    queryFn: async () => {
+      let query = supabase.from("coupons" as any).select("*").eq("active", true);
+      if (platformId) {
+        query = query.eq("platform_id", platformId);
+      }
+      const { data, error } = await query.order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useCreateCoupon = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (coupon: any) => {
+      const { data, error } = await supabase.from("coupons" as any).insert(coupon).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons"] });
+      qc.invalidateQueries({ queryKey: ["active_coupons"] });
+    },
+  });
+};
+
+export const useUpdateCoupon = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const { error } = await supabase.from("coupons" as any).update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons"] });
+      qc.invalidateQueries({ queryKey: ["active_coupons"] });
+    },
+  });
+};
+
+export const useDeleteCoupon = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("coupons" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["coupons"] });
+      qc.invalidateQueries({ queryKey: ["active_coupons"] });
+    },
+  });
+};
+
+export const useCouponStats = (couponId: string) =>
+  useQuery({
+    queryKey: ["coupon_stats", couponId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("coupon_votes" as any).select("is_working").eq("coupon_id", couponId);
+      if (error) throw error;
+      const total = data.length;
+      const working = data.filter((v: any) => v.is_working).length;
+      return { total, working, percentage: total > 0 ? Math.round((working / total) * 100) : 0 };
+    },
+    enabled: !!couponId,
+  });
+
+export const useVoteCoupon = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ couponId, isWorking, sessionToken }: { couponId: string; isWorking: boolean; sessionToken: string }) => {
+      const { error } = await supabase.from("coupon_votes" as any).insert({
+        coupon_id: couponId,
+        is_working: isWorking,
+        session_token: sessionToken
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ["coupon_stats", variables.couponId] });
+    },
+  });
+};
+
 // ─── Special Pages ───
 export const useSpecialPages = () =>
   useQuery({

@@ -277,3 +277,35 @@ export const useDeleteReview = () => {
     },
   });
 };
+
+export const usePriceHistory = (brandId?: string | null, modelId?: string | null) => {
+  return useQuery({
+    queryKey: ["price_history", brandId, modelId],
+    queryFn: async () => {
+      if (!brandId || !modelId) return [];
+      const { data, error } = await supabase
+        .from("price_history" as any)
+        .select(`
+          id, price, created_at,
+          products!inner(brand_id, model_id, store, platform_id, title)
+        `)
+        .eq("products.brand_id", brandId)
+        .eq("products.model_id", modelId)
+        .order("created_at", { ascending: true });
+        
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!brandId && !!modelId,
+  });
+};
+
+export const useAllTrustVotes = () =>
+  useQuery({
+    queryKey: ["all_trust_votes"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("product_trust_votes" as any).select("*").order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });

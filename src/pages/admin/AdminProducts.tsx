@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown } from "lucide-react";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
-import { useCategories, useBrands, useModels, usePlatforms } from "@/hooks/useEntities";
+import { useCategories, useBrands, useCreateBrand, useModels, useCreateModel, usePlatforms } from "@/hooks/useEntities";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,6 +12,9 @@ import "react-quill/dist/quill.snow.css";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const SortableImage = ({ url, onRemove }: { url: string; onRemove: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: url });
@@ -57,6 +60,7 @@ const AdminProducts = () => {
   const deleteProduct = useDeleteProduct();
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
+  const createBrand = useCreateBrand();
   const { data: platforms = [] } = usePlatforms();
   const { user } = useAuth();
 
@@ -66,6 +70,11 @@ const AdminProducts = () => {
   const [importingImage, setImportingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [brandSearch, setBrandSearch] = useState("");
+  const [modelOpen, setModelOpen] = useState(false);
+  const [modelSearch, setModelSearch] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -85,6 +94,32 @@ const AdminProducts = () => {
 
   // Filter models by selected brand
   const { data: models = [] } = useModels(form.brand_id || undefined);
+  const createModel = useCreateModel();
+
+  const handleCreateBrand = async (name: string) => {
+    try {
+      const newBrand = await createBrand.mutateAsync(name);
+      setForm({ ...form, brand_id: newBrand.id, model_id: "" });
+      setBrandOpen(false);
+      setBrandSearch("");
+      toast.success(`Marca "${name}" criada!`);
+    } catch {
+      toast.error("Erro ao criar marca.");
+    }
+  };
+
+  const handleCreateModel = async (name: string) => {
+    if (!form.brand_id) return;
+    try {
+      const newModel = await createModel.mutateAsync({ brand_id: form.brand_id, name });
+      setForm({ ...form, model_id: newModel.id });
+      setModelOpen(false);
+      setModelSearch("");
+      toast.success(`Modelo "${name}" criado!`);
+    } catch {
+      toast.error("Erro ao criar modelo.");
+    }
+  };
 
   // Auto-calculate discount percentage
   const calcDiscount = (price: string, originalPrice: string) => {
@@ -455,17 +490,120 @@ const AdminProducts = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Marca</label>
-                  <select value={form.brand_id} onChange={(e) => setForm({ ...form, brand_id: e.target.value, model_id: "" })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30">
-                    <option value="">Selecione</option>
-                    {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                  </select>
+                  <Popover open={brandOpen} onOpenChange={setBrandOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        role="combobox"
+                        aria-expanded={brandOpen}
+                        className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate"
+                      >
+                        {form.brand_id ? brands.find((b) => b.id === form.brand_id)?.name : "Selecione a marca"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] sm:w-[350px] p-0 shadow-xl" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar marca..." value={brandSearch} onValueChange={setBrandSearch} />
+                        <CommandList>
+                          <CommandEmpty className="py-2 text-center text-sm">
+                            <p className="text-muted-foreground mb-2">Marca não encontrada.</p>
+                            {brandSearch && (
+                              <button onClick={() => handleCreateBrand(brandSearch)} className="text-accent hover:underline font-medium text-xs">
+                                + Criar marca "{brandSearch}"
+                              </button>
+                            )}
+                          </CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              key="none"
+                              value=""
+                              onSelect={() => {
+                                setForm({ ...form, brand_id: "", model_id: "" });
+                                setBrandOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", form.brand_id === "" ? "opacity-100" : "opacity-0")} />
+                              Nenhuma
+                            </CommandItem>
+                            {brands.map((b) => (
+                              <CommandItem
+                                key={b.id}
+                                value={b.name}
+                                onSelect={() => {
+                                  setForm({ ...form, brand_id: b.id, model_id: "" });
+                                  setBrandOpen(false);
+                                }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", form.brand_id === b.id ? "opacity-100" : "opacity-0")} />
+                                {b.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Modelo</label>
-                  <select value={form.model_id} onChange={(e) => setForm({ ...form, model_id: e.target.value })} disabled={!form.brand_id} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-50">
-                    <option value="">Selecione</option>
-                    {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                  </select>
+                  <Popover open={modelOpen} onOpenChange={setModelOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        role="combobox"
+                        aria-expanded={modelOpen}
+                        disabled={!form.brand_id}
+                        className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate disabled:opacity-50"
+                      >
+                        {form.model_id ? models.find((m) => m.id === form.model_id)?.name : "Selecione o modelo"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] sm:w-[350px] p-0 shadow-xl" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar modelo..." value={modelSearch} onValueChange={setModelSearch} />
+                        <CommandList>
+                          {form.brand_id ? (
+                            <CommandEmpty className="py-2 text-center text-sm">
+                              <p className="text-muted-foreground mb-2">Modelo não encontrado.</p>
+                              {modelSearch && (
+                                <button onClick={() => handleCreateModel(modelSearch)} className="text-accent hover:underline font-medium text-xs">
+                                  + Criar modelo "{modelSearch}"
+                                </button>
+                              )}
+                            </CommandEmpty>
+                          ) : (
+                            <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">Select a brand first.</CommandEmpty>
+                          )}
+                          <CommandGroup>
+                            <CommandItem
+                              key="none"
+                              value=""
+                              onSelect={() => {
+                                setForm({ ...form, model_id: "" });
+                                setModelOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", form.model_id === "" ? "opacity-100" : "opacity-0")} />
+                              Nenhum
+                            </CommandItem>
+                            {models.map((m) => (
+                              <CommandItem
+                                key={m.id}
+                                value={m.name}
+                                onSelect={() => {
+                                  setForm({ ...form, model_id: m.id });
+                                  setModelOpen(false);
+                                }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", form.model_id === m.id ? "opacity-100" : "opacity-0")} />
+                                {m.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
