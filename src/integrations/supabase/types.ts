@@ -179,7 +179,7 @@ export type Database = {
           affiliate_url: string
           badge: string | null
           brand_id: string | null
-          category_id: string
+          category: string
           clicks: number
           created_at: string
           created_by: string | null
@@ -206,7 +206,7 @@ export type Database = {
           affiliate_url: string
           badge?: string | null
           brand_id?: string | null
-          category_id: string
+          category: string
           clicks?: number
           created_at?: string
           created_by?: string | null
@@ -233,7 +233,7 @@ export type Database = {
           affiliate_url?: string
           badge?: string | null
           brand_id?: string | null
-          category_id?: string
+          category?: string
           clicks?: number
           created_at?: string
           created_by?: string | null
@@ -262,13 +262,6 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
           {
@@ -489,21 +482,18 @@ export type Database = {
           created_at: string
           id: string
           link: string
-          name: string
         }
         Insert: {
           active?: boolean
           created_at?: string
           id?: string
           link: string
-          name?: string
         }
         Update: {
           active?: boolean
           created_at?: string
           id?: string
           link?: string
-          name?: string
         }
         Relationships: []
       }
