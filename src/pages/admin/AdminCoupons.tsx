@@ -16,12 +16,12 @@ const AdminCoupons = () => {
   const [form, setForm] = useState({
     title: "", code: "", platform_id: "", discount_amount: "",
     discount_value: "", subtitle: "", conditions: "",
-    is_link_only: false, active: true
+    is_link_only: false, link_url: "", active: true
   });
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ title: "", code: "", platform_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, active: true });
+    setForm({ title: "", code: "", platform_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, link_url: "", active: true });
     setShowModal(true);
   };
 
@@ -36,6 +36,7 @@ const AdminCoupons = () => {
       subtitle: coupon.subtitle || "",
       conditions: coupon.conditions || "",
       is_link_only: coupon.is_link_only || false,
+      link_url: coupon.link_url || "",
       active: coupon.active
     });
     setShowModal(true);
@@ -180,7 +181,12 @@ const AdminCoupons = () => {
                 />
                 <label htmlFor="is_link_only" className="text-sm text-foreground cursor-pointer">Sem código / Apenas Link ("Eu quero")</label>
               </div>
-              {!form.is_link_only && (
+              {form.is_link_only ? (
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Link do Botão "Eu quero"</label>
+                  <input value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })} placeholder="https://exemplo.com/oferta" className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm" />
+                </div>
+              ) : (
                 <div>
                   <label className="text-xs font-semibold block mb-1">Código</label>
                   <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none uppercase font-mono text-sm" />

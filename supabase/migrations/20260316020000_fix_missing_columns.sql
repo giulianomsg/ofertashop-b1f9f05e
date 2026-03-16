@@ -13,6 +13,7 @@ ALTER TABLE public.coupons ADD COLUMN IF NOT EXISTS subtitle VARCHAR;
 ALTER TABLE public.coupons ADD COLUMN IF NOT EXISTS conditions TEXT;
 ALTER TABLE public.coupons ADD COLUMN IF NOT EXISTS is_link_only BOOLEAN DEFAULT false;
 ALTER TABLE public.coupons ADD COLUMN IF NOT EXISTS reports_inactive INTEGER DEFAULT 0;
+ALTER TABLE public.coupons ADD COLUMN IF NOT EXISTS link_url TEXT;
 
 -- Institutional pages: add missing column
 ALTER TABLE public.institutional_pages ADD COLUMN IF NOT EXISTS section_type VARCHAR DEFAULT 'support';

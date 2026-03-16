@@ -74,7 +74,7 @@ export const CouponItem = ({ coupon, affiliateUrl }: { coupon: any; affiliateUrl
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
           {coupon.is_link_only ? (
             <a
-              href={affiliateUrl || "#"}
+              href={coupon.link_url || affiliateUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-accent text-accent-foreground rounded-lg px-4 py-2.5 font-semibold text-sm hover:bg-accent/90 transition-colors"
