@@ -554,7 +554,7 @@ const ProductDetail = () => {
             <h2 className="font-display font-bold text-xl text-foreground mb-6">Cupons de Desconto ({platform?.name || 'Loja'})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {coupons.map((coupon: any) => (
-                <CouponItem key={coupon.id} coupon={coupon} />
+                <CouponItem key={coupon.id} coupon={coupon} affiliateUrl={product.affiliate_url} />
               ))}
             </div>
           </section>

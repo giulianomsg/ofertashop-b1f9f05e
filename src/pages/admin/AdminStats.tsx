@@ -1,12 +1,15 @@
 import { Users, Info, Flag, Package, CheckCircle, Clock, Shield } from "lucide-react";
 import { useProducts, useReports, useAllReviews, useUsers, useAllTrustVotes } from "@/hooks/useProducts";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { usePlatforms, useTrustVotesByPlatform } from "@/hooks/useEntities";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useMemo } from "react";
 
 const AdminStats = () => {
-  const { data: products = [] } = useProducts(false); // Retorna todos os produtos inclusive não ativos
+  const { data: products = [] } = useProducts(false);
   const { data: reports = [] } = useReports();
   const { data: reviews = [] } = useAllReviews();
   const { data: users = [] } = useUsers();
+  const { data: platforms = [] } = usePlatforms();
 
   const totalProducts = products.length;
   const activeProducts = products.filter(p => p.is_active).length;
@@ -19,6 +22,7 @@ const AdminStats = () => {
   const activeUsers = users.filter((u: any) => u.is_active).length;
 
   const { data: trustVotes = [] } = useAllTrustVotes();
+  const { data: trustByPlatform } = useTrustVotesByPlatform();
   
   const simVotes = trustVotes.filter((v: any) => v.is_trusted !== false).length;
   const naoVotes = trustVotes.filter((v: any) => v.is_trusted === false).length;
@@ -29,6 +33,39 @@ const AdminStats = () => {
   ];
   
   const COLORS = ['#22c55e', '#ef4444'];
+
+  // Trust by platform chart data
+  const platformTrustData = useMemo(() => {
+    if (!trustByPlatform) return [];
+    const { votes, clicks } = trustByPlatform;
+
+    const platformMap: Record<string, { positive: number; total: number; clicks: number }> = {};
+
+    votes.forEach((v: any) => {
+      const pid = v.products?.platform_id;
+      if (!pid) return;
+      if (!platformMap[pid]) platformMap[pid] = { positive: 0, total: 0, clicks: 0 };
+      platformMap[pid].total++;
+      if (v.is_trusted) platformMap[pid].positive++;
+    });
+
+    clicks.forEach((c: any) => {
+      const pid = c.products?.platform_id;
+      if (!pid) return;
+      if (!platformMap[pid]) platformMap[pid] = { positive: 0, total: 0, clicks: 0 };
+      platformMap[pid].clicks++;
+    });
+
+    return Object.entries(platformMap).map(([pid, data]) => {
+      const platform = platforms.find(p => p.id === pid);
+      return {
+        name: platform?.name || "Desconhecido",
+        confiança: data.total > 0 ? Math.round((data.positive / data.total) * 100) : 0,
+        votos: data.total,
+        cliques: data.clicks,
+      };
+    }).sort((a, b) => b.confiança - a.confiança);
+  }, [trustByPlatform, platforms]);
 
   return (
     <div className="space-y-6">
@@ -81,24 +118,17 @@ const AdminStats = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Global trust pie */}
         <div className="bg-card rounded-xl border border-border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
           <h3 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-success" /> Estatísticas de Confiança (Ofertas)
+            <Shield className="w-5 h-5 text-success" /> Confiança Global
           </h3>
           <div className="h-64">
             {trustVotes.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={trustData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {trustData.map((entry, index) => (
+                  <Pie data={trustData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    {trustData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -107,9 +137,42 @@ const AdminStats = () => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-                Sem dados de confiança ainda.
-              </div>
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">Sem dados de confiança ainda.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Trust by Platform bar chart */}
+        <div className="bg-card rounded-xl border border-border p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+          <h3 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-accent" /> Confiança por Plataforma
+          </h3>
+          <div className="h-64">
+            {platformTrustData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={platformTrustData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
+                  <Tooltip
+                    content={({ active, payload, label }: any) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-card border border-border p-3 rounded-lg shadow-xl text-sm">
+                            <p className="font-semibold text-foreground mb-1">{label}</p>
+                            <p className="text-success">Confiança: {payload[0].value}%</p>
+                            <p className="text-muted-foreground text-xs">{payload[0].payload.votos} votos · {payload[0].payload.cliques} cliques</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="confiança" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">Sem dados por plataforma ainda.</div>
             )}
           </div>
         </div>
