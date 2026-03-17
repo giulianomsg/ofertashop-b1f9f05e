@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -8,6 +8,15 @@ import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useEntities";
+
+/**
+ * NOTA DE DÍVIDA TÉCNICA:
+ * A paginação atual é client-side (slice do array local), o que significa
+ * que toda a coleção de produtos é carregada de uma vez via useProducts().
+ * Para cenários com milhares de produtos, migrar para paginação server-side
+ * utilizando os modificadores .range() do Supabase no hook useProducts.
+ */
+const ITEMS_PER_PAGE = 12;
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -18,6 +27,7 @@ const Index = () => {
   const [minRating, setMinRating] = useState(0);
   const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
 
@@ -39,6 +49,11 @@ const Index = () => {
     setSelectedStores([]);
   };
 
+  // Reset pagination when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, selectedCategoryId, priceRange, minRating, selectedStores]);
+
   const filtered = products.filter((p) => {
     const matchesSearch = query === "" || p.title.toLowerCase().includes(query.toLowerCase()) || (p.description && p.description.toLowerCase().includes(query.toLowerCase()));
     const categoryMatch = selectedCategoryId === "" || (p as any).category_id === selectedCategoryId;
@@ -47,6 +62,22 @@ const Index = () => {
     const storeMatch = selectedStores.length === 0 || selectedStores.includes(p.store);
     return matchesSearch && categoryMatch && priceMatch && ratingMatch && storeMatch;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Generate page numbers to display (max 5 visible at a time)
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,11 +130,82 @@ const Index = () => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {filtered.map((product, i) => (
-                  <ProductCard key={product.id} product={product} index={i} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {paginatedProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={(currentPage - 1) * ITEMS_PER_PAGE + i} />
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <nav className="flex items-center justify-center gap-1.5 mt-10" aria-label="Paginação">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label="Página anterior"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Anterior</span>
+                    </button>
+
+                    {getPageNumbers()[0] > 1 && (
+                      <>
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          className="w-10 h-10 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                        >
+                          1
+                        </button>
+                        {getPageNumbers()[0] > 2 && (
+                          <span className="w-10 h-10 flex items-center justify-center text-sm text-muted-foreground">…</span>
+                        )}
+                      </>
+                    )}
+
+                    {getPageNumbers().map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                          page === currentPage
+                            ? "bg-accent text-accent-foreground shadow-sm"
+                            : "border border-border bg-card text-foreground hover:bg-secondary"
+                        }`}
+                        aria-current={page === currentPage ? "page" : undefined}
+                        aria-label={`Página ${page}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                      <>
+                        {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                          <span className="w-10 h-10 flex items-center justify-center text-sm text-muted-foreground">…</span>
+                        )}
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="w-10 h-10 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                        >
+                          {totalPages}
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label="Próxima página"
+                    >
+                      <span className="hidden sm:inline">Próxima</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </nav>
+                )}
+              </>
             )}
           </section>
         </div>

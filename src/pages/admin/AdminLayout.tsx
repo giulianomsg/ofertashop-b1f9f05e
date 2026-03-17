@@ -11,6 +11,7 @@ const menuItems = [
   { icon: Package, label: "Produtos", path: "/admin/produtos" },
   { icon: Tag, label: "Marcas", path: "/admin/marcas" },
   { icon: Layers, label: "Modelos", path: "/admin/modelos" },
+  { icon: FolderOpen, label: "Categorias", path: "/admin/categorias" },
   { icon: Monitor, label: "Plataformas", path: "/admin/plataformas" },
   { icon: FileText, label: "Páginas Especiais", path: "/admin/paginas-especiais" },
   { icon: FileText, label: "Páginas Institucionais", path: "/admin/paginas-institucionais" },

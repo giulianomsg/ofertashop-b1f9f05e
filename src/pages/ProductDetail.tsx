@@ -186,7 +186,7 @@ const ProductDetail = () => {
       navigate("/login");
       return; 
     }
-    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished, currentPrice: Number(product.price) });
+    toggleWishlist.mutate({ userId: user.id, productId: product.id, isWished });
   };
 
   const handleTrustVote = async (isTrusted: boolean) => {
