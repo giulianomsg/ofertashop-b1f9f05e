@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Link as LinkIcon, Flag } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Link as LinkIcon, Flag, RefreshCw, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon, usePlatforms } from "@/hooks/useEntities";
 import { toast } from "sonner";
@@ -10,6 +11,26 @@ const AdminCoupons = () => {
   const createCoupon = useCreateCoupon();
   const updateCoupon = useUpdateCoupon();
   const deleteCoupon = useDeleteCoupon();
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSyncShopee = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-shopee-coupons");
+      if (error) throw error;
+      if (data?.error) {
+        toast.error("Erro na sincronização: " + data.error);
+      } else {
+        toast.success(
+          `Shopee sincronizado! ${data.fetched || 0} encontrados, ${data.upserted || 0} atualizados, ${data.deactivated || 0} desativados.`
+        );
+      }
+    } catch (err: any) {
+      toast.error("Erro ao chamar sync: " + (err?.message || "Falha na conexão"));
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -85,11 +106,22 @@ const AdminCoupons = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="font-display font-bold text-xl text-foreground">Cupons</h2>
-        <button onClick={openCreate} className="btn-accent flex items-center gap-2 text-sm" aria-label="Novo Cupom">
-          <Plus className="w-4 h-4" /> Adicionar Cupom
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSyncShopee}
+            disabled={syncing}
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/80 text-foreground transition-colors disabled:opacity-50"
+            aria-label="Sincronizar cupons da Shopee"
+          >
+            {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            {syncing ? "Sincronizando..." : "Sincronizar Shopee"}
+          </button>
+          <button onClick={openCreate} className="btn-accent flex items-center gap-2 text-sm" aria-label="Novo Cupom">
+            <Plus className="w-4 h-4" /> Adicionar Cupom
+          </button>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
