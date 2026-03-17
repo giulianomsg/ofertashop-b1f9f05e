@@ -40,6 +40,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ─── CORS ──────────────────────────────────────────────────────────────────
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 interface ParsedCoupon {
@@ -318,7 +326,12 @@ async function fetchCouponsFromHTML(): Promise<ParsedCoupon[]> {
 
 // ─── Main Handler ──────────────────────────────────────────────────────────
 
-serve(async (_req) => {
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     // ── Env vars ──
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -341,7 +354,7 @@ serve(async (_req) => {
           error: 'Plataforma "Shopee" não encontrada na tabela platforms.',
           detail: platformErr?.message,
         }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -411,7 +424,7 @@ serve(async (_req) => {
             error: "Upsert failed",
             detail: upsertErr.message,
           }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -452,7 +465,7 @@ serve(async (_req) => {
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("[sync] Unexpected error:", err);
@@ -461,7 +474,7 @@ serve(async (_req) => {
         error: "Internal server error",
         detail: String(err),
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
