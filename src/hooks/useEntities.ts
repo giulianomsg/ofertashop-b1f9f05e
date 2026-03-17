@@ -24,6 +24,17 @@ export const useCreateBrand = () => {
   });
 };
 
+export const useUpdateBrand = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from("brands").update({ name }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["brands"] }),
+  });
+};
+
 export const useDeleteBrand = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -55,6 +66,20 @@ export const useCreateModel = () => {
       const { data, error } = await supabase.from("models").insert({ brand_id, name }).select().single();
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["models"] }),
+  });
+};
+
+export const useUpdateModel = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, brand_id }: { id: string; name?: string; brand_id?: string }) => {
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name;
+      if (brand_id !== undefined) updates.brand_id = brand_id;
+      const { error } = await supabase.from("models").update(updates).eq("id", id);
+      if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["models"] }),
   });
@@ -94,6 +119,20 @@ export const useCreatePlatform = () => {
   });
 };
 
+export const useUpdatePlatform = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, logo_url }: { id: string; name?: string; logo_url?: string | null }) => {
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name;
+      if (logo_url !== undefined) updates.logo_url = logo_url;
+      const { error } = await supabase.from("platforms").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["platforms"] }),
+  });
+};
+
 export const useDeletePlatform = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -123,6 +162,21 @@ export const useCreateCategory = () => {
       const { data, error } = await supabase.from("categories").insert({ name, slug, icon: icon || null }).select().single();
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+};
+
+export const useUpdateCategory = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, slug, icon }: { id: string; name?: string; slug?: string; icon?: string | null }) => {
+      const updates: Record<string, any> = {};
+      if (name !== undefined) updates.name = name;
+      if (slug !== undefined) updates.slug = slug;
+      if (icon !== undefined) updates.icon = icon;
+      const { error } = await supabase.from("categories").update(updates).eq("id", id);
+      if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
   });

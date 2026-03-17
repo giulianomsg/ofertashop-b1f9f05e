@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useEntities";
+import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useEntities";
 import { toast } from "sonner";
 
 const AdminCategories = () => {
   const { data: categories = [], isLoading } = useCategories();
   const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [icon, setIcon] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editIcon, setEditIcon] = useState("");
 
   const autoSlug = (val: string) => {
     setName(val);
@@ -25,6 +30,29 @@ const AdminCategories = () => {
     } catch { toast.error("Erro ao criar categoria."); }
   };
 
+  const startEdit = (c: any) => {
+    setEditingId(c.id);
+    setEditName(c.name);
+    setEditSlug(c.slug);
+    setEditIcon(c.icon || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditSlug("");
+    setEditIcon("");
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editName.trim() || !editSlug.trim()) return toast.error("Nome e slug são obrigatórios.");
+    try {
+      await updateCategory.mutateAsync({ id: editingId, name: editName.trim(), slug: editSlug.trim(), icon: editIcon || null });
+      toast.success("Categoria atualizada!");
+      cancelEdit();
+    } catch { toast.error("Erro ao atualizar categoria."); }
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="font-display font-bold text-xl text-foreground">Categorias</h2>
@@ -36,15 +64,42 @@ const AdminCategories = () => {
       </div>
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <table className="w-full text-sm">
-          <thead><tr className="border-b border-border bg-secondary"><th className="text-left p-4 font-semibold text-foreground">Nome</th><th className="text-left p-4 font-semibold text-foreground">Slug</th><th className="text-right p-4 font-semibold text-foreground">Ações</th></tr></thead>
+          <thead><tr className="border-b border-border bg-secondary"><th className="text-left p-4 font-semibold text-foreground">Nome</th><th className="text-left p-4 font-semibold text-foreground">Slug</th><th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Ícone</th><th className="text-right p-4 font-semibold text-foreground">Ações</th></tr></thead>
           <tbody>
-            {isLoading ? <tr><td colSpan={3} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
-              categories.length === 0 ? <tr><td colSpan={3} className="p-8 text-center text-muted-foreground">Nenhuma categoria.</td></tr> :
+            {isLoading ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
+              categories.length === 0 ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Nenhuma categoria.</td></tr> :
                 categories.map((c) => (
                   <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
-                    <td className="p-4 text-foreground">{c.name}</td>
-                    <td className="p-4 text-muted-foreground">{c.slug}</td>
-                    <td className="p-4 text-right"><button onClick={async () => { if (!confirm("Excluir?")) return; try { await deleteCategory.mutateAsync(c.id); toast.success("Excluída."); } catch { toast.error("Erro."); } }} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors" aria-label="Excluir categoria"><Trash2 className="w-4 h-4 text-destructive" /></button></td>
+                    <td className="p-4 text-foreground">
+                      {editingId === c.id ? (
+                        <input value={editName} onChange={(e) => setEditName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleUpdate()} className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" autoFocus />
+                      ) : c.name}
+                    </td>
+                    <td className="p-4 text-muted-foreground">
+                      {editingId === c.id ? (
+                        <input value={editSlug} onChange={(e) => setEditSlug(e.target.value)} className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" />
+                      ) : c.slug}
+                    </td>
+                    <td className="p-4 text-muted-foreground hidden sm:table-cell">
+                      {editingId === c.id ? (
+                        <input value={editIcon} onChange={(e) => setEditIcon(e.target.value)} className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Ícone" />
+                      ) : (c.icon || "—")}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {editingId === c.id ? (
+                          <>
+                            <button onClick={handleUpdate} className="p-2 rounded-lg hover:bg-success/10 transition-colors" aria-label="Salvar"><Check className="w-4 h-4 text-success" /></button>
+                            <button onClick={cancelEdit} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Cancelar"><X className="w-4 h-4 text-muted-foreground" /></button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar categoria"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+                            <button onClick={async () => { if (!confirm("Excluir?")) return; try { await deleteCategory.mutateAsync(c.id); toast.success("Excluída."); } catch { toast.error("Erro."); } }} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors" aria-label="Excluir categoria"><Trash2 className="w-4 h-4 text-destructive" /></button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
           </tbody>
