@@ -150,25 +150,21 @@ const ProductDetail = () => {
     );
   }
 
-  const related = useMemo(() => {
-    const others = products.filter((p) => p.id !== product.id);
-    // Primary: same category (only when category is non-empty)
-    const sameCategory = product.category
-      ? others.filter((p) => p.category === product.category)
-      : [];
-
+  const relatedOthers = products.filter((p) => p.id !== product.id);
+  const sameCategory = product.category
+    ? relatedOthers.filter((p) => p.category === product.category)
+    : [];
+  const related = (() => {
     if (sameCategory.length >= 3) return sameCategory.slice(0, 4);
-
-    // Fallback: same platform or same brand (avoid duplicates)
     const sameCategoryIds = new Set(sameCategory.map((p) => p.id));
-    const fallback = others.filter(
+    const fallback = relatedOthers.filter(
       (p) =>
         !sameCategoryIds.has(p.id) &&
         (((productAny?.platform_id) && (p as any).platform_id === productAny.platform_id) ||
          ((productAny?.brand_id) && (p as any).brand_id === productAny.brand_id))
     );
     return [...sameCategory, ...fallback].slice(0, 4);
-  }, [products, product, productAny?.platform_id, productAny?.brand_id]);
+  })();
   const imageUrl = product.image_url || "/placeholder.svg";
   const categoryName = categories.find(c => c.slug === product.category)?.name || product.category || "Outros";
   const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
