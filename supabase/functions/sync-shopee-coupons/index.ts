@@ -6,49 +6,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// ─── Shopee Auth (inlined from _shared/shopee-auth.ts) ─────────────────────
-
-function bufferToHex(buffer: ArrayBuffer): string {
-  return [...new Uint8Array(buffer)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hmacSha256(secret: string, message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(message));
-  return bufferToHex(signature);
-}
-
-async function generateShopeeAuth(params: { apiPath: string }) {
-  const appId = Deno.env.get("SHOPEE_APP_ID");
-  const appSecret = Deno.env.get("SHOPEE_APP_SECRET");
-  if (!appId || !appSecret) {
-    throw new Error("SHOPEE_APP_ID e SHOPEE_APP_SECRET devem estar definidas.");
-  }
-  const { apiPath } = params;
-  const timestamp = Math.floor(Date.now() / 1000);
-  const baseString = `${appId}${apiPath}${timestamp}`;
-  const sign = await hmacSha256(appSecret, baseString);
-  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL") ?? "https://affiliate.shopee.com.br";
-  const separator = apiPath.includes("?") ? "&" : "?";
-  const url = `${shopeeHost}${apiPath}${separator}partner_id=${appId}&timestamp=${timestamp}&sign=${sign}`;
-  const headers = {
-    Authorization: sign,
-    "Content-Type": "application/json",
-    timestamp: String(timestamp),
-    partner_id: appId,
-  };
-  return { url, headers, timestamp, sign };
-}
+import { generateShopeeAuth } from "../_shared/shopee-auth.ts";
 
 // ─── CORS ──────────────────────────────────────────────────────────────────
 
@@ -174,23 +132,20 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
   const allOffers: ShopeeOffer[] = [];
   let page = 1;
   const limit = 50;
-  const apiPath = "/graphql";
 
   while (true) {
-    const { url, headers } = await generateShopeeAuth({ apiPath });
-
     const body = JSON.stringify({
       query: SHOPEE_OFFERS_QUERY,
       variables: { page, limit },
     });
 
+    // Gerar assinatura passando o body como payload
+    const { url, headers } = await generateShopeeAuth({ payload: body });
+
     console.log(`[shopee] Fetching page ${page} (limit ${limit})...`);
     const res = await fetch(url, {
       method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
+      headers,
       body,
     });
 
