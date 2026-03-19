@@ -150,24 +150,11 @@ const ProductDetail = () => {
     );
   }
 
-  const relatedOthers = products.filter((p) => p.id !== product.id);
-  const sameCategory = (productAny?.category_id || product.category)
-    ? relatedOthers.filter((p) => 
-        (productAny?.category_id && (p as any).category_id === productAny.category_id) ||
-        (product.category && p.category === product.category)
-      )
-    : [];
-  const related = (() => {
-    if (sameCategory.length >= 3) return sameCategory.slice(0, 4);
-    const sameCategoryIds = new Set(sameCategory.map((p) => p.id));
-    const fallback = relatedOthers.filter(
-      (p) =>
-        !sameCategoryIds.has(p.id) &&
-        (((productAny?.platform_id) && (p as any).platform_id === productAny.platform_id) ||
-         ((productAny?.brand_id) && (p as any).brand_id === productAny.brand_id))
-    );
-    return [...sameCategory, ...fallback].slice(0, 4);
-  })();
+  const related = products.filter((p) =>
+    p.id !== product.id &&
+    ((productAny?.category_id && (p as any).category_id === productAny.category_id) ||
+     (product.category && p.category === product.category))
+  ).slice(0, 4);
   const imageUrl = product.image_url || "/placeholder.svg";
   const categoryName = categories.find(c => c.id === productAny?.category_id)?.name || categories.find(c => c.slug === product.category)?.name || product.category || "Outros";
   const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
