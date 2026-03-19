@@ -151,8 +151,11 @@ const ProductDetail = () => {
   }
 
   const relatedOthers = products.filter((p) => p.id !== product.id);
-  const sameCategory = product.category
-    ? relatedOthers.filter((p) => p.category === product.category)
+  const sameCategory = (productAny?.category_id || product.category)
+    ? relatedOthers.filter((p) => 
+        (productAny?.category_id && (p as any).category_id === productAny.category_id) ||
+        (product.category && p.category === product.category)
+      )
     : [];
   const related = (() => {
     if (sameCategory.length >= 3) return sameCategory.slice(0, 4);
@@ -166,7 +169,7 @@ const ProductDetail = () => {
     return [...sameCategory, ...fallback].slice(0, 4);
   })();
   const imageUrl = product.image_url || "/placeholder.svg";
-  const categoryName = categories.find(c => c.slug === product.category)?.name || product.category || "Outros";
+  const categoryName = categories.find(c => c.id === productAny?.category_id)?.name || categories.find(c => c.slug === product.category)?.name || product.category || "Outros";
   const plainDescription = product.description ? product.description.replace(/<[^>]+>/g, '').trim() : "Confira esta oferta incrível no OfertaShop!";
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const defaultImage = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop";
