@@ -12,17 +12,10 @@ function bufferToHex(buffer: ArrayBuffer): string {
     .join("");
 }
 
-async function hmacSha256(secret: string, message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(message));
-  return bufferToHex(signature);
+async function sha256Hex(message: string): Promise<string> {
+  const data = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return bufferToHex(hashBuffer);
 }
 
 // ─── CORS e Headers ────────────────────────────────────────────────────────
