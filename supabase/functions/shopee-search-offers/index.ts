@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
             itemId
             shopId
             productName
+            price
             priceMin
             priceMax
             imageUrl

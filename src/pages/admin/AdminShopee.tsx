@@ -10,6 +10,7 @@ interface ShopeeOffer {
   itemId: string;
   shopId: string;
   productName: string;
+  price: number;
   priceMin: number;
   priceMax: number;
   imageUrl: string;
@@ -20,7 +21,6 @@ interface ShopeeOffer {
   ratingStar: number;
   shopName: string;
   offerLink: string;
-  shopeeShortLink: string;
   already_imported?: boolean;
 }
 
