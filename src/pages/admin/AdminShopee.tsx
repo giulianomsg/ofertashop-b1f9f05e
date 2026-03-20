@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package } from "lucide-react";
+import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,7 @@ const AdminShopee = () => {
 
   // Batch sync state
   const [syncing, setSyncing] = useState(false);
+  const [syncDetails, setSyncDetails] = useState<any[]>([]);
 
   // Sync logs
   const { data: syncLogs = [] } = useQuery({
@@ -155,6 +156,9 @@ const AdminShopee = () => {
       toast.success(
         `Sincronização concluída! ${data.total} processados, ${data.updated} atualizados, ${data.deactivated} desativados.`
       );
+      if (data.details && data.details.length > 0) {
+        setSyncDetails(data.details);
+      }
       qc.invalidateQueries({ queryKey: ["shopee_sync_logs"] });
       qc.invalidateQueries({ queryKey: ["shopee_mappings_count"] });
       qc.invalidateQueries({ queryKey: ["products"] });
@@ -225,6 +229,55 @@ const AdminShopee = () => {
           </button>
         </div>
       </div>
+
+      {/* Detailed Sync Results */}
+      {syncDetails.length > 0 && (
+        <div className="bg-card rounded-xl border border-border overflow-hidden mb-6" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="p-4 border-b border-border flex justify-between items-center bg-secondary/50">
+            <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-accent" />
+              Resultado Detalhado da Sincronização
+            </h3>
+            <button onClick={() => setSyncDetails([])} className="text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-secondary border-b border-border">
+                  <th className="text-left p-3 font-semibold text-foreground">Produto</th>
+                  <th className="text-center p-3 font-semibold text-foreground">Status</th>
+                  <th className="text-right p-3 font-semibold text-foreground">Preço Antigo</th>
+                  <th className="text-right p-3 font-semibold text-foreground">Novo Preço</th>
+                </tr>
+              </thead>
+              <tbody>
+                {syncDetails.map((detail, idx) => (
+                  <tr key={idx} className="border-b border-border last:border-0 hover:bg-secondary/20">
+                    <td className="p-3 font-medium text-foreground">{detail.title}</td>
+                    <td className="p-3 text-center">
+                      {detail.status === "deactivated" ? (
+                        <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Desativado</span>
+                      ) : detail.status === "reactivated" ? (
+                        <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full">Reativado</span>
+                      ) : (
+                        <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">Preço Alterado</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-right text-muted-foreground">
+                      {detail.oldPrice ? `R$ ${detail.oldPrice.toFixed(2).replace(".", ",")}` : "-"}
+                    </td>
+                    <td className="p-3 text-right font-medium text-foreground">
+                      {detail.newPrice ? `R$ ${detail.newPrice.toFixed(2).replace(".", ",")}` : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="bg-card rounded-xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>

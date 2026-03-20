@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     // Fetch all active shopee mappings
     const { data: mappings, error: fetchErr } = await sb
       .from("shopee_product_mappings")
-      .select("*, products(id, price, original_price, is_active)")
+      .select("*, products(id, title, price, original_price, is_active)")
       .eq("sync_status", "active");
 
     if (fetchErr) throw fetchErr;
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
           status: "success", items_processed: 0, completed_at: new Date().toISOString(),
         }).eq("id", logId);
       }
-      return new Response(JSON.stringify({ updated: 0, deactivated: 0, total: 0 }), {
+      return new Response(JSON.stringify({ updated: 0, deactivated: 0, total: 0, details: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
     const BATCH_SIZE = 20;
     let totalUpdated = 0;
     let totalDeactivated = 0;
+    const details: any[] = [];
 
     for (let i = 0; i < mappings.length; i += BATCH_SIZE) {
       const batch = mappings.slice(i, i + BATCH_SIZE);
@@ -141,6 +142,7 @@ Deno.serve(async (req) => {
               sync_status: "unavailable", last_synced_at: new Date().toISOString(),
             }).eq("id", mapping.id);
             totalDeactivated++;
+            details.push({ id: mapping.product_id, title: (product as any)?.title || "Produto Desconhecido", status: "deactivated" });
           }
           continue;
         }
@@ -157,14 +159,27 @@ Deno.serve(async (req) => {
         if (newOriginal !== null && newOriginal !== Number(product?.original_price || 0)) {
           updates.original_price = newOriginal;
         }
+
+        let status = "updated";
         if (!product?.is_active) {
           updates.is_active = true;
+          status = "reactivated";
           await sb.from("shopee_product_mappings").update({ sync_status: "active" }).eq("id", mapping.id);
         }
 
         if (Object.keys(updates).length > 0) {
           await sb.from("products").update(updates).eq("id", mapping.product_id);
           totalUpdated++;
+          
+          if (status === "reactivated" || updates.price !== undefined) {
+             details.push({ 
+               id: mapping.product_id, 
+               title: (product as any)?.title || "Produto Desconhecido", 
+               status, 
+               oldPrice: product?.price, 
+               newPrice: updates.price !== undefined ? updates.price : product?.price 
+             });
+          }
         }
 
         await sb.from("shopee_product_mappings").update({
@@ -184,7 +199,7 @@ Deno.serve(async (req) => {
       }).eq("id", logId);
     }
 
-    return new Response(JSON.stringify({ total: mappings.length, updated: totalUpdated, deactivated: totalDeactivated }), {
+    return new Response(JSON.stringify({ total: mappings.length, updated: totalUpdated, deactivated: totalDeactivated, details }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {

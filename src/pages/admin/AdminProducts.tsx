@@ -346,7 +346,7 @@ const AdminProducts = () => {
                   <td className="p-4 text-center hidden md:table-cell">
                     {product.commission_rate ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-accent/10 text-accent font-medium text-xs">
-                        {product.commission_rate}%
+                        {parseFloat(Number(product.commission_rate).toFixed(2))}%
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
