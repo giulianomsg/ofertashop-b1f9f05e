@@ -165,9 +165,37 @@ const AdminShopee = () => {
     }
   };
 
-  const formatPrice = (microPrice: number) => {
-    const price = microPrice / 100000;
-    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "N/A";
+  const formatPrice = (offer: ShopeeOffer) => {
+    // Try price first, then priceMin, then priceMax
+    const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
+    // Shopee API may return price in micro-units (divide by 100000) or in cents (divide by 100) or as-is
+    // Detect format: if value > 100000, likely micro-units; if > 1000, likely cents; otherwise as-is
+    let price = rawPrice;
+    if (rawPrice > 100000) {
+      price = rawPrice / 100000;
+    } else if (rawPrice > 0 && rawPrice < 1) {
+      price = rawPrice; // already in reais
+    }
+    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "Consultar";
+  };
+
+  const formatOriginalPrice = (offer: ShopeeOffer) => {
+    const rawMax = Number(offer.priceMax) || 0;
+    const rawMin = Number(offer.price) || Number(offer.priceMin) || 0;
+    if (rawMax <= rawMin || rawMax === 0) return null;
+    let price = rawMax;
+    if (rawMax > 100000) {
+      price = rawMax / 100000;
+    }
+    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : null;
+  };
+
+  const formatCommission = (offer: ShopeeOffer) => {
+    const rate = Number(offer.commissionRate) || 0;
+    // commissionRate may come as decimal (0.11) or percentage (11)
+    // If < 1, treat as decimal and multiply by 100
+    const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
+    return pct > 0 ? `${pct.toFixed(1)}%` : null;
   };
 
   return (
