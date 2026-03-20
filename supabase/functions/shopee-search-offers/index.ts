@@ -86,7 +86,6 @@ Deno.serve(async (req) => {
             offerLink
             periodStartTime
             periodEndTime
-            shopeeShortLink
           }
           pageInfo {
             page
