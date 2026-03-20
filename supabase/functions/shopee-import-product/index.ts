@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
 
   try {
     const { offer, categoryId, platformId, userId } = await req.json();
+    const categoryName = offer?.categoryName || null;
 
     if (!offer || !offer.itemId) {
       return new Response(JSON.stringify({ error: "offer com itemId é obrigatório" }), {
