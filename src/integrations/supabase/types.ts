@@ -496,6 +496,7 @@ export type Database = {
           rating: number
           registered_by: string | null
           review_count: number
+          sales_count?: number | null
           store: string
           title: string
           updated_at: string
@@ -524,6 +525,7 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
+          sales_count?: number | null
           store: string
           title: string
           updated_at?: string
@@ -552,6 +554,7 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
+          sales_count?: number | null
           store?: string
           title?: string
           updated_at?: string

@@ -161,6 +161,7 @@ Deno.serve(async (req) => {
         is_active: true,
         rating: Number(offer.ratingStar) || 0,
         registered_by: userId || null,
+        sales_count: Number(offer.sales) || 0,
         badge: (() => {
           const rate = Number(offer.commissionRate) || 0;
           const pct = rate < 1 && rate > 0 ? rate * 100 : rate;

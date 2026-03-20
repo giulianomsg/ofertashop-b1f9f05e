@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon } from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
@@ -445,6 +445,12 @@ const ProductDetail = () => {
                 <TrendingUp className="w-4 h-4 text-accent" />
                 <span className="text-foreground font-medium">{localClicks.toLocaleString()} cliques</span>
               </div>
+              {productAny.sales_count > 0 && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-sm" title="Vendas reportadas pela loja associada">
+                  <Package className="w-4 h-4 text-accent" />
+                  <span className="text-foreground font-medium">{productAny.sales_count.toLocaleString()} vendidos</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-card border border-border rounded-xl p-4">

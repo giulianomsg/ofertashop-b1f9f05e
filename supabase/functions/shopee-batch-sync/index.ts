@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     // Fetch all active shopee mappings
     const { data: mappings, error: fetchErr } = await sb
       .from("shopee_product_mappings")
-      .select("*, products(id, title, price, original_price, is_active)")
+      .select("*, products(id, title, price, original_price, is_active, sales_count)")
       .eq("sync_status", "active");
 
     if (fetchErr) throw fetchErr;
@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
               offerLink
               shopeeShortLink
               commissionRate
+              sales
             }
           }
         }
@@ -158,6 +159,11 @@ Deno.serve(async (req) => {
         }
         if (newOriginal !== null && newOriginal !== Number(product?.original_price || 0)) {
           updates.original_price = newOriginal;
+        }
+        
+        const newSales = Number(shopeeItem.sales) || 0;
+        if (newSales > 0 && newSales !== Number(product?.sales_count || 0)) {
+          updates.sales_count = newSales;
         }
 
         let status = "updated";
