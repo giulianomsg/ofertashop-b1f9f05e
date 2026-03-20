@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare, Tag, Layers, Monitor, FolderOpen, FileText, MessageCircle, Menu, Mail } from "lucide-react";
+import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare, Tag, Layers, Monitor, FolderOpen, FileText, MessageCircle, Menu, Mail, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
