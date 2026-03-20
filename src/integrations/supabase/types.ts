@@ -504,7 +504,7 @@ export type Database = {
           affiliate_url: string
           badge?: string | null
           brand_id?: string | null
-          category: string
+          category?: string
           clicks?: number
           created_at?: string
           created_by?: string | null
