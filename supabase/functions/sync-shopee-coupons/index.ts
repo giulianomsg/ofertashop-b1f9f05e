@@ -1,5 +1,5 @@
 // Supabase Edge Function — Sincronização de Cupons/Ofertas da Shopee
-// Versão Bare-Metal: Proteção contra injeção de charset e espaços
+// Versão Final: SHA-256 Digest (Affiliate API) com Paginação Dinâmica
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -12,25 +12,20 @@ function bufferToHex(buffer: ArrayBuffer): string {
     .join("");
 }
 
+// Shopee Affiliate usa um digest SHA-256 simples, não HMAC
 async function sha256Hex(message: string): Promise<string> {
   const data = new TextEncoder().encode(message);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   return bufferToHex(hashBuffer);
 }
 
-// ─── CORS e Headers ────────────────────────────────────────────────────────
+// ─── CORS ──────────────────────────────────────────────────────────────────
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-// Query estática em linha única (sem variáveis dinâmicas)
-const PAYLOAD_STR = '{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}';
-
-// Pre-encode para garantir identidade byte-a-byte entre assinatura e body
-const PAYLOAD_BYTES = new TextEncoder().encode(PAYLOAD_STR);
 
 // ─── Tipos e Helpers ───────────────────────────────────────────────────────
 
@@ -83,7 +78,7 @@ function mapOfferToCoupon(offer: ShopeeOffer, platformId: string, syncTime: stri
   };
 }
 
-// ─── Fetch Principal ───────────────────────────────────────────────────────
+// ─── Fetch Principal (Com Paginação) ───────────────────────────────────────
 
 async function fetchAllOffers(): Promise<ShopeeOffer[]> {
   const appId = Deno.env.get("SHOPEE_APP_ID")?.trim();
@@ -92,47 +87,63 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
 
   if (!appId || !appSecret) throw new Error("SHOPEE_APP_ID ou SHOPEE_APP_SECRET em falta.");
 
-  const timestamp = Math.floor(Date.now() / 1000);
+  const allOffers: ShopeeOffer[] = [];
+  let page = 1;
+  const limit = 50;
 
-  // ── Shopee Affiliate: SHA-256 simples (NÃO HMAC) ──
-  // factor = appId + timestamp + payload + appSecret
-  const factor = `${appId}${timestamp}${PAYLOAD_STR}${appSecret}`;
-  const sign = await sha256Hex(factor);
+  // Query com suporte a variáveis do GraphQL (em uma linha para evitar problemas de parsing)
+  const queryStr = `query ShopeeOfferList($page: Int!, $limit: Int!) { shopeeOfferV2(page: $page, limit: $limit) { nodes { offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime } pageInfo { page limit hasNextPage } } }`;
 
-  const url = `${shopeeHost}/graphql`;
+  while (true) {
+    const timestamp = Math.floor(Date.now() / 1000);
 
-  console.log(`[shopee] Requesting URL: ${url}`);
-  console.log(`[shopee] Timestamp: ${timestamp}`);
-  console.log(`[shopee] Factor length: ${factor.length}`);
-  console.log(`[shopee] Payload length: ${PAYLOAD_STR.length}`);
+    // Constrói o payload de forma dinâmica e segura para cada página
+    const payloadStr = JSON.stringify({
+      query: queryStr,
+      variables: { page, limit }
+    });
+    const payloadBytes = new TextEncoder().encode(payloadStr);
 
-  // Enviar PAYLOAD_BYTES (Uint8Array) garante que o Deno não injete charset
-  // no body. O Content-Type é forçado sem charset para evitar discrepâncias.
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
-      "Content-Type": "application/json",
-    },
-    body: PAYLOAD_BYTES,
-  });
+    // Regra estrita da API Affiliate: appId + timestamp + payload + appSecret
+    const factor = `${appId}${timestamp}${payloadStr}${appSecret}`;
+    const sign = await sha256Hex(factor);
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error(`[shopee] HTTP ${res.status}: ${text}`);
-    throw new Error(`Shopee API returned ${res.status}: ${text}`);
+    const url = `${shopeeHost}/graphql`;
+
+    console.log(`[shopee] Requesting page ${page} (limit: ${limit})...`);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+        "Content-Type": "application/json",
+      },
+      body: payloadBytes,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Shopee API returned ${res.status}: ${text}`);
+    }
+
+    const json = await res.json();
+
+    if (json.errors && json.errors.length > 0) {
+      const errMsg = json.errors[0]?.message || JSON.stringify(json.errors);
+      throw new Error(`Shopee GraphQL error: ${errMsg}`);
+    }
+
+    const data = json.data?.shopeeOfferV2;
+    if (!data) break;
+
+    const nodes: ShopeeOffer[] = data.nodes || [];
+    allOffers.push(...nodes);
+
+    if (!data.pageInfo?.hasNextPage || nodes.length === 0) break;
+    page++;
   }
 
-  const json = await res.json();
-
-  if (json.errors && json.errors.length > 0) {
-    const errMsg = json.errors[0]?.message || JSON.stringify(json.errors);
-    console.error(`[shopee] GraphQL error: ${errMsg}`);
-    throw new Error(`Shopee GraphQL error: ${errMsg}`);
-  }
-
-  console.log(`[shopee] Fetched ${json.data?.shopeeOfferV2?.nodes?.length ?? 0} offers`);
-  return json.data?.shopeeOfferV2?.nodes || [];
+  return allOffers;
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
@@ -159,6 +170,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true, fetched: offers.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
+    console.error("[sync] Execution error:", err);
     return new Response(JSON.stringify({ error: "Internal server error", detail: String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
