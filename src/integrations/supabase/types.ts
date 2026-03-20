@@ -696,6 +696,98 @@ export type Database = {
           },
         ]
       }
+      shopee_product_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          product_id: string
+          shopee_commission_rate: number | null
+          shopee_image_url: string | null
+          shopee_item_id: string
+          shopee_offer_id: string | null
+          shopee_product_url: string | null
+          shopee_shop_id: string | null
+          shopee_short_link: string | null
+          sync_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          product_id: string
+          shopee_commission_rate?: number | null
+          shopee_image_url?: string | null
+          shopee_item_id: string
+          shopee_offer_id?: string | null
+          shopee_product_url?: string | null
+          shopee_shop_id?: string | null
+          shopee_short_link?: string | null
+          sync_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          product_id?: string
+          shopee_commission_rate?: number | null
+          shopee_image_url?: string | null
+          shopee_item_id?: string
+          shopee_offer_id?: string | null
+          shopee_product_url?: string | null
+          shopee_shop_id?: string | null
+          shopee_short_link?: string | null
+          sync_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopee_product_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopee_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          items_deactivated: number | null
+          items_processed: number | null
+          items_updated: number | null
+          status: string
+          sync_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_deactivated?: number | null
+          items_processed?: number | null
+          items_updated?: number | null
+          status?: string
+          sync_type: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_deactivated?: number | null
+          items_processed?: number | null
+          items_updated?: number | null
+          status?: string
+          sync_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       special_page_products: {
         Row: {
           id: string
