@@ -100,31 +100,44 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
   if (!appId || !appSecret) throw new Error("SHOPEE_APP_ID ou SHOPEE_APP_SECRET em falta.");
 
   const timestamp = Math.floor(Date.now() / 1000);
+
+  // ── Assinatura: baseString = appId + timestamp + payload (string exata) ──
   const baseString = `${appId}${timestamp}${PAYLOAD_STR}`;
   const sign = await hmacSha256(appSecret, baseString);
 
   const url = `${shopeeHost}/graphql`;
 
-  // Headers sem espaços extras
-  const headers = {
-    "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
-    "Content-Type": "application/json",
-  };
-
   console.log(`[shopee] Requesting URL: ${url}`);
-  const res = await fetch(url, { method: "POST", headers, body: PAYLOAD_BYTES });
+  console.log(`[shopee] Timestamp: ${timestamp}`);
+  console.log(`[shopee] BaseString length: ${baseString.length}`);
+  console.log(`[shopee] Payload length: ${PAYLOAD_STR.length}`);
+
+  // Enviar PAYLOAD_BYTES (Uint8Array) garante que o Deno não injete charset
+  // no body. O Content-Type é forçado sem charset para evitar discrepâncias.
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+      "Content-Type": "application/json",
+    },
+    body: PAYLOAD_BYTES,
+  });
 
   if (!res.ok) {
     const text = await res.text();
+    console.error(`[shopee] HTTP ${res.status}: ${text}`);
     throw new Error(`Shopee API returned ${res.status}: ${text}`);
   }
 
   const json = await res.json();
 
   if (json.errors && json.errors.length > 0) {
-    throw new Error(`Shopee GraphQL error: ${json.errors[0]?.message || JSON.stringify(json.errors)}`);
+    const errMsg = json.errors[0]?.message || JSON.stringify(json.errors);
+    console.error(`[shopee] GraphQL error: ${errMsg}`);
+    throw new Error(`Shopee GraphQL error: ${errMsg}`);
   }
 
+  console.log(`[shopee] Fetched ${json.data?.shopeeOfferV2?.nodes?.length ?? 0} offers`);
   return json.data?.shopeeOfferV2?.nodes || [];
 }
 
