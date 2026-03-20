@@ -30,6 +30,7 @@ const AdminShopee = () => {
 
   // Search state
   const [keyword, setKeyword] = useState("");
+  const [sortType, setSortType] = useState<number>(2);
   const [searching, setSearching] = useState(false);
   const [offers, setOffers] = useState<ShopeeOffer[]>([]);
   const [pageInfo, setPageInfo] = useState<any>(null);
@@ -78,7 +79,7 @@ const AdminShopee = () => {
     setSearching(true);
     try {
       const { data, error } = await supabase.functions.invoke("shopee-search-offers", {
-        body: { keyword: keyword.trim(), page, limit: 20 },
+        body: { keyword: keyword.trim(), page, limit: 20, sortType },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -281,7 +282,7 @@ const AdminShopee = () => {
 
       {/* Search bar */}
       <div className="bg-card rounded-xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -292,10 +293,22 @@ const AdminShopee = () => {
               className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
           </div>
+          <select
+            value={sortType}
+            onChange={(e) => setSortType(Number(e.target.value))}
+            className="h-10 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none bg-background cursor-pointer hover:bg-secondary transition-colors font-medium border"
+          >
+            <option value={1}>Relevância</option>
+            <option value={2}>Maior Comissão</option>
+            <option value={3}>Mais Vendidos</option>
+            <option value={4}>Menor Preço</option>
+            <option value={5}>Maior Preço</option>
+            <option value={6}>Melhor Avaliação</option>
+          </select>
           <button
             onClick={() => handleSearch(1)}
             disabled={searching}
-            className="h-10 px-5 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+            className="h-10 px-5 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             Buscar
