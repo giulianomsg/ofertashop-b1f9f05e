@@ -94,9 +94,10 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
 
   const timestamp = Math.floor(Date.now() / 1000);
 
-  // ── Assinatura: baseString = appId + timestamp + payload (string exata) ──
-  const baseString = `${appId}${timestamp}${PAYLOAD_STR}`;
-  const sign = await hmacSha256(appSecret, baseString);
+  // ── Shopee Affiliate: SHA-256 simples (NÃO HMAC) ──
+  // factor = appId + timestamp + payload + appSecret
+  const factor = `${appId}${timestamp}${PAYLOAD_STR}${appSecret}`;
+  const sign = await sha256Hex(factor);
 
   const url = `${shopeeHost}/graphql`;
 
