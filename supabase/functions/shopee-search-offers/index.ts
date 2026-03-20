@@ -99,6 +99,7 @@ Deno.serve(async (req) => {
     `;
 
     const data = await shopeeGraphQL(query);
+    console.log("Shopee API raw response sample:", JSON.stringify(data?.productOfferV2?.nodes?.[0] || {}).slice(0, 500));
     const offers = data?.productOfferV2?.nodes || [];
     const pageInfo = data?.productOfferV2?.pageInfo || {};
 
