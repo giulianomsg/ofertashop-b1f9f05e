@@ -1,5 +1,5 @@
 // Supabase Edge Function — Sincronização de Cupons/Ofertas da Shopee
-// Utiliza a API Oficial da Shopee Affiliates (shopeeOfferV2 — GraphQL)
+// Proteção estrita contra Error 10020 (Invalid Signature)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -25,30 +25,30 @@ async function hmacSha256(secret: string, message: string): Promise<string> {
   return bufferToHex(signature);
 }
 
-async function generateShopeeAuth(params: { payload: string }) {
-  const appId = Deno.env.get("SHOPEE_APP_ID");
-  const appSecret = Deno.env.get("SHOPEE_APP_SECRET");
+async function generateShopeeAuth(payload: string) {
+  // O .trim() é vital aqui para erradicar caracteres invisíveis de copy-paste (\r ou \n)
+  const appId = Deno.env.get("SHOPEE_APP_ID")?.trim();
+  const appSecret = Deno.env.get("SHOPEE_APP_SECRET")?.trim();
+  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL")?.trim() || "https://open-api.affiliate.shopee.com.br";
 
   if (!appId || !appSecret) {
     throw new Error("As variáveis de ambiente SHOPEE_APP_ID e SHOPEE_APP_SECRET devem estar definidas.");
   }
 
-  const { payload } = params;
   const timestamp = Math.floor(Date.now() / 1000);
 
-  // Base string (padrão Affiliate GraphQL): app_id + timestamp + payload
+  // Base string estrita: appId + timestamp + payload bruto
   const baseString = `${appId}${timestamp}${payload}`;
   const sign = await hmacSha256(appSecret, baseString);
 
-  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL") ?? "https://affiliate.shopee.com.br";
   const url = `${shopeeHost}/graphql`;
 
   const headers = {
-    Authorization: `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
-    "Content-Type": "application/json",
+    "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+    "Content-Type": "application/json; charset=utf-8",
   };
 
-  return { url, headers, timestamp, sign };
+  return { url, headers };
 }
 
 // ─── CORS e GraphQL Query ──────────────────────────────────────────────────
@@ -59,29 +59,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SHOPEE_OFFERS_QUERY = `
-  query ShopeeOfferList($page: Int!, $limit: Int!) {
-    shopeeOfferV2(page: $page, limit: $limit) {
-      nodes {
-        offerName
-        offerLink
-        originalLink
-        offerType
-        commissionRate
-        imageUrl
-        categoryId
-        collectionId
-        periodStartTime
-        periodEndTime
-      }
-      pageInfo {
-        page
-        limit
-        hasNextPage
-      }
-    }
-  }
-`;
+// A Query foi intencionalmente convertida para uma linha única sem espaços extras 
+// para evitar divergências de escape JSON (\n) que causam falhas de hash (Error 10020)
+const SHOPEE_OFFERS_QUERY = `query ShopeeOfferList($page: Int!, $limit: Int!) { shopeeOfferV2(page: $page, limit: $limit) { nodes { offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime } pageInfo { page limit hasNextPage } } }`;
 
 // ─── Tipos e Helpers ───────────────────────────────────────────────────────
 
@@ -139,22 +119,24 @@ function mapOfferToCoupon(offer: ShopeeOffer, platformId: string, syncTime: stri
 async function fetchAllOffers(): Promise<ShopeeOffer[]> {
   const allOffers: ShopeeOffer[] = [];
   let page = 1;
-  const limit = 50;
+  const limit = 50; // Limite padrão seguro para a Shopee
 
   while (true) {
+    // 1. Cria o payload JSON de forma estrita
     const body = JSON.stringify({
       query: SHOPEE_OFFERS_QUERY,
       variables: { page, limit },
     });
 
-    const { url, headers } = await generateShopeeAuth({ payload: body });
+    // 2. Assina o exato mesmo texto que será enviado na rede
+    const { url, headers } = await generateShopeeAuth(body);
 
-    console.log(`[shopee] Fetching page ${page} (limit ${limit})...`);
+    console.log(`[shopee] Fetching page ${page}...`);
     const res = await fetch(url, { method: "POST", headers, body });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error(`[shopee] API error ${res.status}: ${text}`);
+      console.error(`[shopee] API HTTP error ${res.status}: ${text}`);
       throw new Error(`Shopee API returned ${res.status}: ${text}`);
     }
 
