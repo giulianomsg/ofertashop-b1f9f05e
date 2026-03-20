@@ -12,17 +12,10 @@ function bufferToHex(buffer: ArrayBuffer): string {
     .join("");
 }
 
-async function hmacSha256(secret: string, message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(message));
-  return bufferToHex(signature);
+async function sha256Hex(message: string): Promise<string> {
+  const data = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return bufferToHex(hashBuffer);
 }
 
 // ─── CORS e Headers ────────────────────────────────────────────────────────
@@ -33,10 +26,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Query estática em linha única (sem variáveis dinâmicas) para evitar escaping
-const PAYLOAD_STR = `{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}`;
+// Query estática em linha única (sem variáveis dinâmicas)
+const PAYLOAD_STR = '{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}';
 
-// Transformamos a string em bytes puros para o fetch não injetar charset
+// Pre-encode para garantir identidade byte-a-byte entre assinatura e body
 const PAYLOAD_BYTES = new TextEncoder().encode(PAYLOAD_STR);
 
 // ─── Tipos e Helpers ───────────────────────────────────────────────────────
@@ -100,31 +93,45 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
   if (!appId || !appSecret) throw new Error("SHOPEE_APP_ID ou SHOPEE_APP_SECRET em falta.");
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const baseString = `${appId}${timestamp}${PAYLOAD_STR}`;
-  const sign = await hmacSha256(appSecret, baseString);
+
+  // ── Shopee Affiliate: SHA-256 simples (NÃO HMAC) ──
+  // factor = appId + timestamp + payload + appSecret
+  const factor = `${appId}${timestamp}${PAYLOAD_STR}${appSecret}`;
+  const sign = await sha256Hex(factor);
 
   const url = `${shopeeHost}/graphql`;
 
-  // Headers sem espaços extras
-  const headers = {
-    "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
-    "Content-Type": "application/json",
-  };
-
   console.log(`[shopee] Requesting URL: ${url}`);
-  const res = await fetch(url, { method: "POST", headers, body: PAYLOAD_BYTES });
+  console.log(`[shopee] Timestamp: ${timestamp}`);
+  console.log(`[shopee] Factor length: ${factor.length}`);
+  console.log(`[shopee] Payload length: ${PAYLOAD_STR.length}`);
+
+  // Enviar PAYLOAD_BYTES (Uint8Array) garante que o Deno não injete charset
+  // no body. O Content-Type é forçado sem charset para evitar discrepâncias.
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+      "Content-Type": "application/json",
+    },
+    body: PAYLOAD_BYTES,
+  });
 
   if (!res.ok) {
     const text = await res.text();
+    console.error(`[shopee] HTTP ${res.status}: ${text}`);
     throw new Error(`Shopee API returned ${res.status}: ${text}`);
   }
 
   const json = await res.json();
 
   if (json.errors && json.errors.length > 0) {
-    throw new Error(`Shopee GraphQL error: ${json.errors[0]?.message || JSON.stringify(json.errors)}`);
+    const errMsg = json.errors[0]?.message || JSON.stringify(json.errors);
+    console.error(`[shopee] GraphQL error: ${errMsg}`);
+    throw new Error(`Shopee GraphQL error: ${errMsg}`);
   }
 
+  console.log(`[shopee] Fetched ${json.data?.shopeeOfferV2?.nodes?.length ?? 0} offers`);
   return json.data?.shopeeOfferV2?.nodes || [];
 }
 
