@@ -322,6 +322,7 @@ const AdminProducts = () => {
                 <th className="text-left p-4 font-semibold text-foreground">Produto</th>
                 <th className="text-left p-4 font-semibold text-foreground hidden md:table-cell">Loja</th>
                 <th className="text-left p-4 font-semibold text-foreground">Preço</th>
+                <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Comissão</th>
                 <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Cliques</th>
                 <th className="text-center p-4 font-semibold text-foreground">Status</th>
                 <th className="text-right p-4 font-semibold text-foreground">Ações</th>
@@ -342,6 +343,15 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
                   <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
+                  <td className="p-4 text-center hidden md:table-cell">
+                    {product.commission_rate ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-accent/10 text-accent font-medium text-xs">
+                        {product.commission_rate}%
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </td>
                   <td className="p-4 text-center text-muted-foreground hidden md:table-cell">{product.clicks.toLocaleString()}</td>
                   <td className="p-4 text-center">
                     <button onClick={() => handleToggle(product.id, product.is_active)} className="inline-flex" aria-label="Alternar status">
