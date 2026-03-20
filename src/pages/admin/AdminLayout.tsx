@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare, Tag, Layers, Monitor, FolderOpen, FileText, MessageCircle, Menu, Mail } from "lucide-react";
+import { LayoutDashboard, Package, Users, AlertTriangle, BarChart3, ChevronLeft, ChevronRight, ShoppingBag, LogOut, Image, MessageSquare, Tag, Layers, Monitor, FolderOpen, FileText, MessageCircle, Menu, Mail, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ const menuItems = [
   { icon: FileText, label: "Páginas Especiais", path: "/admin/paginas-especiais" },
   { icon: FileText, label: "Páginas Institucionais", path: "/admin/paginas-institucionais" },
   { icon: Tag, label: "Cupons", path: "/admin/cupons" },
+  { icon: ShoppingCart, label: "Shopee Affiliate", path: "/admin/shopee" },
   { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp" },
   { icon: Mail, label: "Newsletters", path: "/admin/newsletters" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
