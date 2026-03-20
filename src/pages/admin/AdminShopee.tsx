@@ -87,7 +87,7 @@ const AdminShopee = () => {
       setCurrentPage(page);
 
       // Mark already imported
-      const alreadyImported = new Set(
+      const alreadyImported = new Set<string>(
         (data.offers || []).filter((o: ShopeeOffer) => o.already_imported).map((o: ShopeeOffer) => String(o.itemId))
       );
       setImported(alreadyImported);
