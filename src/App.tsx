@@ -65,6 +65,7 @@ const App = () => (
               <Route path="paginas-especiais" element={<AdminSpecialPages />} />
               <Route path="paginas-institucionais" element={<AdminInstitutionalPages />} />
               <Route path="cupons" element={<AdminCoupons />} />
+              <Route path="shopee" element={<AdminShopee />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
             </Route>
