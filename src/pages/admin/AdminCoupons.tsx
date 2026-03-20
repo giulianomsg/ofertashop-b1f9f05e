@@ -16,7 +16,7 @@ const AdminCoupons = () => {
   const handleSyncShopee = async () => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("sync-shopee-coupons");
+      const { data, error } = await supabase.functions.invoke("sync-shopee-vouchers");
       if (error) throw error;
       if (data?.error) {
         toast.error("Erro na sincronização: " + data.error);
