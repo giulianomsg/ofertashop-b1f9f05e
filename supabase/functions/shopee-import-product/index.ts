@@ -114,6 +114,30 @@ Deno.serve(async (req) => {
       resolvedPlatformId = shopeePlatform?.id || null;
     }
 
+    // Resolve category_id: use provided or auto-create from categoryName
+    let resolvedCategoryId = categoryId || null;
+    if (!resolvedCategoryId && categoryName) {
+      // Try to find existing category
+      const { data: existingCat } = await sb
+        .from("categories")
+        .select("id")
+        .ilike("name", categoryName)
+        .maybeSingle();
+
+      if (existingCat) {
+        resolvedCategoryId = existingCat.id;
+      } else {
+        // Auto-create category
+        const slug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const { data: newCat } = await sb
+          .from("categories")
+          .insert({ name: categoryName, slug })
+          .select("id")
+          .single();
+        if (newCat) resolvedCategoryId = newCat.id;
+      }
+    }
+
     // Calculate prices - try 'price' field first, then priceMin/priceMax
     const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
     const rawMax = Number(offer.priceMax) || rawPrice;
@@ -132,7 +156,7 @@ Deno.serve(async (req) => {
         store: offer.shopName || "Shopee",
         affiliate_url: shortLink || offer.productLink || "",
         image_url: offer.imageUrl || null,
-        category: categoryId || "geral",
+        category: "geral",
         platform_id: resolvedPlatformId,
         is_active: true,
         rating: Number(offer.ratingStar) || 0,
