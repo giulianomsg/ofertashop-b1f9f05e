@@ -1,5 +1,5 @@
 // Supabase Edge Function — Sincronização de Cupons/Ofertas da Shopee
-// Versão com Diagnóstico e Correção de Parser de Headers
+// Versão Bare-Metal: Proteção contra injeção de charset e espaços
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -25,34 +25,7 @@ async function hmacSha256(secret: string, message: string): Promise<string> {
   return bufferToHex(signature);
 }
 
-async function generateShopeeAuth(payload: string) {
-  const appId = Deno.env.get("SHOPEE_APP_ID")?.trim();
-  const appSecret = Deno.env.get("SHOPEE_APP_SECRET")?.trim();
-  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL")?.trim() || "https://open-api.affiliate.shopee.com.br";
-
-  if (!appId || !appSecret) {
-    throw new Error("SHOPEE_APP_ID ou SHOPEE_APP_SECRET em falta.");
-  }
-
-  const timestamp = Math.floor(Date.now() / 1000);
-  const baseString = `${appId}${timestamp}${payload}`;
-  const sign = await hmacSha256(appSecret, baseString);
-
-  // LOG DE DIAGNÓSTICO - Verifique isto nos logs do Supabase se falhar!
-  console.log(`[AUTH DEBUG] App ID usado: ${appId} (Tamanho: ${appId.length})`);
-  console.log(`[AUTH DEBUG] Tamanho do Secret: ${appSecret.length} caracteres`);
-  console.log(`[AUTH DEBUG] Timestamp: ${timestamp}`);
-
-  const url = `${shopeeHost}/graphql`;
-
-  // CORREÇÃO: Adicionados espaços obrigatórios a seguir às vírgulas
-  const headers = {
-    "Authorization": `SHA256 Credential=${appId}, Timestamp=${timestamp}, Signature=${sign}`,
-    "Content-Type": "application/json",
-  };
-
-  return { url, headers };
-}
+// ─── CORS e Headers ────────────────────────────────────────────────────────
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,7 +33,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SHOPEE_OFFERS_QUERY = `query ShopeeOfferList($page: Int!, $limit: Int!) { shopeeOfferV2(page: $page, limit: $limit) { nodes { offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime } pageInfo { page limit hasNextPage } } }`;
+// Query estática em linha única (sem variáveis dinâmicas) para evitar escaping
+const PAYLOAD_STR = `{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}`;
+
+// Transformamos a string em bytes puros para o fetch não injetar charset
+const PAYLOAD_BYTES = new TextEncoder().encode(PAYLOAD_STR);
+
+// ─── Tipos e Helpers ───────────────────────────────────────────────────────
 
 interface ShopeeOffer {
   offerName: string;
@@ -75,12 +54,25 @@ interface ShopeeOffer {
   periodEndTime: string;
 }
 
+function formatDate(isoOrTimestamp: string): string {
+  try {
+    const d = new Date(isNaN(Number(isoOrTimestamp)) ? isoOrTimestamp : Number(isoOrTimestamp) * 1000);
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return isoOrTimestamp;
+  }
+}
+
 function mapOfferToCoupon(offer: ShopeeOffer, platformId: string, syncTime: string) {
   const code = offer.collectionId
     ? `shopee-offer-${offer.collectionId}`
     : `shopee-offer-${offer.offerName.replace(/\s+/g, "-").toLowerCase().slice(0, 40)}`;
 
   const discountValue = offer.commissionRate ? `${offer.commissionRate}% comissão` : null;
+  let conditions: string | null = null;
+  if (offer.periodStartTime && offer.periodEndTime) {
+    conditions = `Válido de ${formatDate(offer.periodStartTime)} até ${formatDate(offer.periodEndTime)}`;
+  }
 
   return {
     platform_id: platformId,
@@ -90,7 +82,7 @@ function mapOfferToCoupon(offer: ShopeeOffer, platformId: string, syncTime: stri
     discount_value: discountValue,
     discount_amount: null,
     subtitle: offer.offerType || null,
-    conditions: null,
+    conditions,
     link_url: offer.offerLink || offer.originalLink || "https://shopee.com.br",
     is_link_only: true,
     active: true,
@@ -98,44 +90,45 @@ function mapOfferToCoupon(offer: ShopeeOffer, platformId: string, syncTime: stri
   };
 }
 
+// ─── Fetch Principal ───────────────────────────────────────────────────────
+
 async function fetchAllOffers(): Promise<ShopeeOffer[]> {
-  const allOffers: ShopeeOffer[] = [];
-  let page = 1;
-  const limit = 50;
+  const appId = Deno.env.get("SHOPEE_APP_ID")?.trim();
+  const appSecret = Deno.env.get("SHOPEE_APP_SECRET")?.trim();
+  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL")?.trim() || "https://open-api.affiliate.shopee.com.br";
 
-  while (true) {
-    const body = JSON.stringify({
-      query: SHOPEE_OFFERS_QUERY,
-      variables: { page, limit },
-    });
+  if (!appId || !appSecret) throw new Error("SHOPEE_APP_ID ou SHOPEE_APP_SECRET em falta.");
 
-    const { url, headers } = await generateShopeeAuth(body);
+  const timestamp = Math.floor(Date.now() / 1000);
+  const baseString = `${appId}${timestamp}${PAYLOAD_STR}`;
+  const sign = await hmacSha256(appSecret, baseString);
 
-    const res = await fetch(url, { method: "POST", headers, body });
+  const url = `${shopeeHost}/graphql`;
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Shopee API returned ${res.status}: ${text}`);
-    }
+  // Headers sem espaços extras
+  const headers = {
+    "Authorization": `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+    "Content-Type": "application/json",
+  };
 
-    const json = await res.json();
+  console.log(`[shopee] Requesting URL: ${url}`);
+  const res = await fetch(url, { method: "POST", headers, body: PAYLOAD_BYTES });
 
-    if (json.errors && json.errors.length > 0) {
-      throw new Error(`Shopee GraphQL error: ${json.errors[0]?.message || JSON.stringify(json.errors)}`);
-    }
-
-    const data = json.data?.shopeeOfferV2;
-    if (!data) break;
-
-    const nodes: ShopeeOffer[] = data.nodes || [];
-    allOffers.push(...nodes);
-
-    if (!data.pageInfo?.hasNextPage || nodes.length === 0) break;
-    page++;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Shopee API returned ${res.status}: ${text}`);
   }
 
-  return allOffers;
+  const json = await res.json();
+
+  if (json.errors && json.errors.length > 0) {
+    throw new Error(`Shopee GraphQL error: ${json.errors[0]?.message || JSON.stringify(json.errors)}`);
+  }
+
+  return json.data?.shopeeOfferV2?.nodes || [];
 }
+
+// ─── Handler ───────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
