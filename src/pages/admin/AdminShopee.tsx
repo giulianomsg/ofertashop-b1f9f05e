@@ -295,17 +295,17 @@ const AdminShopee = () => {
                         </h4>
                         <p className="text-xs text-muted-foreground mt-1">{offer.shopName}</p>
                         <div className="flex items-center gap-3 mt-2">
-                          <span className="font-bold text-sm text-foreground">{formatPrice(offer.priceMin)}</span>
-                          {offer.priceMax > offer.priceMin && (
+                          <span className="font-bold text-sm text-foreground">{formatPrice(offer)}</span>
+                          {formatOriginalPrice(offer) && (
                             <span className="text-xs text-muted-foreground line-through">
-                              {formatPrice(offer.priceMax)}
+                              {formatOriginalPrice(offer)}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          {offer.commissionRate > 0 && (
+                          {formatCommission(offer) && (
                             <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded">
-                              {Number(offer.commissionRate).toFixed(1)}% comissão
+                              {formatCommission(offer)} comissão
                             </span>
                           )}
                           {offer.ratingStar > 0 && (
