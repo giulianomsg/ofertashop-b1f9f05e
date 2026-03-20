@@ -33,10 +33,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Query estática em linha única (sem variáveis dinâmicas) para evitar escaping
-const PAYLOAD_STR = `{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}`;
+// Query estática em linha única (sem variáveis dinâmicas)
+const PAYLOAD_STR = '{"query":"query{shopeeOfferV2(page:1,limit:50){nodes{offerName offerLink originalLink offerType commissionRate imageUrl categoryId collectionId periodStartTime periodEndTime}pageInfo{page limit hasNextPage}}}"}';
 
-// Transformamos a string em bytes puros para o fetch não injetar charset
+// Pre-encode para garantir identidade byte-a-byte entre assinatura e body
 const PAYLOAD_BYTES = new TextEncoder().encode(PAYLOAD_STR);
 
 // ─── Tipos e Helpers ───────────────────────────────────────────────────────
