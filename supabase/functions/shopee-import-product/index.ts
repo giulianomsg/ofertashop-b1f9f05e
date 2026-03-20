@@ -113,11 +113,13 @@ Deno.serve(async (req) => {
       resolvedPlatformId = shopeePlatform?.id || null;
     }
 
-    // Calculate prices
-    const priceMin = Number(offer.priceMin) || 0;
-    const priceMax = Number(offer.priceMax) || priceMin;
-    const price = priceMin > 0 ? priceMin / 100000 : 0;
-    const originalPrice = priceMax > priceMin ? priceMax / 100000 : null;
+    // Calculate prices - try 'price' field first, then priceMin/priceMax
+    const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
+    const rawMax = Number(offer.priceMax) || rawPrice;
+    // Detect micro-units (>100000) vs normal values
+    const price = rawPrice > 100000 ? rawPrice / 100000 : rawPrice;
+    const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;
+    const originalPrice = maxPrice > price ? maxPrice : null;
 
     // Insert product
     const { data: product, error: productErr } = await sb
@@ -134,7 +136,11 @@ Deno.serve(async (req) => {
         is_active: true,
         rating: Number(offer.ratingStar) || 0,
         registered_by: userId || null,
-        badge: offer.commission ? `${Number(offer.commissionRate || 0).toFixed(1)}% comissão` : null,
+        badge: (() => {
+          const rate = Number(offer.commissionRate) || 0;
+          const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
+          return pct > 0 ? `${pct.toFixed(1)}% comissão` : null;
+        })(),
       })
       .select()
       .single();

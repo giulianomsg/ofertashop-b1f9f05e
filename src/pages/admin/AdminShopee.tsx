@@ -10,6 +10,7 @@ interface ShopeeOffer {
   itemId: string;
   shopId: string;
   productName: string;
+  price: number;
   priceMin: number;
   priceMax: number;
   imageUrl: string;
@@ -20,7 +21,6 @@ interface ShopeeOffer {
   ratingStar: number;
   shopName: string;
   offerLink: string;
-  shopeeShortLink: string;
   already_imported?: boolean;
 }
 
@@ -165,9 +165,37 @@ const AdminShopee = () => {
     }
   };
 
-  const formatPrice = (microPrice: number) => {
-    const price = microPrice / 100000;
-    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "N/A";
+  const formatPrice = (offer: ShopeeOffer) => {
+    // Try price first, then priceMin, then priceMax
+    const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
+    // Shopee API may return price in micro-units (divide by 100000) or in cents (divide by 100) or as-is
+    // Detect format: if value > 100000, likely micro-units; if > 1000, likely cents; otherwise as-is
+    let price = rawPrice;
+    if (rawPrice > 100000) {
+      price = rawPrice / 100000;
+    } else if (rawPrice > 0 && rawPrice < 1) {
+      price = rawPrice; // already in reais
+    }
+    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "Consultar";
+  };
+
+  const formatOriginalPrice = (offer: ShopeeOffer) => {
+    const rawMax = Number(offer.priceMax) || 0;
+    const rawMin = Number(offer.price) || Number(offer.priceMin) || 0;
+    if (rawMax <= rawMin || rawMax === 0) return null;
+    let price = rawMax;
+    if (rawMax > 100000) {
+      price = rawMax / 100000;
+    }
+    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : null;
+  };
+
+  const formatCommission = (offer: ShopeeOffer) => {
+    const rate = Number(offer.commissionRate) || 0;
+    // commissionRate may come as decimal (0.11) or percentage (11)
+    // If < 1, treat as decimal and multiply by 100
+    const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
+    return pct > 0 ? `${pct.toFixed(1)}%` : null;
   };
 
   return (
@@ -267,17 +295,17 @@ const AdminShopee = () => {
                         </h4>
                         <p className="text-xs text-muted-foreground mt-1">{offer.shopName}</p>
                         <div className="flex items-center gap-3 mt-2">
-                          <span className="font-bold text-sm text-foreground">{formatPrice(offer.priceMin)}</span>
-                          {offer.priceMax > offer.priceMin && (
+                          <span className="font-bold text-sm text-foreground">{formatPrice(offer)}</span>
+                          {formatOriginalPrice(offer) && (
                             <span className="text-xs text-muted-foreground line-through">
-                              {formatPrice(offer.priceMax)}
+                              {formatOriginalPrice(offer)}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          {offer.commissionRate > 0 && (
+                          {formatCommission(offer) && (
                             <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded">
-                              {Number(offer.commissionRate).toFixed(1)}% comissão
+                              {formatCommission(offer)} comissão
                             </span>
                           )}
                           {offer.ratingStar > 0 && (
