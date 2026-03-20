@@ -103,7 +103,7 @@ async function fetchAllOffers(): Promise<ShopeeOffer[]> {
 
   console.log(`[shopee] Requesting URL: ${url}`);
   console.log(`[shopee] Timestamp: ${timestamp}`);
-  console.log(`[shopee] BaseString length: ${baseString.length}`);
+  console.log(`[shopee] Factor length: ${factor.length}`);
   console.log(`[shopee] Payload length: ${PAYLOAD_STR.length}`);
 
   // Enviar PAYLOAD_BYTES (Uint8Array) garante que o Deno não injete charset
