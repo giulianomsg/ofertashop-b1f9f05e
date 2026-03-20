@@ -136,7 +136,11 @@ Deno.serve(async (req) => {
         is_active: true,
         rating: Number(offer.ratingStar) || 0,
         registered_by: userId || null,
-        badge: offer.commission ? `${Number(offer.commissionRate || 0).toFixed(1)}% comissão` : null,
+        badge: (() => {
+          const rate = Number(offer.commissionRate) || 0;
+          const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
+          return pct > 0 ? `${pct.toFixed(1)}% comissão` : null;
+        })(),
       })
       .select()
       .single();
