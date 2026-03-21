@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
     let totalUpdated = 0;
     let totalDeactivated = 0;
     const details: any[] = [];
+    const debug_info: any[] = [];
 
     for (let i = 0; i < mappings.length; i += BATCH_SIZE) {
       const batch = mappings.slice(i, i + BATCH_SIZE);
@@ -184,6 +185,22 @@ Deno.serve(async (req) => {
           updates.sales_count = newSales;
         }
 
+        debug_info.push({
+          product_id: mapping.product_id,
+          title: (product as any)?.title,
+          shopee_raw_price: shopeeItem.price,
+          shopee_raw_priceMin: shopeeItem.priceMin,
+          rawPrice: rawPrice,
+          rawMax: rawMax,
+          calcPrice: price,
+          calcMaxPrice: maxPrice,
+          calcOriginalPrice: originalPrice,
+          dbCurrentPrice: currentPrice,
+          dbFinalPrice: finalPrice,
+          priceDiff: Math.abs(finalPrice - currentPrice),
+          willUpdatePrice: Math.abs(finalPrice - currentPrice) > 0.01,
+        });
+
         let status = "updated";
         if (!product?.is_active) {
           updates.is_active = true;
@@ -227,7 +244,7 @@ Deno.serve(async (req) => {
       }).eq("id", logId);
     }
 
-    return new Response(JSON.stringify({ total: mappings.length, updated: totalUpdated, deactivated: totalDeactivated, details }), {
+    return new Response(JSON.stringify({ total: mappings.length, updated: totalUpdated, deactivated: totalDeactivated, details, debug_info }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {
