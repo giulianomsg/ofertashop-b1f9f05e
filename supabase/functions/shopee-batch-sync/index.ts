@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
           ) {
             nodes {
               itemId
+              price
               priceMin
               priceMax
               productName
@@ -125,6 +126,7 @@ Deno.serve(async (req) => {
       try {
         const data = await shopeeGraphQL(query);
         shopeeItems = data?.productOfferV2?.nodes || [];
+        console.log(`Shopee GraphQL Response for batch ${i / BATCH_SIZE}:`, JSON.stringify(shopeeItems, null, 2));
       } catch (e) {
         console.warn(`Batch ${i / BATCH_SIZE} query failed:`, e);
         continue;
@@ -194,6 +196,7 @@ Deno.serve(async (req) => {
             }
           } else {
              console.error(`Shopee Sync DB Update error product ${mapping.product_id}:`, prodErr);
+             details.push({ error: prodErr.message, id: mapping.product_id });
           }
         }
 
