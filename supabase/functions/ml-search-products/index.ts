@@ -1,5 +1,5 @@
 // Edge Function: ml-search-products (standalone)
-// Searches products on Mercado Livre API
+// Searches products on Mercado Livre API (Catalog Endpoint)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -72,15 +72,19 @@ Deno.serve(async (req) => {
 
     const accessToken = await getValidToken(sb, ML_APP_ID, ML_CLIENT_SECRET);
 
-    // Build search URL
+    // Build search URL using the Catalog API (which allows public access via OAuth)
     const params = new URLSearchParams({
+      status: "active",
+      site_id: "MLB",
       q: keyword,
       offset: String(offset),
       limit: String(limit),
     });
+
+    // Some catalog categories might differ, but we pass it if provided
     if (category) params.set("category", category);
 
-    const searchRes = await fetch(`https://api.mercadolibre.com/sites/MLB/search?${params}`, {
+    const searchRes = await fetch(`https://api.mercadolibre.com/products/search?${params}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
@@ -91,24 +95,36 @@ Deno.serve(async (req) => {
       throw new Error(searchData.message || "Erro na busca ML");
     }
 
-    const results = (searchData.results || []).map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      price: item.price,
-      original_price: item.original_price,
-      currency_id: item.currency_id,
-      thumbnail: item.thumbnail?.replace("http://", "https://"),
-      permalink: item.permalink,
-      condition: item.condition,
-      sold_quantity: item.sold_quantity,
-      available_quantity: item.available_quantity,
-      seller: {
-        id: item.seller?.id,
-        nickname: item.seller?.nickname,
-      },
-      category_id: item.category_id,
-      shipping_free: item.shipping?.free_shipping || false,
-    }));
+    // Map the Catalog JSON structure to match the old Search JSON structure 
+    // so the Frontend and the Import Function don't break.
+    const results = (searchData.results || [])
+      .filter((item: any) => item.buy_box_winner) // Apenas produtos com ofertas ativas e válidas
+      .map((item: any) => {
+        const buyBox = item.buy_box_winner;
+
+        return {
+          // Usamos o item_id do buy_box para que a função de importação consiga buscar o anúncio corretamente depois
+          id: buyBox.item_id || item.id,
+          title: item.name || item.title || "Produto sem nome",
+          price: buyBox.price || 0,
+          original_price: buyBox.original_price || null,
+          currency_id: buyBox.currency_id || "BRL",
+          // Tenta pegar a foto em alta resolução do catálogo, senão faz fallback
+          thumbnail: (item.pictures && item.pictures.length > 0)
+            ? item.pictures[0].url.replace("http://", "https://")
+            : (item.thumbnail ? item.thumbnail.replace("http://", "https://") : ""),
+          permalink: item.permalink || buyBox.item_url,
+          condition: buyBox.condition || item.condition || "new",
+          sold_quantity: item.sold_quantity || 0,
+          available_quantity: item.available_quantity || 99,
+          seller: {
+            id: buyBox.seller_id,
+            nickname: "Catálogo Oficial", // A API de catálogo consolida vendedores
+          },
+          category_id: item.domain_id || item.category_id,
+          shipping_free: buyBox.shipping?.free_shipping || false,
+        };
+      });
 
     // Check already imported
     const mlIds = results.map((r: any) => r.id);
