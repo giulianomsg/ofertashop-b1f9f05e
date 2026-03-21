@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown } from "lucide-react";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
@@ -24,7 +24,7 @@ const SortableImage = ({ url, onRemove }: { url: string; onRemove: () => void })
     <div ref={setNodeRef} style={style} className="relative group rounded-lg overflow-hidden border border-border aspect-square w-24">
       <div {...attributes} {...listeners} className="absolute inset-0 z-10 cursor-grab active:cursor-grabbing"></div>
       <img src={url} alt="Galeria" className="w-full h-full object-cover" />
-      <button 
+      <button
         type="button"
         onPointerDown={(e) => { e.stopPropagation(); onRemove(); }}
         className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
@@ -69,7 +69,6 @@ const AdminProducts = () => {
   const [form, setForm] = useState(emptyForm);
   const [importingImage, setImportingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [brandOpen, setBrandOpen] = useState(false);
   const [brandSearch, setBrandSearch] = useState("");
@@ -92,7 +91,6 @@ const AdminProducts = () => {
     }
   };
 
-  // Filter models by selected brand
   const { data: models = [] } = useModels(form.brand_id || undefined);
   const createModel = useCreateModel();
 
@@ -121,7 +119,6 @@ const AdminProducts = () => {
     }
   };
 
-  // Auto-calculate discount percentage
   const calcDiscount = (price: string, originalPrice: string) => {
     const p = parseFloat(price.replace(",", "."));
     const op = parseFloat(originalPrice.replace(",", "."));
@@ -146,24 +143,24 @@ const AdminProducts = () => {
     setShowModal(true);
   };
 
-  const openEdit = (product: (typeof products)[0]) => {
+  const openEdit = (product: any) => {
     setEditingId(product.id);
     setForm({
       title: product.title,
       affiliate_url: product.affiliate_url,
       price: String(product.price).replace(".", ","),
       store: product.store,
-      category_id: (product as any).category_id || "",
+      category_id: product.category_id || "",
       description: product.description || "",
       image_url: product.image_url || "",
       original_price: product.original_price ? String(product.original_price).replace(".", ",") : "",
       discount: product.discount ? String(product.discount) : "",
       badge: product.badge || "",
       gallery_urls: product.gallery_urls || [],
-      brand_id: (product as any).brand_id || "",
-      model_id: (product as any).model_id || "",
-      platform_id: (product as any).platform_id || "",
-      video_url: (product as any).video_url || "",
+      brand_id: product.brand_id || "",
+      model_id: product.model_id || "",
+      platform_id: product.platform_id || "",
+      video_url: product.video_url || "",
     });
     setShowModal(true);
   };
@@ -203,7 +200,7 @@ const AdminProducts = () => {
 
     const currentLength = form.gallery_urls?.length || 0;
     if (currentLength + files.length > 15) {
-      toast.error("Máximo de 15 imagens na galeria total.");
+      toast.error("Máximo de 15 imagens.");
       return;
     }
 
@@ -212,18 +209,17 @@ const AdminProducts = () => {
       const uploadPromises = Array.from(files).map(async (file) => {
         const fileExt = file.name.split(".").pop();
         const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
-        const { error: uploadError } = await supabase.storage.from("product-images").upload(filePath, file);
+        const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
         if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
+        const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
         return data.publicUrl;
       });
 
       const urls = await Promise.all(uploadPromises);
       setForm((f) => ({ ...f, gallery_urls: [...(f.gallery_urls || []), ...urls] }));
-      toast.success(`${urls.length} foto(s) adicional(is) enviada(s)!`);
-    } catch (error: any) {
-      toast.error("Erro no upload múltiplo.");
+      toast.success(`${urls.length} foto(s) enviada(s)!`);
+    } catch {
+      toast.error("Erro no upload.");
     } finally {
       setImportingImage(false);
       if (e.target) e.target.value = "";
@@ -241,7 +237,7 @@ const AdminProducts = () => {
             setForm((f) => ({ ...f, image_url: data.publicUrl }));
             toast.success("Imagem importada automaticamente!");
           }
-        } catch {}
+        } catch { }
         finally { setImportingImage(false); }
       }, 0);
     }
@@ -287,7 +283,6 @@ const AdminProducts = () => {
       setForm(emptyForm);
       setEditingId(null);
     } catch (err) {
-      console.error("Save error:", err);
       toast.error("Erro ao salvar produto.");
     }
   };
@@ -330,10 +325,10 @@ const AdminProducts = () => {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Carregando...</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Carregando...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Nenhum produto cadastrado.</td></tr>
-              ) : products.map((product) => (
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Nenhum produto cadastrado.</td></tr>
+              ) : products.map((product: any) => (
                 <motion.tr key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -343,15 +338,18 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
                   <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
+
+                  {/* Célula de Comissão Alterada */}
                   <td className="p-4 text-center hidden md:table-cell">
-                    {product.badge ? (
+                    {product.shopee_product_mappings && product.shopee_product_mappings.length > 0 && product.shopee_product_mappings[0].commission_rate ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-accent/10 text-accent font-medium text-xs">
-                        {product.badge}
+                        {product.shopee_product_mappings[0].commission_rate}%
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </td>
+
                   <td className="p-4 text-center text-muted-foreground hidden md:table-cell">{product.clicks.toLocaleString()}</td>
                   <td className="p-4 text-center">
                     <button onClick={() => handleToggle(product.id, product.is_active)} className="inline-flex" aria-label="Alternar status">
@@ -387,7 +385,6 @@ const AdminProducts = () => {
             </div>
 
             <div className="space-y-3">
-              {/* Image section */}
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Imagem Principal</label>
                 {form.image_url && (
@@ -407,33 +404,26 @@ const AdminProducts = () => {
                 </button>
               </div>
 
-              {/* Gallery */}
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Galeria ({form.gallery_urls?.length || 0}/15)</label>
                 <div className="flex flex-wrap gap-2 mb-2 items-center">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={form.gallery_urls || []} strategy={rectSortingStrategy}>
                       {form.gallery_urls?.map((url, i) => (
-                        <SortableImage 
-                          key={url} 
-                          url={url} 
-                          onRemove={() => setForm(f => ({ ...f, gallery_urls: f.gallery_urls?.filter((_, index) => index !== i) }))} 
-                        />
+                        <SortableImage key={url} url={url} onRemove={() => setForm(f => ({ ...f, gallery_urls: f.gallery_urls?.filter((_, index) => index !== i) }))} />
                       ))}
                     </SortableContext>
                   </DndContext>
-                  
                   {(form.gallery_urls?.length || 0) < 15 && (
                     <label className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/50 transition-colors shrink-0">
                       <Upload className="w-6 h-6 text-muted-foreground mb-1" />
-                      <span className="text-[10px] text-muted-foreground font-medium text-center px-1">Adicionar<br />várias fotos</span>
+                      <span className="text-[10px] text-muted-foreground font-medium text-center px-1">Adicionar fotos</span>
                       <input type="file" className="hidden" accept="image/*" multiple onChange={handleGalleryUpload} disabled={importingImage} />
                     </label>
                   )}
                 </div>
               </div>
 
-              {/* Video URL */}
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">URL do Vídeo</label>
                 <div className="flex items-center gap-2">
@@ -479,7 +469,6 @@ const AdminProducts = () => {
                 <input value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Nome da loja" />
               </div>
 
-              {/* Dynamic selects */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Categoria</label>
@@ -502,11 +491,7 @@ const AdminProducts = () => {
                   <label className="text-xs font-semibold text-foreground mb-1 block">Marca</label>
                   <Popover open={brandOpen} onOpenChange={setBrandOpen}>
                     <PopoverTrigger asChild>
-                      <button
-                        role="combobox"
-                        aria-expanded={brandOpen}
-                        className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate"
-                      >
+                      <button role="combobox" aria-expanded={brandOpen} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate">
                         {form.brand_id ? brands.find((b) => b.id === form.brand_id)?.name : "Selecione a marca"}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </button>
@@ -517,35 +502,15 @@ const AdminProducts = () => {
                         <CommandList>
                           <CommandEmpty className="py-2 text-center text-sm">
                             <p className="text-muted-foreground mb-2">Marca não encontrada.</p>
-                            {brandSearch && (
-                              <button onClick={() => handleCreateBrand(brandSearch)} className="text-accent hover:underline font-medium text-xs">
-                                + Criar marca "{brandSearch}"
-                              </button>
-                            )}
+                            {brandSearch && <button onClick={() => handleCreateBrand(brandSearch)} className="text-accent hover:underline font-medium text-xs">+ Criar marca "{brandSearch}"</button>}
                           </CommandEmpty>
                           <CommandGroup>
-                            <CommandItem
-                              key="none"
-                              value=""
-                              onSelect={() => {
-                                setForm({ ...form, brand_id: "", model_id: "" });
-                                setBrandOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", form.brand_id === "" ? "opacity-100" : "opacity-0")} />
-                              Nenhuma
+                            <CommandItem key="none" value="" onSelect={() => { setForm({ ...form, brand_id: "", model_id: "" }); setBrandOpen(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", form.brand_id === "" ? "opacity-100" : "opacity-0")} /> Nenhum
                             </CommandItem>
                             {brands.map((b) => (
-                              <CommandItem
-                                key={b.id}
-                                value={b.name}
-                                onSelect={() => {
-                                  setForm({ ...form, brand_id: b.id, model_id: "" });
-                                  setBrandOpen(false);
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", form.brand_id === b.id ? "opacity-100" : "opacity-0")} />
-                                {b.name}
+                              <CommandItem key={b.id} value={b.name} onSelect={() => { setForm({ ...form, brand_id: b.id, model_id: "" }); setBrandOpen(false); }}>
+                                <Check className={cn("mr-2 h-4 w-4", form.brand_id === b.id ? "opacity-100" : "opacity-0")} /> {b.name}
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -558,12 +523,7 @@ const AdminProducts = () => {
                   <label className="text-xs font-semibold text-foreground mb-1 block">Modelo</label>
                   <Popover open={modelOpen} onOpenChange={setModelOpen}>
                     <PopoverTrigger asChild>
-                      <button
-                        role="combobox"
-                        aria-expanded={modelOpen}
-                        disabled={!form.brand_id}
-                        className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate disabled:opacity-50"
-                      >
+                      <button role="combobox" aria-expanded={modelOpen} disabled={!form.brand_id} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex items-center justify-between truncate disabled:opacity-50">
                         {form.model_id ? models.find((m) => m.id === form.model_id)?.name : "Selecione o modelo"}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </button>
@@ -575,38 +535,18 @@ const AdminProducts = () => {
                           {form.brand_id ? (
                             <CommandEmpty className="py-2 text-center text-sm">
                               <p className="text-muted-foreground mb-2">Modelo não encontrado.</p>
-                              {modelSearch && (
-                                <button onClick={() => handleCreateModel(modelSearch)} className="text-accent hover:underline font-medium text-xs">
-                                  + Criar modelo "{modelSearch}"
-                                </button>
-                              )}
+                              {modelSearch && <button onClick={() => handleCreateModel(modelSearch)} className="text-accent hover:underline font-medium text-xs">+ Criar modelo "{modelSearch}"</button>}
                             </CommandEmpty>
                           ) : (
                             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">Select a brand first.</CommandEmpty>
                           )}
                           <CommandGroup>
-                            <CommandItem
-                              key="none"
-                              value=""
-                              onSelect={() => {
-                                setForm({ ...form, model_id: "" });
-                                setModelOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", form.model_id === "" ? "opacity-100" : "opacity-0")} />
-                              Nenhum
+                            <CommandItem key="none" value="" onSelect={() => { setForm({ ...form, model_id: "" }); setModelOpen(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", form.model_id === "" ? "opacity-100" : "opacity-0")} /> Nenhum
                             </CommandItem>
                             {models.map((m) => (
-                              <CommandItem
-                                key={m.id}
-                                value={m.name}
-                                onSelect={() => {
-                                  setForm({ ...form, model_id: m.id });
-                                  setModelOpen(false);
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", form.model_id === m.id ? "opacity-100" : "opacity-0")} />
-                                {m.name}
+                              <CommandItem key={m.id} value={m.name} onSelect={() => { setForm({ ...form, model_id: m.id }); setModelOpen(false); }}>
+                                <Check className={cn("mr-2 h-4 w-4", form.model_id === m.id ? "opacity-100" : "opacity-0")} /> {m.name}
                               </CommandItem>
                             ))}
                           </CommandGroup>

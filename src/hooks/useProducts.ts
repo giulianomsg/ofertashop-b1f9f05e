@@ -9,13 +9,18 @@ export const useProducts = (activeOnly = true) => {
   return useQuery({
     queryKey: ["products", activeOnly],
     queryFn: async () => {
-      let query = supabase.from("products").select("*").order("created_at", { ascending: false });
+      // Modificado para trazer a comissão da Shopee junto com o produto
+      let query = supabase
+        .from("products")
+        .select(`*, shopee_product_mappings(commission_rate)`)
+        .order("created_at", { ascending: false });
+
       if (activeOnly) {
         query = query.eq("is_active", true);
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data as Product[];
+      return data as any[];
     },
   });
 };
@@ -127,7 +132,6 @@ export const useRemoveCollaborator = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
-      // Remove da tabela user_roles e insere back como 'viewer'
       const { error } = await supabase.from("user_roles").update({ role: "viewer" }).eq("user_id", userId);
       if (error) throw error;
     },
@@ -223,7 +227,6 @@ export const useCreateUser = () => {
       const newUserId = data.user?.id;
       if (!newUserId) throw new Error("Falha ao criar usuário (sem ID retornado).");
 
-      // wait a tiny bit for the triggers to insert the profile and default role
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const { error: roleError } = await supabase.rpc("admin_update_user_role" as any, {
@@ -283,22 +286,22 @@ export const usePriceHistory = (productId: string, brandId?: string | null, mode
     queryKey: ["price_history", productId, brandId, modelId],
     queryFn: async () => {
       if (!productId) return [];
-      
+
       let query = supabase
         .from("price_history" as any)
         .select(`
           id, price, created_at, product_id,
           products!inner(brand_id, model_id, store, platform_id, title)
         `);
-        
+
       if (brandId && modelId) {
         query = query.eq("products.brand_id", brandId).eq("products.model_id", modelId);
       } else {
         query = query.eq("product_id", productId);
       }
-      
+
       const { data, error } = await query.order("created_at", { ascending: true });
-        
+
       if (error) throw error;
       return data;
     },
