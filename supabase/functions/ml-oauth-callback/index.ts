@@ -21,7 +21,9 @@ Deno.serve(async (req) => {
       throw new Error("ML_APP_ID, ML_CLIENT_SECRET e ML_REDIRECT_URI devem estar configurados.");
     }
 
-    const { code, userId } = await req.json();
+    const { code, userId, redirect_uri } = await req.json();
+    // Allow frontend to pass the redirect_uri used in the initial authorization
+    const finalRedirectUri = redirect_uri || ML_REDIRECT_URI;
 
     if (!code) {
       return new Response(JSON.stringify({ error: "Código de autorização é obrigatório" }), {
