@@ -16,6 +16,15 @@ async function sha256Hex(message: string): Promise<string> {
   return bufferToHex(hash);
 }
 
+function parseShopeePrice(val: any): number {
+  if (!val) return 0;
+  const strVal = String(val);
+  const numVal = parseFloat(strVal);
+  if (strVal.includes('.')) return numVal; // Já é decimal
+  if (numVal >= 1000) return numVal / 100000; // Micro-unidades
+  return numVal; 
+}
+
 async function shopeeGraphQL<T = any>(query: string, variables: Record<string, any> = {}): Promise<T> {
   const appId = Deno.env.get("SHOPEE_APP_ID");
   const appSecret = Deno.env.get("SHOPEE_APP_SECRET");
@@ -100,8 +109,6 @@ Deno.serve(async (req) => {
       const query = `
         query {
           productOfferV2(
-            listType: 0
-            sortType: 2
             page: 1
             limit: ${BATCH_SIZE}
             itemIds: [${itemIds.join(",")}]
@@ -155,21 +162,18 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Calculate prices natively handling micro-units mapping just like shopee-import-product
-        const rawPriceMin = parseFloat(shopeeItem.priceMin) || parseFloat(shopeeItem.price) || 0;
-        const rawPriceMax = parseFloat(shopeeItem.priceMax) || rawPriceMin;
-
-        const newPrice = rawPriceMin > 100000 ? rawPriceMin / 100000 : rawPriceMin;
-        const maxPrice = rawPriceMax > 100000 ? rawPriceMax / 100000 : rawPriceMax;
-        const newOriginal = maxPrice > newPrice ? maxPrice : null;
+        // Lê o 'price' PRIMEIRO, igual ao shopee-import-product
+        const parsedPrice = parseShopeePrice(shopeeItem.price) || parseShopeePrice(shopeeItem.priceMin) || 0;
+        const maxPrice = parseShopeePrice(shopeeItem.priceMax) || parsedPrice;
+        const newOriginal = maxPrice > parsedPrice ? maxPrice : null;
 
         const updates: Record<string, any> = {};
-        const currentPrice = parseFloat(product?.price) || 0;
-        if (newPrice > 0 && Math.abs(newPrice - currentPrice) > 0.01) {
-          updates.price = newPrice;
+        const currentPrice = parseFloat(product?.price || 0);
+        if (parsedPrice > 0 && Math.abs(parsedPrice - currentPrice) > 0.01) {
+          updates.price = parsedPrice;
         }
 
-        const currentOriginalPrice = parseFloat(product?.original_price) || 0;
+        const currentOriginalPrice = parseFloat(product?.original_price || 0);
         if (newOriginal !== null && newOriginal !== currentOriginalPrice) {
           updates.original_price = newOriginal;
         } else if (newOriginal === null && product?.original_price != null) {
