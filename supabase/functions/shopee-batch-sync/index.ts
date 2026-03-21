@@ -174,26 +174,36 @@ Deno.serve(async (req) => {
         }
 
         // Calculate prices exactly like shopee-import-product
-        const rawPrice = parseFloat(shopeeItem.price) || parseFloat(shopeeItem.priceMin) || 0;
-        const rawMax = parseFloat(shopeeItem.priceMax) || rawPrice;
-        const price = rawPrice > 100000 ? rawPrice / 100000 : rawPrice;
-        const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;
-        const originalPrice = maxPrice > price ? maxPrice : null;
+        const baseRaw = parseFloat(shopeeItem.priceMax) || parseFloat(shopeeItem.price) || parseFloat(shopeeItem.priceMin) || 0;
+        const basePrice = baseRaw > 100000 ? baseRaw / 100000 : baseRaw;
+
+        const discountRate = parseFloat(shopeeItem.priceDiscountRate) || 0;
+
+        let finalPrice = basePrice;
+        let finalOriginalPrice: number | null = null;
+
+        if (discountRate > 0) {
+          finalOriginalPrice = basePrice;
+          finalPrice = basePrice * (1 - (discountRate / 100));
+        } else {
+          finalPrice = basePrice;
+          finalOriginalPrice = null;
+        }
 
         const updates: Record<string, any> = {};
         
         // Update price
         const currentPrice = parseFloat(product?.price || 0);
-        const finalPrice = price > 0 ? price : 0.01;
-        if (Math.abs(finalPrice - currentPrice) > 0.01) {
-          updates.price = finalPrice;
+        const finalPriceSanitized = finalPrice > 0 ? finalPrice : 0.01;
+        if (Math.abs(finalPriceSanitized - currentPrice) > 0.01) {
+          updates.price = finalPriceSanitized;
         }
 
         // Update original_price
         const currentOriginalPrice = parseFloat(product?.original_price || 0);
-        if (originalPrice !== null && originalPrice !== currentOriginalPrice) {
-          updates.original_price = originalPrice;
-        } else if (originalPrice === null && product?.original_price != null) {
+        if (finalOriginalPrice !== null && finalOriginalPrice !== currentOriginalPrice) {
+          updates.original_price = finalOriginalPrice;
+        } else if (finalOriginalPrice === null && product?.original_price != null) {
           // If the original price shouldn't exist anymore, we nullify it
           updates.original_price = null;
         }
@@ -208,15 +218,16 @@ Deno.serve(async (req) => {
           title: (product as any)?.title,
           shopee_raw_price: shopeeItem.price,
           shopee_raw_priceMin: shopeeItem.priceMin,
-          rawPrice: rawPrice,
-          rawMax: rawMax,
-          calcPrice: price,
-          calcMaxPrice: maxPrice,
-          calcOriginalPrice: originalPrice,
+          shopee_raw_priceMax: shopeeItem.priceMax,
+          baseRaw: baseRaw,
+          basePrice: basePrice,
+          discountRate: discountRate,
+          calcPrice: finalPrice,
+          calcOriginalPrice: finalOriginalPrice,
           dbCurrentPrice: currentPrice,
-          dbFinalPrice: finalPrice,
-          priceDiff: Math.abs(finalPrice - currentPrice),
-          willUpdatePrice: Math.abs(finalPrice - currentPrice) > 0.01,
+          dbFinalPrice: finalPriceSanitized,
+          priceDiff: Math.abs(finalPriceSanitized - currentPrice),
+          willUpdatePrice: Math.abs(finalPriceSanitized - currentPrice) > 0.01,
         });
 
         // Update rating in products

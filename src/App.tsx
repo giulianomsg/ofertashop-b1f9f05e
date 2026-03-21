@@ -32,8 +32,15 @@ import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
-
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Desativa o recarregamento ao focar na aba
+      staleTime: 1000 * 60 * 5,    // Considera os dados frescos por 5 minutos
+      retry: 1                     // Limita as tentativas em caso de erro
+    },
+  },
+});
 
 const App = () => (
   <HelmetProvider>

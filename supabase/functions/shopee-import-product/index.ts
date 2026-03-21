@@ -138,13 +138,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Calculate prices - try 'price' field first, then priceMin/priceMax
-    const rawPrice = parseFloat(offer.price) || parseFloat(offer.priceMin) || 0;
-    const rawMax = parseFloat(offer.priceMax) || rawPrice;
-    // Detect micro-units (>100000) vs normal values
-    const price = rawPrice > 100000 ? rawPrice / 100000 : rawPrice;
-    const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;
-    const originalPrice = maxPrice > price ? maxPrice : null;
+    // Identifique o valor base do produto tratando as micro-unidades (>100000)
+    const baseRaw = parseFloat(offer.priceMax) || parseFloat(offer.price) || parseFloat(offer.priceMin) || 0;
+    const basePrice = baseRaw > 100000 ? baseRaw / 100000 : baseRaw;
+
+    const discountRate = parseFloat(offer.priceDiscountRate) || 0;
+
+    let finalPrice = basePrice;
+    let finalOriginalPrice: number | null = null;
+
+    if (discountRate > 0) {
+      finalOriginalPrice = basePrice;
+      finalPrice = basePrice * (1 - (discountRate / 100));
+    } else {
+      finalPrice = basePrice;
+      finalOriginalPrice = null;
+    }
 
     // Compute commission percentage properly
     const rate = Number(offer.commissionRate) || 0;
@@ -155,8 +164,8 @@ Deno.serve(async (req) => {
       .from("products")
       .insert({
         title: offer.productName || "Produto Shopee",
-        price: price > 0 ? price : 0.01,
-        original_price: originalPrice,
+        price: finalPrice > 0 ? finalPrice : 0.01,
+        original_price: finalOriginalPrice,
         store: offer.shopName || "Shopee",
         affiliate_url: shortLink || offer.productLink || "",
         image_url: offer.imageUrl || null,
