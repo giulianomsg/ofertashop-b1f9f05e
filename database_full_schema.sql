@@ -2,9 +2,9 @@
 -- PostgreSQL database cluster dump
 --
 
--- Started on 2026-03-20 00:38:15
+-- Started on 2026-03-20 21:54:11
 
-\restrict rQ7fSOy6q2oGePBzAyCqMhyrTK51zGdxSk8E6zyWHmyEW4cIBXCA1b7WxAG4ebs
+\restrict wSUgkX96aw3k4q2bYP7CHkHfkbvcr7eclV0hP4zZT6O0zrKuFpH4stcGHEudBSQ
 
 SET default_transaction_read_only = off;
 
@@ -130,7 +130,7 @@ GRANT supabase_realtime_admin TO postgres WITH INHERIT TRUE GRANTED BY supabase_
 
 
 
-\unrestrict rQ7fSOy6q2oGePBzAyCqMhyrTK51zGdxSk8E6zyWHmyEW4cIBXCA1b7WxAG4ebs
+\unrestrict wSUgkX96aw3k4q2bYP7CHkHfkbvcr7eclV0hP4zZT6O0zrKuFpH4stcGHEudBSQ
 
 --
 -- Databases
@@ -146,12 +146,12 @@ GRANT supabase_realtime_admin TO postgres WITH INHERIT TRUE GRANTED BY supabase_
 -- PostgreSQL database dump
 --
 
-\restrict GtZxr1LreagVRBpWXXxolMpZs5TvHCTeh95C9ni02Io6kZxuqjnifwkg38NaqyV
+\restrict 0boheswgO5riTHYHY2xFtqTJdSzbzqHYAO0ChBfFUJJbm0yT5JZ3phfh2nx55KH
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 18.0
 
--- Started on 2026-03-20 00:38:22
+-- Started on 2026-03-20 21:54:18
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -165,13 +165,13 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- Completed on 2026-03-20 00:38:38
+-- Completed on 2026-03-20 21:54:34
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GtZxr1LreagVRBpWXXxolMpZs5TvHCTeh95C9ni02Io6kZxuqjnifwkg38NaqyV
+\unrestrict 0boheswgO5riTHYHY2xFtqTJdSzbzqHYAO0ChBfFUJJbm0yT5JZ3phfh2nx55KH
 
 --
 -- Database "postgres" dump
@@ -183,12 +183,12 @@ SET row_security = off;
 -- PostgreSQL database dump
 --
 
-\restrict PeVkd0TqB6LXIpZvIS0UOFtgaOPUbJIfmEP2v8AeljES59m1p1dPq66lJIcOz26
+\restrict dw9SfXsqm0OUzaGwYfljPxlTFuOLxC2FMi6JhHC06WtcrCsdGwZsWecSe3DBrJa
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 18.0
 
--- Started on 2026-03-20 00:38:38
+-- Started on 2026-03-20 21:54:34
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -291,7 +291,7 @@ CREATE EXTENSION IF NOT EXISTS pg_graphql WITH SCHEMA graphql;
 
 
 --
--- TOC entry 4584 (class 0 OID 0)
+-- TOC entry 4619 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: EXTENSION pg_graphql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -308,7 +308,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA extensions;
 
 
 --
--- TOC entry 4585 (class 0 OID 0)
+-- TOC entry 4620 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner: 
 --
@@ -325,7 +325,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 
 --
--- TOC entry 4586 (class 0 OID 0)
+-- TOC entry 4621 (class 0 OID 0)
 -- Dependencies: 4
 -- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
 --
@@ -342,7 +342,7 @@ CREATE EXTENSION IF NOT EXISTS supabase_vault WITH SCHEMA vault;
 
 
 --
--- TOC entry 4587 (class 0 OID 0)
+-- TOC entry 4622 (class 0 OID 0)
 -- Dependencies: 5
 -- Name: EXTENSION supabase_vault; Type: COMMENT; Schema: -; Owner: 
 --
@@ -359,7 +359,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 
 --
--- TOC entry 4588 (class 0 OID 0)
+-- TOC entry 4623 (class 0 OID 0)
 -- Dependencies: 3
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
@@ -368,7 +368,7 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
--- TOC entry 1151 (class 1247 OID 16738)
+-- TOC entry 1155 (class 1247 OID 16738)
 -- Name: aal_level; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -382,7 +382,7 @@ CREATE TYPE auth.aal_level AS ENUM (
 ALTER TYPE auth.aal_level OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1175 (class 1247 OID 16879)
+-- TOC entry 1179 (class 1247 OID 16879)
 -- Name: code_challenge_method; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -395,7 +395,7 @@ CREATE TYPE auth.code_challenge_method AS ENUM (
 ALTER TYPE auth.code_challenge_method OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1148 (class 1247 OID 16732)
+-- TOC entry 1152 (class 1247 OID 16732)
 -- Name: factor_status; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -408,7 +408,7 @@ CREATE TYPE auth.factor_status AS ENUM (
 ALTER TYPE auth.factor_status OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1145 (class 1247 OID 16727)
+-- TOC entry 1149 (class 1247 OID 16727)
 -- Name: factor_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -422,7 +422,7 @@ CREATE TYPE auth.factor_type AS ENUM (
 ALTER TYPE auth.factor_type OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1193 (class 1247 OID 16982)
+-- TOC entry 1197 (class 1247 OID 16982)
 -- Name: oauth_authorization_status; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -437,7 +437,7 @@ CREATE TYPE auth.oauth_authorization_status AS ENUM (
 ALTER TYPE auth.oauth_authorization_status OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1205 (class 1247 OID 17055)
+-- TOC entry 1209 (class 1247 OID 17055)
 -- Name: oauth_client_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -450,7 +450,7 @@ CREATE TYPE auth.oauth_client_type AS ENUM (
 ALTER TYPE auth.oauth_client_type OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1187 (class 1247 OID 16960)
+-- TOC entry 1191 (class 1247 OID 16960)
 -- Name: oauth_registration_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -463,7 +463,7 @@ CREATE TYPE auth.oauth_registration_type AS ENUM (
 ALTER TYPE auth.oauth_registration_type OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1196 (class 1247 OID 16992)
+-- TOC entry 1200 (class 1247 OID 16992)
 -- Name: oauth_response_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -475,7 +475,7 @@ CREATE TYPE auth.oauth_response_type AS ENUM (
 ALTER TYPE auth.oauth_response_type OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1181 (class 1247 OID 16921)
+-- TOC entry 1185 (class 1247 OID 16921)
 -- Name: one_time_token_type; Type: TYPE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -492,7 +492,7 @@ CREATE TYPE auth.one_time_token_type AS ENUM (
 ALTER TYPE auth.one_time_token_type OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 1265 (class 1247 OID 17497)
+-- TOC entry 1269 (class 1247 OID 17497)
 -- Name: app_role; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -506,7 +506,7 @@ CREATE TYPE public.app_role AS ENUM (
 ALTER TYPE public.app_role OWNER TO postgres;
 
 --
--- TOC entry 1253 (class 1247 OID 17358)
+-- TOC entry 1257 (class 1247 OID 17358)
 -- Name: action; Type: TYPE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -522,7 +522,7 @@ CREATE TYPE realtime.action AS ENUM (
 ALTER TYPE realtime.action OWNER TO supabase_admin;
 
 --
--- TOC entry 1217 (class 1247 OID 17126)
+-- TOC entry 1221 (class 1247 OID 17126)
 -- Name: equality_op; Type: TYPE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -540,7 +540,7 @@ CREATE TYPE realtime.equality_op AS ENUM (
 ALTER TYPE realtime.equality_op OWNER TO supabase_admin;
 
 --
--- TOC entry 1220 (class 1247 OID 17141)
+-- TOC entry 1224 (class 1247 OID 17141)
 -- Name: user_defined_filter; Type: TYPE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -554,7 +554,7 @@ CREATE TYPE realtime.user_defined_filter AS (
 ALTER TYPE realtime.user_defined_filter OWNER TO supabase_admin;
 
 --
--- TOC entry 1259 (class 1247 OID 17400)
+-- TOC entry 1263 (class 1247 OID 17400)
 -- Name: wal_column; Type: TYPE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -571,7 +571,7 @@ CREATE TYPE realtime.wal_column AS (
 ALTER TYPE realtime.wal_column OWNER TO supabase_admin;
 
 --
--- TOC entry 1256 (class 1247 OID 17371)
+-- TOC entry 1260 (class 1247 OID 17371)
 -- Name: wal_rls; Type: TYPE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -586,7 +586,7 @@ CREATE TYPE realtime.wal_rls AS (
 ALTER TYPE realtime.wal_rls OWNER TO supabase_admin;
 
 --
--- TOC entry 1241 (class 1247 OID 17281)
+-- TOC entry 1245 (class 1247 OID 17281)
 -- Name: buckettype; Type: TYPE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -600,7 +600,7 @@ CREATE TYPE storage.buckettype AS ENUM (
 ALTER TYPE storage.buckettype OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 442 (class 1255 OID 16540)
+-- TOC entry 446 (class 1255 OID 16540)
 -- Name: email(); Type: FUNCTION; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -618,8 +618,8 @@ $$;
 ALTER FUNCTION auth.email() OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4589 (class 0 OID 0)
--- Dependencies: 442
+-- TOC entry 4624 (class 0 OID 0)
+-- Dependencies: 446
 -- Name: FUNCTION email(); Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -627,7 +627,7 @@ COMMENT ON FUNCTION auth.email() IS 'Deprecated. Use auth.jwt() -> ''email'' ins
 
 
 --
--- TOC entry 461 (class 1255 OID 16709)
+-- TOC entry 465 (class 1255 OID 16709)
 -- Name: jwt(); Type: FUNCTION; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -645,7 +645,7 @@ $$;
 ALTER FUNCTION auth.jwt() OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 441 (class 1255 OID 16539)
+-- TOC entry 445 (class 1255 OID 16539)
 -- Name: role(); Type: FUNCTION; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -663,8 +663,8 @@ $$;
 ALTER FUNCTION auth.role() OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4592 (class 0 OID 0)
--- Dependencies: 441
+-- TOC entry 4627 (class 0 OID 0)
+-- Dependencies: 445
 -- Name: FUNCTION role(); Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -672,7 +672,7 @@ COMMENT ON FUNCTION auth.role() IS 'Deprecated. Use auth.jwt() -> ''role'' inste
 
 
 --
--- TOC entry 440 (class 1255 OID 16538)
+-- TOC entry 444 (class 1255 OID 16538)
 -- Name: uid(); Type: FUNCTION; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -690,8 +690,8 @@ $$;
 ALTER FUNCTION auth.uid() OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4594 (class 0 OID 0)
--- Dependencies: 440
+-- TOC entry 4629 (class 0 OID 0)
+-- Dependencies: 444
 -- Name: FUNCTION uid(); Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -699,7 +699,7 @@ COMMENT ON FUNCTION auth.uid() IS 'Deprecated. Use auth.jwt() -> ''sub'' instead
 
 
 --
--- TOC entry 443 (class 1255 OID 16547)
+-- TOC entry 447 (class 1255 OID 16547)
 -- Name: grant_pg_cron_access(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -739,8 +739,8 @@ $$;
 ALTER FUNCTION extensions.grant_pg_cron_access() OWNER TO supabase_admin;
 
 --
--- TOC entry 4610 (class 0 OID 0)
--- Dependencies: 443
+-- TOC entry 4645 (class 0 OID 0)
+-- Dependencies: 447
 -- Name: FUNCTION grant_pg_cron_access(); Type: COMMENT; Schema: extensions; Owner: supabase_admin
 --
 
@@ -748,7 +748,7 @@ COMMENT ON FUNCTION extensions.grant_pg_cron_access() IS 'Grants access to pg_cr
 
 
 --
--- TOC entry 447 (class 1255 OID 16568)
+-- TOC entry 451 (class 1255 OID 16568)
 -- Name: grant_pg_graphql_access(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -809,8 +809,8 @@ $_$;
 ALTER FUNCTION extensions.grant_pg_graphql_access() OWNER TO supabase_admin;
 
 --
--- TOC entry 4612 (class 0 OID 0)
--- Dependencies: 447
+-- TOC entry 4647 (class 0 OID 0)
+-- Dependencies: 451
 -- Name: FUNCTION grant_pg_graphql_access(); Type: COMMENT; Schema: extensions; Owner: supabase_admin
 --
 
@@ -818,7 +818,7 @@ COMMENT ON FUNCTION extensions.grant_pg_graphql_access() IS 'Grants access to pg
 
 
 --
--- TOC entry 444 (class 1255 OID 16549)
+-- TOC entry 448 (class 1255 OID 16549)
 -- Name: grant_pg_net_access(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -872,8 +872,8 @@ $$;
 ALTER FUNCTION extensions.grant_pg_net_access() OWNER TO supabase_admin;
 
 --
--- TOC entry 4614 (class 0 OID 0)
--- Dependencies: 444
+-- TOC entry 4649 (class 0 OID 0)
+-- Dependencies: 448
 -- Name: FUNCTION grant_pg_net_access(); Type: COMMENT; Schema: extensions; Owner: supabase_admin
 --
 
@@ -881,7 +881,7 @@ COMMENT ON FUNCTION extensions.grant_pg_net_access() IS 'Grants access to pg_net
 
 
 --
--- TOC entry 445 (class 1255 OID 16559)
+-- TOC entry 449 (class 1255 OID 16559)
 -- Name: pgrst_ddl_watch(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -917,7 +917,7 @@ END; $$;
 ALTER FUNCTION extensions.pgrst_ddl_watch() OWNER TO supabase_admin;
 
 --
--- TOC entry 446 (class 1255 OID 16560)
+-- TOC entry 450 (class 1255 OID 16560)
 -- Name: pgrst_drop_watch(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -951,7 +951,7 @@ END; $$;
 ALTER FUNCTION extensions.pgrst_drop_watch() OWNER TO supabase_admin;
 
 --
--- TOC entry 448 (class 1255 OID 16570)
+-- TOC entry 452 (class 1255 OID 16570)
 -- Name: set_graphql_placeholder(); Type: FUNCTION; Schema: extensions; Owner: supabase_admin
 --
 
@@ -1011,8 +1011,8 @@ $_$;
 ALTER FUNCTION extensions.set_graphql_placeholder() OWNER TO supabase_admin;
 
 --
--- TOC entry 4643 (class 0 OID 0)
--- Dependencies: 448
+-- TOC entry 4678 (class 0 OID 0)
+-- Dependencies: 452
 -- Name: FUNCTION set_graphql_placeholder(); Type: COMMENT; Schema: extensions; Owner: supabase_admin
 --
 
@@ -1020,7 +1020,7 @@ COMMENT ON FUNCTION extensions.set_graphql_placeholder() IS 'Reintroduces placeh
 
 
 --
--- TOC entry 390 (class 1255 OID 16387)
+-- TOC entry 394 (class 1255 OID 16387)
 -- Name: get_auth(text); Type: FUNCTION; Schema: pgbouncer; Owner: supabase_admin
 --
 
@@ -1047,7 +1047,7 @@ CREATE FUNCTION pgbouncer.get_auth(p_usename text) RETURNS TABLE(username text, 
 ALTER FUNCTION pgbouncer.get_auth(p_usename text) OWNER TO supabase_admin;
 
 --
--- TOC entry 492 (class 1255 OID 17596)
+-- TOC entry 496 (class 1255 OID 17596)
 -- Name: admin_delete_user(uuid); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1088,7 +1088,7 @@ $$;
 ALTER FUNCTION public.admin_delete_user(target_user_id uuid) OWNER TO postgres;
 
 --
--- TOC entry 494 (class 1255 OID 17598)
+-- TOC entry 498 (class 1255 OID 17598)
 -- Name: admin_update_user_email(uuid, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1117,7 +1117,7 @@ $$;
 ALTER FUNCTION public.admin_update_user_email(target_user_id uuid, new_email text) OWNER TO postgres;
 
 --
--- TOC entry 493 (class 1255 OID 17597)
+-- TOC entry 497 (class 1255 OID 17597)
 -- Name: admin_update_user_role(uuid, public.app_role); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1159,7 +1159,7 @@ $$;
 ALTER FUNCTION public.admin_update_user_role(target_user_id uuid, new_role public.app_role) OWNER TO postgres;
 
 --
--- TOC entry 495 (class 1255 OID 22297)
+-- TOC entry 499 (class 1255 OID 22297)
 -- Name: calc_discount_percentage(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1181,7 +1181,7 @@ $$;
 ALTER FUNCTION public.calc_discount_percentage() OWNER TO postgres;
 
 --
--- TOC entry 490 (class 1255 OID 17594)
+-- TOC entry 494 (class 1255 OID 17594)
 -- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1205,7 +1205,7 @@ $$;
 ALTER FUNCTION public.handle_new_user() OWNER TO postgres;
 
 --
--- TOC entry 491 (class 1255 OID 17595)
+-- TOC entry 495 (class 1255 OID 17595)
 -- Name: has_role(uuid, public.app_role); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1225,7 +1225,7 @@ $$;
 ALTER FUNCTION public.has_role(_user_id uuid, _role public.app_role) OWNER TO postgres;
 
 --
--- TOC entry 497 (class 1255 OID 22501)
+-- TOC entry 501 (class 1255 OID 22501)
 -- Name: increment_product_clicks(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1244,7 +1244,7 @@ $$;
 ALTER FUNCTION public.increment_product_clicks() OWNER TO postgres;
 
 --
--- TOC entry 496 (class 1255 OID 22424)
+-- TOC entry 500 (class 1255 OID 22424)
 -- Name: log_price_change(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1253,7 +1253,7 @@ CREATE FUNCTION public.log_price_change() RETURNS trigger
     AS $$
 BEGIN
     IF (TG_OP = 'INSERT') OR 
-       (TG_OP = 'UPDATE' AND (NEW.price IS DISTINCT FROM OLD.price OR NEW.discount IS DISTINCT FROM OLD.discount)) THEN
+       (TG_OP = 'UPDATE' AND NEW.price IS DISTINCT FROM OLD.price) THEN
         INSERT INTO public.price_history (product_id, price)
         VALUES (NEW.id, NEW.price);
     END IF;
@@ -1265,7 +1265,7 @@ $$;
 ALTER FUNCTION public.log_price_change() OWNER TO postgres;
 
 --
--- TOC entry 498 (class 1255 OID 23730)
+-- TOC entry 502 (class 1255 OID 23730)
 -- Name: update_coupons_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1282,7 +1282,7 @@ $$;
 ALTER FUNCTION public.update_coupons_updated_at() OWNER TO postgres;
 
 --
--- TOC entry 489 (class 1255 OID 17593)
+-- TOC entry 493 (class 1255 OID 17593)
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1300,7 +1300,7 @@ $$;
 ALTER FUNCTION public.update_updated_at_column() OWNER TO postgres;
 
 --
--- TOC entry 482 (class 1255 OID 17393)
+-- TOC entry 486 (class 1255 OID 17393)
 -- Name: apply_rls(jsonb, integer); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1611,7 +1611,7 @@ $$;
 ALTER FUNCTION realtime.apply_rls(wal jsonb, max_record_bytes integer) OWNER TO supabase_admin;
 
 --
--- TOC entry 488 (class 1255 OID 17472)
+-- TOC entry 492 (class 1255 OID 17472)
 -- Name: broadcast_changes(text, text, text, text, text, record, record, text); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1643,7 +1643,7 @@ $$;
 ALTER FUNCTION realtime.broadcast_changes(topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text) OWNER TO supabase_admin;
 
 --
--- TOC entry 484 (class 1255 OID 17405)
+-- TOC entry 488 (class 1255 OID 17405)
 -- Name: build_prepared_statement_sql(text, regclass, realtime.wal_column[]); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1679,7 +1679,7 @@ CREATE FUNCTION realtime.build_prepared_statement_sql(prepared_statement_name te
 ALTER FUNCTION realtime.build_prepared_statement_sql(prepared_statement_name text, entity regclass, columns realtime.wal_column[]) OWNER TO supabase_admin;
 
 --
--- TOC entry 480 (class 1255 OID 17355)
+-- TOC entry 484 (class 1255 OID 17355)
 -- Name: cast(text, regtype); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1701,7 +1701,7 @@ $$;
 ALTER FUNCTION realtime."cast"(val text, type_ regtype) OWNER TO supabase_admin;
 
 --
--- TOC entry 464 (class 1255 OID 17158)
+-- TOC entry 468 (class 1255 OID 17158)
 -- Name: check_equality_op(realtime.equality_op, regtype, text, text); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1743,7 +1743,7 @@ CREATE FUNCTION realtime.check_equality_op(op realtime.equality_op, type_ regtyp
 ALTER FUNCTION realtime.check_equality_op(op realtime.equality_op, type_ regtype, val_1 text, val_2 text) OWNER TO supabase_admin;
 
 --
--- TOC entry 483 (class 1255 OID 17401)
+-- TOC entry 487 (class 1255 OID 17401)
 -- Name: is_visible_through_filters(realtime.wal_column[], realtime.user_defined_filter[]); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1782,7 +1782,7 @@ CREATE FUNCTION realtime.is_visible_through_filters(columns realtime.wal_column[
 ALTER FUNCTION realtime.is_visible_through_filters(columns realtime.wal_column[], filters realtime.user_defined_filter[]) OWNER TO supabase_admin;
 
 --
--- TOC entry 485 (class 1255 OID 17412)
+-- TOC entry 489 (class 1255 OID 17412)
 -- Name: list_changes(name, name, integer, integer); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1851,7 +1851,7 @@ CREATE FUNCTION realtime.list_changes(publication name, slot_name name, max_chan
 ALTER FUNCTION realtime.list_changes(publication name, slot_name name, max_changes integer, max_record_bytes integer) OWNER TO supabase_admin;
 
 --
--- TOC entry 463 (class 1255 OID 17157)
+-- TOC entry 467 (class 1255 OID 17157)
 -- Name: quote_wal2json(regclass); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1892,7 +1892,7 @@ CREATE FUNCTION realtime.quote_wal2json(entity regclass) RETURNS text
 ALTER FUNCTION realtime.quote_wal2json(entity regclass) OWNER TO supabase_admin;
 
 --
--- TOC entry 487 (class 1255 OID 17471)
+-- TOC entry 491 (class 1255 OID 17471)
 -- Name: send(jsonb, text, text, boolean); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -1932,7 +1932,7 @@ $$;
 ALTER FUNCTION realtime.send(payload jsonb, event text, topic text, private boolean) OWNER TO supabase_admin;
 
 --
--- TOC entry 462 (class 1255 OID 17155)
+-- TOC entry 466 (class 1255 OID 17155)
 -- Name: subscription_check_filters(); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -2009,7 +2009,7 @@ CREATE FUNCTION realtime.subscription_check_filters() RETURNS trigger
 ALTER FUNCTION realtime.subscription_check_filters() OWNER TO supabase_admin;
 
 --
--- TOC entry 481 (class 1255 OID 17382)
+-- TOC entry 485 (class 1255 OID 17382)
 -- Name: to_regrole(text); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
 --
 
@@ -2021,7 +2021,7 @@ CREATE FUNCTION realtime.to_regrole(role_name text) RETURNS regrole
 ALTER FUNCTION realtime.to_regrole(role_name text) OWNER TO supabase_admin;
 
 --
--- TOC entry 486 (class 1255 OID 17465)
+-- TOC entry 490 (class 1255 OID 17465)
 -- Name: topic(); Type: FUNCTION; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -2035,7 +2035,7 @@ $$;
 ALTER FUNCTION realtime.topic() OWNER TO supabase_realtime_admin;
 
 --
--- TOC entry 471 (class 1255 OID 17222)
+-- TOC entry 475 (class 1255 OID 17222)
 -- Name: can_insert_object(text, text, uuid, jsonb); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2055,7 +2055,7 @@ $$;
 ALTER FUNCTION storage.can_insert_object(bucketid text, name text, owner uuid, metadata jsonb) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 474 (class 1255 OID 17278)
+-- TOC entry 478 (class 1255 OID 17278)
 -- Name: enforce_bucket_name_length(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2074,7 +2074,7 @@ $$;
 ALTER FUNCTION storage.enforce_bucket_name_length() OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 467 (class 1255 OID 17197)
+-- TOC entry 471 (class 1255 OID 17197)
 -- Name: extension(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2096,7 +2096,7 @@ $$;
 ALTER FUNCTION storage.extension(name text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 466 (class 1255 OID 17196)
+-- TOC entry 470 (class 1255 OID 17196)
 -- Name: filename(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2115,7 +2115,7 @@ $$;
 ALTER FUNCTION storage.filename(name text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 465 (class 1255 OID 17195)
+-- TOC entry 469 (class 1255 OID 17195)
 -- Name: foldername(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2134,7 +2134,7 @@ $$;
 ALTER FUNCTION storage.foldername(name text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 475 (class 1255 OID 17334)
+-- TOC entry 479 (class 1255 OID 17334)
 -- Name: get_common_prefix(text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2152,7 +2152,7 @@ $$;
 ALTER FUNCTION storage.get_common_prefix(p_key text, p_prefix text, p_delimiter text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 468 (class 1255 OID 17209)
+-- TOC entry 472 (class 1255 OID 17209)
 -- Name: get_size_by_bucket(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2171,7 +2171,7 @@ $$;
 ALTER FUNCTION storage.get_size_by_bucket() OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 472 (class 1255 OID 17261)
+-- TOC entry 476 (class 1255 OID 17261)
 -- Name: list_multipart_uploads_with_delimiter(text, text, text, integer, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2220,7 +2220,7 @@ $_$;
 ALTER FUNCTION storage.list_multipart_uploads_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 476 (class 1255 OID 17335)
+-- TOC entry 480 (class 1255 OID 17335)
 -- Name: list_objects_with_delimiter(text, text, text, integer, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2438,7 +2438,7 @@ $_$;
 ALTER FUNCTION storage.list_objects_with_delimiter(_bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text, sort_order text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 473 (class 1255 OID 17277)
+-- TOC entry 477 (class 1255 OID 17277)
 -- Name: operation(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2454,7 +2454,7 @@ $$;
 ALTER FUNCTION storage.operation() OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 479 (class 1255 OID 17341)
+-- TOC entry 483 (class 1255 OID 17341)
 -- Name: protect_delete(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2476,7 +2476,7 @@ $$;
 ALTER FUNCTION storage.protect_delete() OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 469 (class 1255 OID 17211)
+-- TOC entry 473 (class 1255 OID 17211)
 -- Name: search(text, text, integer, integer, integer, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2733,7 +2733,7 @@ $_$;
 ALTER FUNCTION storage.search(prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 478 (class 1255 OID 17339)
+-- TOC entry 482 (class 1255 OID 17339)
 -- Name: search_by_timestamp(text, text, integer, integer, text, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2843,7 +2843,7 @@ $_$;
 ALTER FUNCTION storage.search_by_timestamp(p_prefix text, p_bucket_id text, p_limit integer, p_level integer, p_start_after text, p_sort_order text, p_sort_column text, p_sort_column_after text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 477 (class 1255 OID 17338)
+-- TOC entry 481 (class 1255 OID 17338)
 -- Name: search_v2(text, text, integer, integer, text, text, text, text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2906,7 +2906,7 @@ $$;
 ALTER FUNCTION storage.search_v2(prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text) OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 470 (class 1255 OID 17212)
+-- TOC entry 474 (class 1255 OID 17212)
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -2927,7 +2927,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 316 (class 1259 OID 16525)
+-- TOC entry 318 (class 1259 OID 16525)
 -- Name: audit_log_entries; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -2943,8 +2943,8 @@ CREATE TABLE auth.audit_log_entries (
 ALTER TABLE auth.audit_log_entries OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4683 (class 0 OID 0)
--- Dependencies: 316
+-- TOC entry 4718 (class 0 OID 0)
+-- Dependencies: 318
 -- Name: TABLE audit_log_entries; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -2952,7 +2952,7 @@ COMMENT ON TABLE auth.audit_log_entries IS 'Auth: Audit trail for user actions.'
 
 
 --
--- TOC entry 336 (class 1259 OID 17078)
+-- TOC entry 338 (class 1259 OID 17078)
 -- Name: custom_oauth_providers; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3005,7 +3005,7 @@ CREATE TABLE auth.custom_oauth_providers (
 ALTER TABLE auth.custom_oauth_providers OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 330 (class 1259 OID 16883)
+-- TOC entry 332 (class 1259 OID 16883)
 -- Name: flow_state; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3033,8 +3033,8 @@ CREATE TABLE auth.flow_state (
 ALTER TABLE auth.flow_state OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4686 (class 0 OID 0)
--- Dependencies: 330
+-- TOC entry 4721 (class 0 OID 0)
+-- Dependencies: 332
 -- Name: TABLE flow_state; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3042,7 +3042,7 @@ COMMENT ON TABLE auth.flow_state IS 'Stores metadata for all OAuth/SSO login flo
 
 
 --
--- TOC entry 321 (class 1259 OID 16681)
+-- TOC entry 323 (class 1259 OID 16681)
 -- Name: identities; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3062,8 +3062,8 @@ CREATE TABLE auth.identities (
 ALTER TABLE auth.identities OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4688 (class 0 OID 0)
--- Dependencies: 321
+-- TOC entry 4723 (class 0 OID 0)
+-- Dependencies: 323
 -- Name: TABLE identities; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3071,8 +3071,8 @@ COMMENT ON TABLE auth.identities IS 'Auth: Stores identities associated to a use
 
 
 --
--- TOC entry 4689 (class 0 OID 0)
--- Dependencies: 321
+-- TOC entry 4724 (class 0 OID 0)
+-- Dependencies: 323
 -- Name: COLUMN identities.email; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3080,7 +3080,7 @@ COMMENT ON COLUMN auth.identities.email IS 'Auth: Email is a generated column th
 
 
 --
--- TOC entry 315 (class 1259 OID 16518)
+-- TOC entry 317 (class 1259 OID 16518)
 -- Name: instances; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3096,8 +3096,8 @@ CREATE TABLE auth.instances (
 ALTER TABLE auth.instances OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4691 (class 0 OID 0)
--- Dependencies: 315
+-- TOC entry 4726 (class 0 OID 0)
+-- Dependencies: 317
 -- Name: TABLE instances; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3105,7 +3105,7 @@ COMMENT ON TABLE auth.instances IS 'Auth: Manages users across multiple sites.';
 
 
 --
--- TOC entry 325 (class 1259 OID 16770)
+-- TOC entry 327 (class 1259 OID 16770)
 -- Name: mfa_amr_claims; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3121,8 +3121,8 @@ CREATE TABLE auth.mfa_amr_claims (
 ALTER TABLE auth.mfa_amr_claims OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4693 (class 0 OID 0)
--- Dependencies: 325
+-- TOC entry 4728 (class 0 OID 0)
+-- Dependencies: 327
 -- Name: TABLE mfa_amr_claims; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3130,7 +3130,7 @@ COMMENT ON TABLE auth.mfa_amr_claims IS 'auth: stores authenticator method refer
 
 
 --
--- TOC entry 324 (class 1259 OID 16758)
+-- TOC entry 326 (class 1259 OID 16758)
 -- Name: mfa_challenges; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3148,8 +3148,8 @@ CREATE TABLE auth.mfa_challenges (
 ALTER TABLE auth.mfa_challenges OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4695 (class 0 OID 0)
--- Dependencies: 324
+-- TOC entry 4730 (class 0 OID 0)
+-- Dependencies: 326
 -- Name: TABLE mfa_challenges; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3157,7 +3157,7 @@ COMMENT ON TABLE auth.mfa_challenges IS 'auth: stores metadata about challenge r
 
 
 --
--- TOC entry 323 (class 1259 OID 16745)
+-- TOC entry 325 (class 1259 OID 16745)
 -- Name: mfa_factors; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3181,8 +3181,8 @@ CREATE TABLE auth.mfa_factors (
 ALTER TABLE auth.mfa_factors OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4697 (class 0 OID 0)
--- Dependencies: 323
+-- TOC entry 4732 (class 0 OID 0)
+-- Dependencies: 325
 -- Name: TABLE mfa_factors; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3190,8 +3190,8 @@ COMMENT ON TABLE auth.mfa_factors IS 'auth: stores metadata about factors';
 
 
 --
--- TOC entry 4698 (class 0 OID 0)
--- Dependencies: 323
+-- TOC entry 4733 (class 0 OID 0)
+-- Dependencies: 325
 -- Name: COLUMN mfa_factors.last_webauthn_challenge_data; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3199,7 +3199,7 @@ COMMENT ON COLUMN auth.mfa_factors.last_webauthn_challenge_data IS 'Stores the l
 
 
 --
--- TOC entry 333 (class 1259 OID 16995)
+-- TOC entry 335 (class 1259 OID 16995)
 -- Name: oauth_authorizations; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3235,7 +3235,7 @@ CREATE TABLE auth.oauth_authorizations (
 ALTER TABLE auth.oauth_authorizations OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 335 (class 1259 OID 17068)
+-- TOC entry 337 (class 1259 OID 17068)
 -- Name: oauth_client_states; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3250,8 +3250,8 @@ CREATE TABLE auth.oauth_client_states (
 ALTER TABLE auth.oauth_client_states OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4701 (class 0 OID 0)
--- Dependencies: 335
+-- TOC entry 4736 (class 0 OID 0)
+-- Dependencies: 337
 -- Name: TABLE oauth_client_states; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3259,7 +3259,7 @@ COMMENT ON TABLE auth.oauth_client_states IS 'Stores OAuth states for third-part
 
 
 --
--- TOC entry 332 (class 1259 OID 16965)
+-- TOC entry 334 (class 1259 OID 16965)
 -- Name: oauth_clients; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3287,7 +3287,7 @@ CREATE TABLE auth.oauth_clients (
 ALTER TABLE auth.oauth_clients OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 334 (class 1259 OID 17028)
+-- TOC entry 336 (class 1259 OID 17028)
 -- Name: oauth_consents; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3307,7 +3307,7 @@ CREATE TABLE auth.oauth_consents (
 ALTER TABLE auth.oauth_consents OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 331 (class 1259 OID 16933)
+-- TOC entry 333 (class 1259 OID 16933)
 -- Name: one_time_tokens; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3326,7 +3326,7 @@ CREATE TABLE auth.one_time_tokens (
 ALTER TABLE auth.one_time_tokens OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 314 (class 1259 OID 16507)
+-- TOC entry 316 (class 1259 OID 16507)
 -- Name: refresh_tokens; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3346,8 +3346,8 @@ CREATE TABLE auth.refresh_tokens (
 ALTER TABLE auth.refresh_tokens OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4706 (class 0 OID 0)
--- Dependencies: 314
+-- TOC entry 4741 (class 0 OID 0)
+-- Dependencies: 316
 -- Name: TABLE refresh_tokens; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3355,7 +3355,7 @@ COMMENT ON TABLE auth.refresh_tokens IS 'Auth: Store of tokens used to refresh J
 
 
 --
--- TOC entry 313 (class 1259 OID 16506)
+-- TOC entry 315 (class 1259 OID 16506)
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3370,8 +3370,8 @@ CREATE SEQUENCE auth.refresh_tokens_id_seq
 ALTER SEQUENCE auth.refresh_tokens_id_seq OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4708 (class 0 OID 0)
--- Dependencies: 313
+-- TOC entry 4743 (class 0 OID 0)
+-- Dependencies: 315
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3379,7 +3379,7 @@ ALTER SEQUENCE auth.refresh_tokens_id_seq OWNED BY auth.refresh_tokens.id;
 
 
 --
--- TOC entry 328 (class 1259 OID 16812)
+-- TOC entry 330 (class 1259 OID 16812)
 -- Name: saml_providers; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3402,8 +3402,8 @@ CREATE TABLE auth.saml_providers (
 ALTER TABLE auth.saml_providers OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4710 (class 0 OID 0)
--- Dependencies: 328
+-- TOC entry 4745 (class 0 OID 0)
+-- Dependencies: 330
 -- Name: TABLE saml_providers; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3411,7 +3411,7 @@ COMMENT ON TABLE auth.saml_providers IS 'Auth: Manages SAML Identity Provider co
 
 
 --
--- TOC entry 329 (class 1259 OID 16830)
+-- TOC entry 331 (class 1259 OID 16830)
 -- Name: saml_relay_states; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3431,8 +3431,8 @@ CREATE TABLE auth.saml_relay_states (
 ALTER TABLE auth.saml_relay_states OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4712 (class 0 OID 0)
--- Dependencies: 329
+-- TOC entry 4747 (class 0 OID 0)
+-- Dependencies: 331
 -- Name: TABLE saml_relay_states; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3440,7 +3440,7 @@ COMMENT ON TABLE auth.saml_relay_states IS 'Auth: Contains SAML Relay State info
 
 
 --
--- TOC entry 317 (class 1259 OID 16533)
+-- TOC entry 319 (class 1259 OID 16533)
 -- Name: schema_migrations; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3452,8 +3452,8 @@ CREATE TABLE auth.schema_migrations (
 ALTER TABLE auth.schema_migrations OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4714 (class 0 OID 0)
--- Dependencies: 317
+-- TOC entry 4749 (class 0 OID 0)
+-- Dependencies: 319
 -- Name: TABLE schema_migrations; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3461,7 +3461,7 @@ COMMENT ON TABLE auth.schema_migrations IS 'Auth: Manages updates to the auth sy
 
 
 --
--- TOC entry 322 (class 1259 OID 16711)
+-- TOC entry 324 (class 1259 OID 16711)
 -- Name: sessions; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3488,8 +3488,8 @@ CREATE TABLE auth.sessions (
 ALTER TABLE auth.sessions OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4716 (class 0 OID 0)
--- Dependencies: 322
+-- TOC entry 4751 (class 0 OID 0)
+-- Dependencies: 324
 -- Name: TABLE sessions; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3497,8 +3497,8 @@ COMMENT ON TABLE auth.sessions IS 'Auth: Stores session data associated to a use
 
 
 --
--- TOC entry 4717 (class 0 OID 0)
--- Dependencies: 322
+-- TOC entry 4752 (class 0 OID 0)
+-- Dependencies: 324
 -- Name: COLUMN sessions.not_after; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3506,8 +3506,8 @@ COMMENT ON COLUMN auth.sessions.not_after IS 'Auth: Not after is a nullable colu
 
 
 --
--- TOC entry 4718 (class 0 OID 0)
--- Dependencies: 322
+-- TOC entry 4753 (class 0 OID 0)
+-- Dependencies: 324
 -- Name: COLUMN sessions.refresh_token_hmac_key; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3515,8 +3515,8 @@ COMMENT ON COLUMN auth.sessions.refresh_token_hmac_key IS 'Holds a HMAC-SHA256 k
 
 
 --
--- TOC entry 4719 (class 0 OID 0)
--- Dependencies: 322
+-- TOC entry 4754 (class 0 OID 0)
+-- Dependencies: 324
 -- Name: COLUMN sessions.refresh_token_counter; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3524,7 +3524,7 @@ COMMENT ON COLUMN auth.sessions.refresh_token_counter IS 'Holds the ID (counter)
 
 
 --
--- TOC entry 327 (class 1259 OID 16797)
+-- TOC entry 329 (class 1259 OID 16797)
 -- Name: sso_domains; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3541,8 +3541,8 @@ CREATE TABLE auth.sso_domains (
 ALTER TABLE auth.sso_domains OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4721 (class 0 OID 0)
--- Dependencies: 327
+-- TOC entry 4756 (class 0 OID 0)
+-- Dependencies: 329
 -- Name: TABLE sso_domains; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3550,7 +3550,7 @@ COMMENT ON TABLE auth.sso_domains IS 'Auth: Manages SSO email address domain map
 
 
 --
--- TOC entry 326 (class 1259 OID 16788)
+-- TOC entry 328 (class 1259 OID 16788)
 -- Name: sso_providers; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3567,8 +3567,8 @@ CREATE TABLE auth.sso_providers (
 ALTER TABLE auth.sso_providers OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4723 (class 0 OID 0)
--- Dependencies: 326
+-- TOC entry 4758 (class 0 OID 0)
+-- Dependencies: 328
 -- Name: TABLE sso_providers; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3576,8 +3576,8 @@ COMMENT ON TABLE auth.sso_providers IS 'Auth: Manages SSO identity provider info
 
 
 --
--- TOC entry 4724 (class 0 OID 0)
--- Dependencies: 326
+-- TOC entry 4759 (class 0 OID 0)
+-- Dependencies: 328
 -- Name: COLUMN sso_providers.resource_id; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3585,7 +3585,7 @@ COMMENT ON COLUMN auth.sso_providers.resource_id IS 'Auth: Uniquely identifies a
 
 
 --
--- TOC entry 312 (class 1259 OID 16495)
+-- TOC entry 314 (class 1259 OID 16495)
 -- Name: users; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3632,8 +3632,8 @@ CREATE TABLE auth.users (
 ALTER TABLE auth.users OWNER TO supabase_auth_admin;
 
 --
--- TOC entry 4726 (class 0 OID 0)
--- Dependencies: 312
+-- TOC entry 4761 (class 0 OID 0)
+-- Dependencies: 314
 -- Name: TABLE users; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3641,8 +3641,8 @@ COMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure sch
 
 
 --
--- TOC entry 4727 (class 0 OID 0)
--- Dependencies: 312
+-- TOC entry 4762 (class 0 OID 0)
+-- Dependencies: 314
 -- Name: COLUMN users.is_sso_user; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -3650,7 +3650,50 @@ COMMENT ON COLUMN auth.users.is_sso_user IS 'Auth: Set this column to true when 
 
 
 --
--- TOC entry 352 (class 1259 OID 17503)
+-- TOC entry 381 (class 1259 OID 27144)
+-- Name: webauthn_challenges; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.webauthn_challenges (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid,
+    challenge_type text NOT NULL,
+    session_data jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    CONSTRAINT webauthn_challenges_challenge_type_check CHECK ((challenge_type = ANY (ARRAY['signup'::text, 'registration'::text, 'authentication'::text])))
+);
+
+
+ALTER TABLE auth.webauthn_challenges OWNER TO supabase_auth_admin;
+
+--
+-- TOC entry 380 (class 1259 OID 27121)
+-- Name: webauthn_credentials; Type: TABLE; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TABLE auth.webauthn_credentials (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    credential_id bytea NOT NULL,
+    public_key bytea NOT NULL,
+    attestation_type text DEFAULT ''::text NOT NULL,
+    aaguid uuid,
+    sign_count bigint DEFAULT 0 NOT NULL,
+    transports jsonb DEFAULT '[]'::jsonb NOT NULL,
+    backup_eligible boolean DEFAULT false NOT NULL,
+    backed_up boolean DEFAULT false NOT NULL,
+    friendly_name text DEFAULT ''::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_used_at timestamp with time zone
+);
+
+
+ALTER TABLE auth.webauthn_credentials OWNER TO supabase_auth_admin;
+
+--
+-- TOC entry 354 (class 1259 OID 17503)
 -- Name: profiles; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3670,7 +3713,7 @@ CREATE TABLE public.profiles (
 ALTER TABLE public.profiles OWNER TO postgres;
 
 --
--- TOC entry 353 (class 1259 OID 17516)
+-- TOC entry 355 (class 1259 OID 17516)
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3684,7 +3727,7 @@ CREATE TABLE public.user_roles (
 ALTER TABLE public.user_roles OWNER TO postgres;
 
 --
--- TOC entry 358 (class 1259 OID 17588)
+-- TOC entry 360 (class 1259 OID 17588)
 -- Name: admin_users_view; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -3705,7 +3748,7 @@ CREATE VIEW public.admin_users_view AS
 ALTER VIEW public.admin_users_view OWNER TO postgres;
 
 --
--- TOC entry 355 (class 1259 OID 17545)
+-- TOC entry 357 (class 1259 OID 17545)
 -- Name: banners; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3726,7 +3769,7 @@ CREATE TABLE public.banners (
 ALTER TABLE public.banners OWNER TO postgres;
 
 --
--- TOC entry 359 (class 1259 OID 22129)
+-- TOC entry 361 (class 1259 OID 22129)
 -- Name: brands; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3740,7 +3783,7 @@ CREATE TABLE public.brands (
 ALTER TABLE public.brands OWNER TO postgres;
 
 --
--- TOC entry 362 (class 1259 OID 22173)
+-- TOC entry 364 (class 1259 OID 22173)
 -- Name: categories; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3756,7 +3799,7 @@ CREATE TABLE public.categories (
 ALTER TABLE public.categories OWNER TO postgres;
 
 --
--- TOC entry 375 (class 1259 OID 22458)
+-- TOC entry 377 (class 1259 OID 22458)
 -- Name: coupon_votes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3773,7 +3816,7 @@ CREATE TABLE public.coupon_votes (
 ALTER TABLE public.coupon_votes OWNER TO postgres;
 
 --
--- TOC entry 374 (class 1259 OID 22441)
+-- TOC entry 376 (class 1259 OID 22441)
 -- Name: coupons; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3799,7 +3842,7 @@ CREATE TABLE public.coupons (
 ALTER TABLE public.coupons OWNER TO postgres;
 
 --
--- TOC entry 373 (class 1259 OID 22426)
+-- TOC entry 375 (class 1259 OID 22426)
 -- Name: institutional_pages; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3817,7 +3860,7 @@ CREATE TABLE public.institutional_pages (
 ALTER TABLE public.institutional_pages OWNER TO postgres;
 
 --
--- TOC entry 360 (class 1259 OID 22142)
+-- TOC entry 362 (class 1259 OID 22142)
 -- Name: models; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3832,7 +3875,7 @@ CREATE TABLE public.models (
 ALTER TABLE public.models OWNER TO postgres;
 
 --
--- TOC entry 371 (class 1259 OID 22381)
+-- TOC entry 373 (class 1259 OID 22381)
 -- Name: newsletter_products; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3845,7 +3888,7 @@ CREATE TABLE public.newsletter_products (
 ALTER TABLE public.newsletter_products OWNER TO postgres;
 
 --
--- TOC entry 370 (class 1259 OID 22370)
+-- TOC entry 372 (class 1259 OID 22370)
 -- Name: newsletters; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3862,7 +3905,7 @@ CREATE TABLE public.newsletters (
 ALTER TABLE public.newsletters OWNER TO postgres;
 
 --
--- TOC entry 361 (class 1259 OID 22160)
+-- TOC entry 363 (class 1259 OID 22160)
 -- Name: platforms; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3877,7 +3920,7 @@ CREATE TABLE public.platforms (
 ALTER TABLE public.platforms OWNER TO postgres;
 
 --
--- TOC entry 372 (class 1259 OID 22408)
+-- TOC entry 374 (class 1259 OID 22408)
 -- Name: price_history; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3892,7 +3935,7 @@ CREATE TABLE public.price_history (
 ALTER TABLE public.price_history OWNER TO postgres;
 
 --
--- TOC entry 368 (class 1259 OID 22328)
+-- TOC entry 370 (class 1259 OID 22328)
 -- Name: product_clicks; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3908,7 +3951,7 @@ CREATE TABLE public.product_clicks (
 ALTER TABLE public.product_clicks OWNER TO postgres;
 
 --
--- TOC entry 367 (class 1259 OID 22254)
+-- TOC entry 369 (class 1259 OID 22254)
 -- Name: product_likes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3923,7 +3966,7 @@ CREATE TABLE public.product_likes (
 ALTER TABLE public.product_likes OWNER TO postgres;
 
 --
--- TOC entry 369 (class 1259 OID 22349)
+-- TOC entry 371 (class 1259 OID 22349)
 -- Name: product_trust_votes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3940,7 +3983,7 @@ CREATE TABLE public.product_trust_votes (
 ALTER TABLE public.product_trust_votes OWNER TO postgres;
 
 --
--- TOC entry 354 (class 1259 OID 17530)
+-- TOC entry 356 (class 1259 OID 17530)
 -- Name: products; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3970,15 +4013,17 @@ CREATE TABLE public.products (
     discount_percentage numeric,
     registered_by uuid,
     category_id uuid,
-    external_id character varying
+    external_id character varying,
+    commission_rate numeric,
+    sales_count integer DEFAULT 0
 );
 
 
 ALTER TABLE public.products OWNER TO postgres;
 
 --
--- TOC entry 4748 (class 0 OID 0)
--- Dependencies: 354
+-- TOC entry 4785 (class 0 OID 0)
+-- Dependencies: 356
 -- Name: COLUMN products.external_id; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -3986,7 +4031,7 @@ COMMENT ON COLUMN public.products.external_id IS 'ID do produto na plataforma ex
 
 
 --
--- TOC entry 357 (class 1259 OID 17573)
+-- TOC entry 359 (class 1259 OID 17573)
 -- Name: reports; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4004,7 +4049,7 @@ CREATE TABLE public.reports (
 ALTER TABLE public.reports OWNER TO postgres;
 
 --
--- TOC entry 356 (class 1259 OID 17557)
+-- TOC entry 358 (class 1259 OID 17557)
 -- Name: reviews; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4024,7 +4069,7 @@ CREATE TABLE public.reviews (
 ALTER TABLE public.reviews OWNER TO postgres;
 
 --
--- TOC entry 376 (class 1259 OID 25968)
+-- TOC entry 378 (class 1259 OID 25968)
 -- Name: shopee_product_mappings; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4047,7 +4092,7 @@ CREATE TABLE public.shopee_product_mappings (
 ALTER TABLE public.shopee_product_mappings OWNER TO postgres;
 
 --
--- TOC entry 377 (class 1259 OID 25986)
+-- TOC entry 379 (class 1259 OID 25986)
 -- Name: shopee_sync_logs; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4068,7 +4113,7 @@ CREATE TABLE public.shopee_sync_logs (
 ALTER TABLE public.shopee_sync_logs OWNER TO postgres;
 
 --
--- TOC entry 364 (class 1259 OID 22202)
+-- TOC entry 366 (class 1259 OID 22202)
 -- Name: special_page_products; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4082,7 +4127,7 @@ CREATE TABLE public.special_page_products (
 ALTER TABLE public.special_page_products OWNER TO postgres;
 
 --
--- TOC entry 363 (class 1259 OID 22188)
+-- TOC entry 365 (class 1259 OID 22188)
 -- Name: special_pages; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4099,7 +4144,7 @@ CREATE TABLE public.special_pages (
 ALTER TABLE public.special_pages OWNER TO postgres;
 
 --
--- TOC entry 365 (class 1259 OID 22222)
+-- TOC entry 367 (class 1259 OID 22222)
 -- Name: whatsapp_groups; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4115,7 +4160,7 @@ CREATE TABLE public.whatsapp_groups (
 ALTER TABLE public.whatsapp_groups OWNER TO postgres;
 
 --
--- TOC entry 366 (class 1259 OID 22234)
+-- TOC entry 368 (class 1259 OID 22234)
 -- Name: wishlists; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4130,7 +4175,7 @@ CREATE TABLE public.wishlists (
 ALTER TABLE public.wishlists OWNER TO postgres;
 
 --
--- TOC entry 351 (class 1259 OID 17475)
+-- TOC entry 353 (class 1259 OID 17475)
 -- Name: messages; Type: TABLE; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -4150,7 +4195,7 @@ PARTITION BY RANGE (inserted_at);
 ALTER TABLE realtime.messages OWNER TO supabase_realtime_admin;
 
 --
--- TOC entry 337 (class 1259 OID 17120)
+-- TOC entry 339 (class 1259 OID 17120)
 -- Name: schema_migrations; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -4163,7 +4208,7 @@ CREATE TABLE realtime.schema_migrations (
 ALTER TABLE realtime.schema_migrations OWNER TO supabase_admin;
 
 --
--- TOC entry 340 (class 1259 OID 17143)
+-- TOC entry 342 (class 1259 OID 17143)
 -- Name: subscription; Type: TABLE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -4183,7 +4228,7 @@ CREATE TABLE realtime.subscription (
 ALTER TABLE realtime.subscription OWNER TO supabase_admin;
 
 --
--- TOC entry 339 (class 1259 OID 17142)
+-- TOC entry 341 (class 1259 OID 17142)
 -- Name: subscription_id_seq; Type: SEQUENCE; Schema: realtime; Owner: supabase_admin
 --
 
@@ -4198,7 +4243,7 @@ ALTER TABLE realtime.subscription ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 
 
 --
--- TOC entry 342 (class 1259 OID 17167)
+-- TOC entry 344 (class 1259 OID 17167)
 -- Name: buckets; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4220,8 +4265,8 @@ CREATE TABLE storage.buckets (
 ALTER TABLE storage.buckets OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 4762 (class 0 OID 0)
--- Dependencies: 342
+-- TOC entry 4799 (class 0 OID 0)
+-- Dependencies: 344
 -- Name: COLUMN buckets.owner; Type: COMMENT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4229,7 +4274,7 @@ COMMENT ON COLUMN storage.buckets.owner IS 'Field is deprecated, use owner_id in
 
 
 --
--- TOC entry 346 (class 1259 OID 17286)
+-- TOC entry 348 (class 1259 OID 17286)
 -- Name: buckets_analytics; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4247,7 +4292,7 @@ CREATE TABLE storage.buckets_analytics (
 ALTER TABLE storage.buckets_analytics OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 347 (class 1259 OID 17299)
+-- TOC entry 349 (class 1259 OID 17299)
 -- Name: buckets_vectors; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4262,7 +4307,7 @@ CREATE TABLE storage.buckets_vectors (
 ALTER TABLE storage.buckets_vectors OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 341 (class 1259 OID 17159)
+-- TOC entry 343 (class 1259 OID 17159)
 -- Name: migrations; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4277,7 +4322,7 @@ CREATE TABLE storage.migrations (
 ALTER TABLE storage.migrations OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 343 (class 1259 OID 17177)
+-- TOC entry 345 (class 1259 OID 17177)
 -- Name: objects; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4300,8 +4345,8 @@ CREATE TABLE storage.objects (
 ALTER TABLE storage.objects OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 4766 (class 0 OID 0)
--- Dependencies: 343
+-- TOC entry 4803 (class 0 OID 0)
+-- Dependencies: 345
 -- Name: COLUMN objects.owner; Type: COMMENT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4309,7 +4354,7 @@ COMMENT ON COLUMN storage.objects.owner IS 'Field is deprecated, use owner_id in
 
 
 --
--- TOC entry 344 (class 1259 OID 17226)
+-- TOC entry 346 (class 1259 OID 17226)
 -- Name: s3_multipart_uploads; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4329,7 +4374,7 @@ CREATE TABLE storage.s3_multipart_uploads (
 ALTER TABLE storage.s3_multipart_uploads OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 345 (class 1259 OID 17240)
+-- TOC entry 347 (class 1259 OID 17240)
 -- Name: s3_multipart_uploads_parts; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4350,7 +4395,7 @@ CREATE TABLE storage.s3_multipart_uploads_parts (
 ALTER TABLE storage.s3_multipart_uploads_parts OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 348 (class 1259 OID 17309)
+-- TOC entry 350 (class 1259 OID 17309)
 -- Name: vector_indexes; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -4370,7 +4415,7 @@ CREATE TABLE storage.vector_indexes (
 ALTER TABLE storage.vector_indexes OWNER TO supabase_storage_admin;
 
 --
--- TOC entry 3748 (class 2604 OID 16510)
+-- TOC entry 3758 (class 2604 OID 16510)
 -- Name: refresh_tokens id; Type: DEFAULT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -4378,32 +4423,32 @@ ALTER TABLE ONLY auth.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('auth.r
 
 
 --
--- TOC entry 4519 (class 0 OID 16525)
--- Dependencies: 316
+-- TOC entry 4552 (class 0 OID 16525)
+-- Dependencies: 318
 -- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4536 (class 0 OID 17078)
--- Dependencies: 336
+-- TOC entry 4569 (class 0 OID 17078)
+-- Dependencies: 338
 -- Data for Name: custom_oauth_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4530 (class 0 OID 16883)
--- Dependencies: 330
+-- TOC entry 4563 (class 0 OID 16883)
+-- Dependencies: 332
 -- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4521 (class 0 OID 16681)
--- Dependencies: 321
+-- TOC entry 4554 (class 0 OID 16681)
+-- Dependencies: 323
 -- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -4413,16 +4458,16 @@ INSERT INTO auth.identities VALUES ('ae8dfd8c-5182-41d7-9a4a-c02ebba36890', 'ae8
 
 
 --
--- TOC entry 4518 (class 0 OID 16518)
--- Dependencies: 315
+-- TOC entry 4551 (class 0 OID 16518)
+-- Dependencies: 317
 -- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4525 (class 0 OID 16770)
--- Dependencies: 325
+-- TOC entry 4558 (class 0 OID 16770)
+-- Dependencies: 327
 -- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -4436,64 +4481,64 @@ INSERT INTO auth.mfa_amr_claims VALUES ('6a2600de-650c-4ef8-a318-fe600e3c1ed1', 
 
 
 --
--- TOC entry 4524 (class 0 OID 16758)
--- Dependencies: 324
+-- TOC entry 4557 (class 0 OID 16758)
+-- Dependencies: 326
 -- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4523 (class 0 OID 16745)
--- Dependencies: 323
+-- TOC entry 4556 (class 0 OID 16745)
+-- Dependencies: 325
 -- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4533 (class 0 OID 16995)
--- Dependencies: 333
+-- TOC entry 4566 (class 0 OID 16995)
+-- Dependencies: 335
 -- Data for Name: oauth_authorizations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4535 (class 0 OID 17068)
--- Dependencies: 335
+-- TOC entry 4568 (class 0 OID 17068)
+-- Dependencies: 337
 -- Data for Name: oauth_client_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4532 (class 0 OID 16965)
--- Dependencies: 332
+-- TOC entry 4565 (class 0 OID 16965)
+-- Dependencies: 334
 -- Data for Name: oauth_clients; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4534 (class 0 OID 17028)
--- Dependencies: 334
+-- TOC entry 4567 (class 0 OID 17028)
+-- Dependencies: 336
 -- Data for Name: oauth_consents; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4531 (class 0 OID 16933)
--- Dependencies: 331
+-- TOC entry 4564 (class 0 OID 16933)
+-- Dependencies: 333
 -- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4517 (class 0 OID 16507)
--- Dependencies: 314
+-- TOC entry 4550 (class 0 OID 16507)
+-- Dependencies: 316
 -- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -4518,7 +4563,6 @@ INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 56, 'vkzdmdqmp76q', '2374d4c0-d9a8-455f-925d-f42f42f3522d', true, '2026-03-17 04:06:38.345845+00', '2026-03-17 21:58:35.142591+00', 'in4pqcgv5ei7', '23bcaafe-f8ed-4c0f-b1d1-d661afde043b');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 57, 'mynsxdib4bjf', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-17 04:12:34.428443+00', '2026-03-17 21:58:54.439372+00', 'inx7yqnn65yt', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 59, 'ycf73lodwds4', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-17 10:33:18.168156+00', '2026-03-17 22:45:02.178318+00', 'a3w4ezhd3bcu', 'c39787a4-367e-423f-91d2-f44e33a7b89c');
-INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 64, 'dqrzpoepdjsw', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', false, '2026-03-17 22:45:02.207114+00', '2026-03-17 22:45:02.207114+00', 'ycf73lodwds4', 'c39787a4-367e-423f-91d2-f44e33a7b89c');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 63, '2uxmtyy4nffk', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-17 21:58:54.439763+00', '2026-03-18 03:35:32.501466+00', 'mynsxdib4bjf', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 62, '3exatqgghsol', '2374d4c0-d9a8-455f-925d-f42f42f3522d', true, '2026-03-17 21:58:35.153632+00', '2026-03-18 03:36:40.614887+00', 'vkzdmdqmp76q', '23bcaafe-f8ed-4c0f-b1d1-d661afde043b');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 30, 'wlw7ht23cq7l', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-15 20:54:23.411393+00', '2026-03-15 22:43:16.725198+00', NULL, '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
@@ -4540,28 +4584,33 @@ INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 76, '4y3rhmi5rowm', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 00:02:49.370835+00', '2026-03-20 01:01:56.740153+00', 'j3ze6ia6hyn6', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 77, 'yijl5ipskkyb', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 01:01:56.765047+00', '2026-03-20 02:24:03.800903+00', '4y3rhmi5rowm', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
 INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 78, 'pkbpg7lrzmz4', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 02:24:03.821088+00', '2026-03-20 03:28:38.532146+00', 'yijl5ipskkyb', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
-INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 79, 'g3sgh5ycbmbh', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', false, '2026-03-20 03:28:38.550507+00', '2026-03-20 03:28:38.550507+00', 'pkbpg7lrzmz4', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 79, 'g3sgh5ycbmbh', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 03:28:38.550507+00', '2026-03-20 16:36:03.522964+00', 'pkbpg7lrzmz4', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 80, '5xdvolifq752', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 16:36:03.549616+00', '2026-03-20 18:56:19.035577+00', 'g3sgh5ycbmbh', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 64, 'dqrzpoepdjsw', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-17 22:45:02.207114+00', '2026-03-20 21:17:01.319308+00', 'ycf73lodwds4', 'c39787a4-367e-423f-91d2-f44e33a7b89c');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 82, 'vmk6vwxavfdx', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', false, '2026-03-20 21:17:01.342973+00', '2026-03-20 21:17:01.342973+00', 'dqrzpoepdjsw', 'c39787a4-367e-423f-91d2-f44e33a7b89c');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 81, 'ejhsttywwihj', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', true, '2026-03-20 18:56:19.064549+00', '2026-03-21 00:14:33.841295+00', '5xdvolifq752', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
+INSERT INTO auth.refresh_tokens VALUES ('00000000-0000-0000-0000-000000000000', 83, 'v45kpb4hwrj3', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', false, '2026-03-21 00:14:33.84707+00', '2026-03-21 00:14:33.84707+00', 'ejhsttywwihj', '2d23dd81-e3fc-45e3-9204-b8a7df5ef957');
 
 
 --
--- TOC entry 4528 (class 0 OID 16812)
--- Dependencies: 328
+-- TOC entry 4561 (class 0 OID 16812)
+-- Dependencies: 330
 -- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4529 (class 0 OID 16830)
--- Dependencies: 329
+-- TOC entry 4562 (class 0 OID 16830)
+-- Dependencies: 331
 -- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4520 (class 0 OID 16533)
--- Dependencies: 317
+-- TOC entry 4553 (class 0 OID 16533)
+-- Dependencies: 319
 -- Data for Name: schema_migrations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -4640,53 +4689,70 @@ INSERT INTO auth.schema_migrations VALUES ('20251201000000');
 INSERT INTO auth.schema_migrations VALUES ('20260115000000');
 INSERT INTO auth.schema_migrations VALUES ('20260121000000');
 INSERT INTO auth.schema_migrations VALUES ('20260219120000');
+INSERT INTO auth.schema_migrations VALUES ('20260302000000');
 
 
 --
--- TOC entry 4522 (class 0 OID 16711)
--- Dependencies: 322
+-- TOC entry 4555 (class 0 OID 16711)
+-- Dependencies: 324
 -- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
-INSERT INTO auth.sessions VALUES ('c39787a4-367e-423f-91d2-f44e33a7b89c', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-15 20:59:03.99907+00', '2026-03-17 22:45:02.234441+00', NULL, 'aal1', NULL, '2026-03-17 22:45:02.234319', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36', '201.22.217.10', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO auth.sessions VALUES ('23bcaafe-f8ed-4c0f-b1d1-d661afde043b', '2374d4c0-d9a8-455f-925d-f42f42f3522d', '2026-03-16 02:53:23.461588+00', '2026-03-18 03:36:40.621703+00', NULL, 'aal1', NULL, '2026-03-18 03:36:40.621599', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '201.22.217.10', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO auth.sessions VALUES ('c59870a3-e20f-4a00-804b-2add6ae67ef8', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-16 14:21:34.611833+00', '2026-03-18 16:40:54.014564+00', NULL, 'aal1', NULL, '2026-03-18 16:40:54.014458', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '186.225.138.87', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO auth.sessions VALUES ('6a2600de-650c-4ef8-a318-fe600e3c1ed1', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '2026-03-16 23:49:17.589348+00', '2026-03-18 21:39:26.015408+00', NULL, 'aal1', NULL, '2026-03-18 21:39:26.015259', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36', '187.181.208.92', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO auth.sessions VALUES ('943a8995-1ad4-4c7f-8117-cf869d72dedc', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '2026-03-16 20:10:03.564061+00', '2026-03-16 20:10:03.564061+00', NULL, 'aal1', NULL, NULL, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '186.225.138.87', NULL, NULL, NULL, NULL, NULL);
-INSERT INTO auth.sessions VALUES ('2d23dd81-e3fc-45e3-9204-b8a7df5ef957', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-15 20:54:23.391956+00', '2026-03-20 03:28:38.574752+00', NULL, 'aal1', NULL, '2026-03-20 03:28:38.574639', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '177.146.157.185', NULL, NULL, NULL, NULL, NULL);
+INSERT INTO auth.sessions VALUES ('c39787a4-367e-423f-91d2-f44e33a7b89c', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-15 20:59:03.99907+00', '2026-03-20 21:17:01.381906+00', NULL, 'aal1', NULL, '2026-03-20 21:17:01.381782', 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36', '177.146.157.185', NULL, NULL, NULL, NULL, NULL);
+INSERT INTO auth.sessions VALUES ('2d23dd81-e3fc-45e3-9204-b8a7df5ef957', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-15 20:54:23.391956+00', '2026-03-21 00:14:33.876288+00', NULL, 'aal1', NULL, '2026-03-21 00:14:33.876134', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '177.146.157.185', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO auth.sessions VALUES ('375aa9ec-14cc-4927-a768-8aabcad473a9', '2374d4c0-d9a8-455f-925d-f42f42f3522d', '2026-03-16 14:31:53.196959+00', '2026-03-17 10:55:13.876345+00', NULL, 'aal1', NULL, '2026-03-17 10:55:13.876239', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '186.225.138.87', NULL, NULL, NULL, NULL, NULL);
 
 
 --
--- TOC entry 4527 (class 0 OID 16797)
--- Dependencies: 327
+-- TOC entry 4560 (class 0 OID 16797)
+-- Dependencies: 329
 -- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4526 (class 0 OID 16788)
--- Dependencies: 326
+-- TOC entry 4559 (class 0 OID 16788)
+-- Dependencies: 328
 -- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 
 
 --
--- TOC entry 4515 (class 0 OID 16495)
--- Dependencies: 312
+-- TOC entry 4548 (class 0 OID 16495)
+-- Dependencies: 314
 -- Data for Name: users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
 --
 
 INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000000', '2374d4c0-d9a8-455f-925d-f42f42f3522d', 'authenticated', 'authenticated', 'gmgarcia@educacao.riopreto.sp.gov.br', '$2a$10$utMzV3mF5nCJwUmbLzz4j.FtKhzsK006mmYSKhZ3rL1RucQYeR1hW', '2026-03-15 18:39:06.954771+00', NULL, '', '2026-03-15 18:38:52.02234+00', '', NULL, '', '', NULL, '2026-03-16 14:31:53.196848+00', '{"provider": "email", "providers": ["email"]}', '{"sub": "2374d4c0-d9a8-455f-925d-f42f42f3522d", "email": "gmgarcia@educacao.riopreto.sp.gov.br", "full_name": "Giuliano Moretti", "email_verified": true, "phone_verified": false}', NULL, '2026-03-15 18:38:51.985624+00', '2026-03-18 03:36:40.617731+00', NULL, NULL, '', '', NULL, DEFAULT, '', 0, NULL, '', NULL, false, NULL, false);
+INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000000', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'authenticated', 'authenticated', 'giulianomsg@gmail.com', '$2a$10$7eDvyxe8qiBx6Ejse0mkfe0jNbUV0IzQfs0Re07k5WEBUkiVN7kA.', '2026-03-11 03:25:19.886791+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-03-16 14:21:34.61172+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-03-11 03:11:05.174437+00', '2026-03-21 00:14:33.850635+00', NULL, NULL, '', '', NULL, DEFAULT, '', 0, NULL, '', NULL, false, NULL, false);
 INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000000', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', 'authenticated', 'authenticated', 'amandacsagres@gmail.com', '$2a$10$GLlS9ei/99QSbTqAQloh6uEQMTIGAC/OlOxanAZ1joR71jDqVjG.W', '2026-03-16 20:12:26.749522+00', NULL, '', '2026-03-16 20:09:55.959872+00', '', NULL, '', '', NULL, '2026-03-16 23:49:17.589237+00', '{"provider": "email", "providers": ["email"]}', '{"sub": "ae8dfd8c-5182-41d7-9a4a-c02ebba36890", "email": "amandacsagres@gmail.com", "full_name": "Amanda Cristine Sagres", "email_verified": true, "phone_verified": false}', NULL, '2026-03-16 20:09:55.917662+00', '2026-03-18 21:39:25.995612+00', NULL, NULL, '', '', NULL, DEFAULT, '', 0, NULL, '', NULL, false, NULL, false);
-INSERT INTO auth.users VALUES ('00000000-0000-0000-0000-000000000000', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'authenticated', 'authenticated', 'giulianomsg@gmail.com', '$2a$10$7eDvyxe8qiBx6Ejse0mkfe0jNbUV0IzQfs0Re07k5WEBUkiVN7kA.', '2026-03-11 03:25:19.886791+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-03-16 14:21:34.61172+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-03-11 03:11:05.174437+00', '2026-03-20 03:28:38.561785+00', NULL, NULL, '', '', NULL, DEFAULT, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
--- TOC entry 4551 (class 0 OID 17545)
--- Dependencies: 355
+-- TOC entry 4607 (class 0 OID 27144)
+-- Dependencies: 381
+-- Data for Name: webauthn_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- TOC entry 4606 (class 0 OID 27121)
+-- Dependencies: 380
+-- Data for Name: webauthn_credentials; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+
+
+--
+-- TOC entry 4584 (class 0 OID 17545)
+-- Dependencies: 357
 -- Data for Name: banners; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4697,8 +4763,8 @@ INSERT INTO public.banners VALUES ('e92a35ec-664d-4eac-b1ce-7f1cd855b965', 'Aspi
 
 
 --
--- TOC entry 4554 (class 0 OID 22129)
--- Dependencies: 359
+-- TOC entry 4587 (class 0 OID 22129)
+-- Dependencies: 361
 -- Data for Name: brands; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4714,44 +4780,47 @@ INSERT INTO public.brands VALUES ('fc7eff8d-8e39-4384-8816-16da373293e5', 'Macca
 INSERT INTO public.brands VALUES ('cdff3214-2d21-4fbe-afc3-cade5080b0f0', 'Dark Lab', '2026-03-19 17:17:27.360416+00');
 INSERT INTO public.brands VALUES ('73fc119a-b8cb-4e2a-b3e2-c42abc9ce67c', 'Samsung', '2026-03-19 18:00:47.668898+00');
 INSERT INTO public.brands VALUES ('96368808-68b7-4952-acce-afbe609ee403', 'HP', '2026-03-19 18:11:31.197509+00');
+INSERT INTO public.brands VALUES ('6bb49f7e-f5f3-4acd-9177-33a52b16ef48', 'Amvox', '2026-03-20 03:58:39.184458+00');
 
 
 --
--- TOC entry 4557 (class 0 OID 22173)
--- Dependencies: 362
+-- TOC entry 4590 (class 0 OID 22173)
+-- Dependencies: 364
 -- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 INSERT INTO public.categories VALUES ('3ef27b40-a2db-4664-abe6-7a1cccd8e9a3', 'Eletrônicos', 'eletronicos', NULL, '2026-03-15 17:25:42.861589+00');
-INSERT INTO public.categories VALUES ('2119fcee-35bc-4b9f-a92c-eb88608b6069', 'Wearables', 'wearables', NULL, '2026-03-15 17:25:42.861589+00');
 INSERT INTO public.categories VALUES ('8457e2f0-3ce7-4624-afcd-6a918589d12c', 'Áudio', 'audio', NULL, '2026-03-15 17:25:42.861589+00');
-INSERT INTO public.categories VALUES ('a97abea6-da0a-406f-88f9-c3f506cfe0a0', 'Periféricos', 'perifericos', NULL, '2026-03-15 17:25:42.861589+00');
 INSERT INTO public.categories VALUES ('863befde-b087-4dee-bc39-36e519b18a48', 'Acessórios', 'acessorios', NULL, '2026-03-15 17:25:42.861589+00');
 INSERT INTO public.categories VALUES ('4892e78b-d2cc-43b8-8a17-605b03f1d4a3', 'Casa & Decoração', 'casa-decoracao', NULL, '2026-03-15 17:25:42.861589+00');
 INSERT INTO public.categories VALUES ('14d349aa-ea80-4c42-b91a-720c2ef3497c', 'Esportes', 'esportes', NULL, '2026-03-15 17:25:42.861589+00');
 INSERT INTO public.categories VALUES ('af115fa7-66eb-4445-a35b-232023d163f6', 'Vitaminas e Suplementos', 'vitaminas-e-suplementos', 'https://cdn3d.iconscout.com/3d/premium/thumb/pilulas-energeticas-3d-icon-png-download-6635152.png', '2026-03-19 17:04:28.907748+00');
 INSERT INTO public.categories VALUES ('b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', 'Computadores e Informática', 'informatica', 'https://cdn3d.iconscout.com/3d/premium/thumb/caderno-3d-icon-png-download-8915440.png', '2026-03-15 17:51:05.9855+00');
+INSERT INTO public.categories VALUES ('1cf6748a-3b9d-4d59-8946-dedaad54eea3', 'Eletrodomésticos', 'eletrodomesticos', NULL, '2026-03-20 03:57:48.873691+00');
+INSERT INTO public.categories VALUES ('49a45f32-5dad-4d05-97be-ed6dafa73c97', 'Vestuário', 'vestuario', NULL, '2026-03-20 16:48:29.850042+00');
+INSERT INTO public.categories VALUES ('eaa3a6e8-e85e-4020-a75c-90b1a75287ce', 'Brinquedos', 'brinquedos', NULL, '2026-03-20 16:48:42.765899+00');
+INSERT INTO public.categories VALUES ('95a00be7-7f36-4590-a2d9-f78cd0a12689', 'Saúde e Beleza', 'saude-e-beleza', NULL, '2026-03-20 16:49:17.738038+00');
 
 
 --
--- TOC entry 4570 (class 0 OID 22458)
--- Dependencies: 375
+-- TOC entry 4603 (class 0 OID 22458)
+-- Dependencies: 377
 -- Data for Name: coupon_votes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4569 (class 0 OID 22441)
--- Dependencies: 374
+-- TOC entry 4602 (class 0 OID 22441)
+-- Dependencies: 376
 -- Data for Name: coupons; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4568 (class 0 OID 22426)
--- Dependencies: 373
+-- TOC entry 4601 (class 0 OID 22426)
+-- Dependencies: 375
 -- Data for Name: institutional_pages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4759,8 +4828,8 @@ INSERT INTO public.institutional_pages VALUES ('67a57306-1b29-4d75-9c2c-2baeb5da
 
 
 --
--- TOC entry 4555 (class 0 OID 22142)
--- Dependencies: 360
+-- TOC entry 4588 (class 0 OID 22142)
+-- Dependencies: 362
 -- Data for Name: models; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4776,23 +4845,23 @@ INSERT INTO public.models VALUES ('2fcaa27c-a98f-400c-bb31-46c3234b9ea2', 'fc7ef
 INSERT INTO public.models VALUES ('de5d95db-6213-402f-84ef-2c88736e1ab1', 'cdff3214-2d21-4fbe-afc3-cade5080b0f0', 'Creatina', '2026-03-19 17:17:55.674954+00');
 INSERT INTO public.models VALUES ('99fd7455-3302-455e-b01f-2f237c98cad7', '73fc119a-b8cb-4e2a-b3e2-c42abc9ce67c', 'Galaxy Book4', '2026-03-19 18:01:23.442089+00');
 INSERT INTO public.models VALUES ('c011427a-d183-429f-bc8b-1156021c9556', '96368808-68b7-4952-acce-afbe609ee403', '107W', '2026-03-19 18:11:46.053421+00');
+INSERT INTO public.models VALUES ('9955e247-1a27-4d7e-bf13-f7d0fe4cf6d3', '6bb49f7e-f5f3-4acd-9177-33a52b16ef48', 'ACT 407', '2026-03-20 03:59:09.564615+00');
 
 
 --
--- TOC entry 4566 (class 0 OID 22381)
--- Dependencies: 371
+-- TOC entry 4599 (class 0 OID 22381)
+-- Dependencies: 373
 -- Data for Name: newsletter_products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 INSERT INTO public.newsletter_products VALUES ('739516ec-92e4-498f-aa3d-d65e1ca573d5', '95624526-4b7c-4185-93df-9a3426c494ca');
 INSERT INTO public.newsletter_products VALUES ('739516ec-92e4-498f-aa3d-d65e1ca573d5', 'f891a701-12b9-4a70-8677-5c2bee61e4f2');
 INSERT INTO public.newsletter_products VALUES ('739516ec-92e4-498f-aa3d-d65e1ca573d5', 'a91825fe-8053-49ee-9b6c-c07f2d9ea2c7');
-INSERT INTO public.newsletter_products VALUES ('739516ec-92e4-498f-aa3d-d65e1ca573d5', 'c3baa34b-8073-4c2b-a0b5-620537163aa7');
 
 
 --
--- TOC entry 4565 (class 0 OID 22370)
--- Dependencies: 370
+-- TOC entry 4598 (class 0 OID 22370)
+-- Dependencies: 372
 -- Data for Name: newsletters; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4800,8 +4869,8 @@ INSERT INTO public.newsletters VALUES ('739516ec-92e4-498f-aa3d-d65e1ca573d5', '
 
 
 --
--- TOC entry 4556 (class 0 OID 22160)
--- Dependencies: 361
+-- TOC entry 4589 (class 0 OID 22160)
+-- Dependencies: 363
 -- Data for Name: platforms; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4810,16 +4879,12 @@ INSERT INTO public.platforms VALUES ('5a54bf84-4707-4f0f-a23c-689469fdbbb7', 'Sh
 
 
 --
--- TOC entry 4567 (class 0 OID 22408)
--- Dependencies: 372
+-- TOC entry 4600 (class 0 OID 22408)
+-- Dependencies: 374
 -- Data for Name: price_history; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.price_history VALUES ('ffd2dd6a-47fb-4303-bd7b-b01c71df2cc7', '867a5ff6-2980-4961-a3d9-58b8a5a55425', 64.99, '2026-03-16 03:15:35.299983+00');
-INSERT INTO public.price_history VALUES ('8a406f0a-8e2e-40cc-8e2b-8ac8d42d0078', '867a5ff6-2980-4961-a3d9-58b8a5a55425', 66.99, '2026-03-16 03:16:43.685213+00');
 INSERT INTO public.price_history VALUES ('a0dd2cc7-98f5-4281-9370-d02c7ba63e57', '7003fe61-851a-48ac-841c-105e281b3240', 189.05, '2026-03-16 19:43:08.153009+00');
-INSERT INTO public.price_history VALUES ('69fe71ed-c6fc-45c4-a0bb-eee60b42ac66', '1cd2d846-0a09-4291-9771-3ee54397b04d', 188.5, '2026-03-16 20:26:08.800432+00');
-INSERT INTO public.price_history VALUES ('4e5c4f0d-2794-442b-8ccd-3e11b948b99f', 'c3baa34b-8073-4c2b-a0b5-620537163aa7', 52.99, '2026-03-16 20:34:21.470143+00');
 INSERT INTO public.price_history VALUES ('3baefc24-369e-481b-a923-739652511fbb', 'f891a701-12b9-4a70-8677-5c2bee61e4f2', 71.91, '2026-03-17 00:07:00.220193+00');
 INSERT INTO public.price_history VALUES ('8fca0c1c-3740-47dd-ad2c-5c64b85ae4f1', 'a91825fe-8053-49ee-9b6c-c07f2d9ea2c7', 1595, '2026-03-17 00:07:55.025871+00');
 INSERT INTO public.price_history VALUES ('af4a0495-5640-4d62-9e0e-177cebd15d29', '95624526-4b7c-4185-93df-9a3426c494ca', 68.2, '2026-03-17 00:39:26.991813+00');
@@ -4827,27 +4892,24 @@ INSERT INTO public.price_history VALUES ('55c47aa6-03dd-4de6-b26c-e35bd888b832',
 INSERT INTO public.price_history VALUES ('698f2a5f-ee48-45a5-a758-49b8d6ab3a5c', 'f891a701-12b9-4a70-8677-5c2bee61e4f2', 59.7, '2026-03-18 21:42:52.232994+00');
 INSERT INTO public.price_history VALUES ('9df1b90a-4748-4d05-8d0f-fe57ec29e2ca', '95624526-4b7c-4185-93df-9a3426c494ca', 67.2, '2026-03-18 21:43:15.627415+00');
 INSERT INTO public.price_history VALUES ('edbc9323-5450-44b0-9fd1-48291a4485bc', 'a91825fe-8053-49ee-9b6c-c07f2d9ea2c7', 1899, '2026-03-18 21:44:50.328983+00');
-INSERT INTO public.price_history VALUES ('d090e815-6f3c-4151-95d3-652b1dd371ec', 'c3baa34b-8073-4c2b-a0b5-620537163aa7', 50.49, '2026-03-18 21:45:49.821548+00');
-INSERT INTO public.price_history VALUES ('40994124-bddd-4127-b8d9-a3487fe34d4d', '1cd2d846-0a09-4291-9771-3ee54397b04d', 190, '2026-03-18 21:47:02.109601+00');
 INSERT INTO public.price_history VALUES ('4881962c-317f-494a-a8c9-2cc31735ef43', '23d3425b-8c78-4c9f-8b76-11b145e53777', 64.97, '2026-03-18 21:57:55.186153+00');
 INSERT INTO public.price_history VALUES ('b28a92e4-eb9b-4a05-880c-af16a2a07554', 'c4ce3766-d0fa-4e7b-b444-3df28b7fd502', 419.91, '2026-03-19 16:58:28.084883+00');
 INSERT INTO public.price_history VALUES ('c87d51dd-0548-4abd-b7aa-34b31324ece9', 'd8ae643d-6100-4283-8059-93a6df1164e2', 75.9, '2026-03-19 17:19:19.250926+00');
 INSERT INTO public.price_history VALUES ('eecdf7a1-84ec-4d8a-9d70-ee6c20ff9788', '13cb9b81-e991-4cf5-a2c2-fccdd1ee770c', 3836.28, '2026-03-19 18:05:33.35562+00');
 INSERT INTO public.price_history VALUES ('90243e31-3d45-4f09-b187-b62b9d505cb7', '9e601a93-e57e-47a4-95be-8589694dd340', 854.9, '2026-03-19 18:12:35.114+00');
+INSERT INTO public.price_history VALUES ('b55c40c0-d802-40e4-b28d-405c86847804', '9259e1e8-2450-46d5-910c-c83cda5f35fa', 2379, '2026-03-20 04:24:30.448999+00');
+INSERT INTO public.price_history VALUES ('c80ae2b1-8761-4719-97c4-540abe81a897', '37af9dc6-70ac-4dec-a362-8fcbec407f52', 899, '2026-03-20 16:57:15.936966+00');
+INSERT INTO public.price_history VALUES ('7b169b89-faaf-4c57-9a48-0961c05082cf', '3a9ef6c2-2f20-4d14-8044-cdf306574f4d', 50.49, '2026-03-20 16:58:43.226628+00');
+INSERT INTO public.price_history VALUES ('f06deaa6-c25f-4c38-813b-8e3214b27755', 'f1586a36-4e72-445e-99fb-d93fa04e5bf0', 199.99, '2026-03-20 17:05:26.698784+00');
+INSERT INTO public.price_history VALUES ('2a8913fb-4347-4e0f-a09a-582de9ecccb2', '01e2a87d-ad1c-4e2d-9e4a-62f568880b1f', 66.99, '2026-03-21 00:19:11.374449+00');
 
 
 --
--- TOC entry 4563 (class 0 OID 22328)
--- Dependencies: 368
+-- TOC entry 4596 (class 0 OID 22328)
+-- Dependencies: 370
 -- Data for Name: product_clicks; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.product_clicks VALUES ('04c6cfad-04e9-4da0-bae3-7c4df37c7c57', '867a5ff6-2980-4961-a3d9-58b8a5a55425', NULL, '00c44e90-f256-4d3a-8f1c-b5c9802d9190', '2026-03-15 20:53:58.672294+00');
-INSERT INTO public.product_clicks VALUES ('a574c860-0e82-4772-901a-7da4322c7c06', '867a5ff6-2980-4961-a3d9-58b8a5a55425', NULL, '825ef220-9bbb-4ff6-a026-83f99bfea3e9', '2026-03-15 20:55:57.840187+00');
-INSERT INTO public.product_clicks VALUES ('823d32f3-c591-407b-b880-3d6f0fd4e341', '867a5ff6-2980-4961-a3d9-58b8a5a55425', NULL, 'f8c25136-661b-432c-b1a4-ed3c33ae9473', '2026-03-16 02:16:40.119158+00');
-INSERT INTO public.product_clicks VALUES ('7b057910-2878-49b7-b09d-786ea617fbc8', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2374d4c0-d9a8-455f-925d-f42f42f3522d', NULL, '2026-03-16 03:09:03.984769+00');
-INSERT INTO public.product_clicks VALUES ('1392e49c-ae31-43d0-a2d6-6d013d2f6322', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2374d4c0-d9a8-455f-925d-f42f42f3522d', NULL, '2026-03-16 03:15:59.047281+00');
-INSERT INTO public.product_clicks VALUES ('046a425f-577a-4df2-a2e9-8905325b1223', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2374d4c0-d9a8-455f-925d-f42f42f3522d', NULL, '2026-03-16 14:34:54.656652+00');
 INSERT INTO public.product_clicks VALUES ('93361d1c-4759-4873-af7d-20b334e31f09', '12495a26-4e1b-41d2-bdcf-f97c6864c8d4', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', NULL, '2026-03-16 23:55:14.739342+00');
 INSERT INTO public.product_clicks VALUES ('c9b1c5d2-4bdb-47e6-b756-8fcf24e181bd', 'a91825fe-8053-49ee-9b6c-c07f2d9ea2c7', NULL, '42824b09-637c-4216-adce-50cb6b4b7e1c', '2026-03-18 01:03:38.785138+00');
 INSERT INTO public.product_clicks VALUES ('d66a54b5-6c47-45e0-8873-300f919915f8', '95624526-4b7c-4185-93df-9a3426c494ca', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', NULL, '2026-03-18 21:41:15.000468+00');
@@ -4859,56 +4921,54 @@ INSERT INTO public.product_clicks VALUES ('67682bbe-49cd-4b5b-961a-9ecfc00a617a'
 
 
 --
--- TOC entry 4562 (class 0 OID 22254)
--- Dependencies: 367
+-- TOC entry 4595 (class 0 OID 22254)
+-- Dependencies: 369
 -- Data for Name: product_likes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.product_likes VALUES ('52367eb4-e8b6-4dfc-9ad9-8875ee38b1f8', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2026-03-15 18:35:53.769577+00');
-INSERT INTO public.product_likes VALUES ('a33c0c6d-08d0-47ef-9638-545b394eb4b2', '2374d4c0-d9a8-455f-925d-f42f42f3522d', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2026-03-15 19:55:12.008996+00');
 INSERT INTO public.product_likes VALUES ('16f8ad3d-863d-4f95-a606-509f6b24e9aa', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'a6204a5c-b58d-4204-9cdd-e8d99cdb0e8e', '2026-03-16 14:21:46.093147+00');
 
 
 --
--- TOC entry 4564 (class 0 OID 22349)
--- Dependencies: 369
+-- TOC entry 4597 (class 0 OID 22349)
+-- Dependencies: 371
 -- Data for Name: product_trust_votes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.product_trust_votes VALUES ('905e1ff1-cbbe-4c59-8361-274463123214', '867a5ff6-2980-4961-a3d9-58b8a5a55425', NULL, '00c44e90-f256-4d3a-8f1c-b5c9802d9190', '2026-03-15 20:54:12.53862+00', true);
-INSERT INTO public.product_trust_votes VALUES ('bb215c51-dc50-4a0e-88ef-6af55ac858c6', '867a5ff6-2980-4961-a3d9-58b8a5a55425', '2374d4c0-d9a8-455f-925d-f42f42f3522d', NULL, '2026-03-16 03:08:41.32784+00', true);
 
 
 --
--- TOC entry 4550 (class 0 OID 17530)
--- Dependencies: 354
+-- TOC entry 4583 (class 0 OID 17530)
+-- Dependencies: 356
 -- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.products VALUES ('1cd2d846-0a09-4291-9771-3ee54397b04d', 'Jogo De Panelas 10 Peças Antiaderente Conjunto Caçarola Frigideira Fervedor Cor Coffee Cappuccino Kit Talheres', '<p>ITENS INCLUSOS:</p><p><br></p><p>Conjunto completo de panelas Imperial® em alumínio com revestimento antiaderente em teflon, tampas de vidro. O&nbsp; Conjunto Imperial Cappuccino foi desenvolvido para oferecer eficiência e sofisticação no cotidiano culinário.</p><p><br></p><p>PRODUTO</p><p>100% ORIGINAL, COM SELO DE QUALIDADE INMETRO.CONTEÚDO DO CONJUNTO</p><p>(A numeração refere-se ao diâmetro da boca das panelas)</p><p>Panela N°16 - diâmetro 16 cm, altura 7 cm, capacidade 1,4 L.</p><p>Panela N° 18 - diâmetro 18 cm, altura 7,5 cm,capacidade 2,0 L.</p><p>Caçarola Nº 18 - diâmetro 18 cm, altura 7,0 cm, capacidade 2,0L.</p><p>Caçarola Nº 20 - diâmetro 20 cm, altura 9,0 cm, capacidade 2,7L.</p><p>Leiteira Nº 14 - diâmetro 14,0 cm, altura 10,5 cm, capacidade 1,6L</p><p>Frigideira Francesa Nº 18 - diâmetro 18,0 cm, altura 3,5 cm, capacidade 600ml</p><p>Frigideira Francesa Nº 20 - diâmetro 20,0 cm, altura 3,0 cm,&nbsp; capacidade 700ml</p><p>3 Talheres de Nylon</p><p><br></p><p>CARACTERÍSTICAS E BENEFÍCIOS</p><p>Mais saúde no dia a dia</p><p>Livre de PTFE e BPA, garantindo preparos mais seguros para você e sua família.</p><p>Alumínio de alta qualidade</p><p>Aquecimento rápido e distribuição uniforme do calor, evitando que os alimentos queimem.</p><p>Cozimento uniforme e eficiente</p><p>Resultados consistentes e economia de tempo na cozinha.</p><p>Fácil de limpar</p><p>Superfície que não gruda e não mancha, trazendo mais praticidade no dia a dia.</p><p>Ideal para uso diário</p><p>Versátil, resistente e funcional para todas as receitas do cotidiano.</p><p><br></p><p>O Conjunto de Panelas Imperial® Teflon Antiaderente foi desenvolvido para oferecer qualidade, durabilidade e facilidade no preparo das refeições.</p><p>As tampas de vidro temperado com saída de vapor permitemacompanhar o cozimento sem perda de calor, garantindo maior controle e eficiência no preparo dos alimentos.</p><p><br></p><p>O conjunto inclui ainda utensílios em nylon, que não danificam o revestimento das panelas.</p><p><br></p><p>Todos os itens passam por testes rigorosos de qualidade e possuem certificação INMETRO, assegurando segurança, desempenho e confiabilidade para o uso diário.</p>', 190, 199.99, 5, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773692506938-mv4jdv59idb.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8316413862349953.png,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5641408700663466.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.078449103311789.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9173336741140385.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7377313125631279.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.019753669837962673.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.19732941794967074.webp}', 'Envio Full', 'Shopee', 'https://s.shopee.com.br/6fcbjr5C0C', 0, 0, 0, true, NULL, '2026-03-16 20:26:08.800432+00', '2026-03-18 21:47:02.109601+00', 'a38d407c-b47d-40d8-9bf8-5852b8dcd927', '0106f1f2-780c-4ba4-bc4e-b7d50da4c312', '5a54bf84-4707-4f0f-a23c-689469fdbbb7', 'https://down-ws-br.vod.susercontent.com/api/v4/11110105/mms/br-11110105-6v65c-mksis3mgdl3559.16004351773459045.mp4', 5.0, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('a91825fe-8053-49ee-9b6c-c07f2d9ea2c7', 'Ar Condicionado Split Hi Wall Inverter Elgin Eco Dream 9000 BTU/h Frio 45HIFI09C2WA – 220 Volts', '<p>Ar-Condicionado Split HW Elgin Eco Dream Inverter Wi-Fi</p><p><br></p><p>A linha Split High Wall&nbsp;<strong>Dream Inverter WIFI</strong>&nbsp;atende nas capacidades de 9.000 a 36.000 Btu/h, nas versões Frio e Quente-Frio. O Eco Dream Inverter da Elgin conta com uma altíssima eficiência energética com classe A trazendo mais economia, de acordo com a nova portaria. Elgin preocupada com o meio ambiente traz para o mercado a linha Inverter Eco Dream Inverter com&nbsp;<strong>gás ecológico R32</strong>. Este fluído refrigerante não agride a camada de ozônio e tem baixo potencial de aquecimento global (G.W.P), sendo este potencial de aquecimento global 1/3 do que seu antecessor R410A.</p><p><br></p><p>A unidade interna possui um display invisível indicando a temperatura, que se acende ao ligar a unidade, e se você preferir, aperte a tecla "visor” para desligar o display para maior conforto durante a noite.</p><p><br></p><p><span style="background-color: rgb(255, 255, 255); color: rgb(51, 51, 51);">Conectividade Wi-Fi</span></p><p><br></p><p>Com o aplicativo&nbsp;<strong>Elgin Smart</strong>&nbsp;você pode controlar seu Eco Dream Inverter via Wi-Fi. Ajuste a temperatura, ligue ou desligue o seu aparelho de onde estiver, até mesmo por comando de voz com a&nbsp;<strong>Alexa</strong>&nbsp;e o&nbsp;<strong>Google Assistente</strong>.</p><p><br></p><p><strong>- Instalação não inclusa!</strong></p><p><span style="background-color: rgb(255, 255, 255); color: rgb(51, 51, 51);">A Marca</span></p><p><br></p><p>A Elgin, em seus mais de 66 anos de história tornou-se uma marca conhecida por sua qualidade, credibilidade e inovações constantes, sempre com o objetivo de oferecer os melhores produtos aos seus consumidores. Hoje conta com uma enorme variedade de produtos para uso comercial e residencial nos segmentos de Ar-Condicionado, Automação Comercial, Energia Solar entre outros...Sempre com o foco no bem-estar das pessoas e na preservação ambiental, a Elgin procura agregar em suas linhas de produtos, atributos sustentáveis que colaboram com as metas de redução de emissão de poluentes e baixos níveis de consumo de energia.</p><p><em>1) De acordo com a nova portaria de classificação energética do Inmetro nº269, de 22 de junho de 2021 (baseada na ISO 16.358)</em></p>', 1899, 2189, 13, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773704979886-lxnvgggtgc.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7851943107190276.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.45270689894587335.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7325696870480343.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6152228301389535.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/3NlfwbA', 0, 0, 1, true, NULL, '2026-03-16 23:54:27.052374+00', '2026-03-18 21:44:50.328983+00', '2f146099-debe-472a-9333-7229545a2f08', 'd0b04eef-c5e7-450d-90a5-b10a2f0a072a', '31640105-56f9-43ab-8204-465c8717d731', NULL, 13.2, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '3ef27b40-a2db-4664-abe6-7a1cccd8e9a3', NULL);
-INSERT INTO public.products VALUES ('e2fe3739-5db6-4666-b31a-806e22dd585c', 'Aspirador e Lavadora Vertical de Piso Sem Fio com Auto-limpeza 3 Modo de Limpeza Aspira Lava Esfrega', '<p>Lavadora de Piso Multifuncional FFW-F11</p><p><br></p><p>A FFW-F11 é uma lavadora de piso multifuncional que combina lavagem, aspiração e secagem em um único equipamento, proporcionando uma limpeza profunda, prática e higiênica para o uso doméstico. Ideal para pisos duros como cerâmica, porcelanato, mármore, granito e pisos laminados.</p><p><br></p><p>Principais Características</p><p><br></p><p>3 modos de limpeza</p><p><br></p><p>Modo Smart: ajusta automaticamente a potência conforme o nível de sujeira (até 40 minutos)</p><p><br></p><p>Modo Forte: indicado para sujeiras difíceis e manchas persistentes (até 22 minutos).</p><p><br></p><p>Modo Sucção a Seco: aspira água e poeira sem liberar água.</p><p><br></p><p>Sistema de auto-limpeza com secagem</p><p><br></p><p>Lava automaticamente a escova e os dutos internos e, em seguida, realiza a secagem, reduzindo odores e facilitando a manutenção.</p><p><br></p><p>Tanques de água separados</p><p><br></p><p>Água limpa: 650 ml</p><p><br></p><p>Água suja: 550 ml</p><p><br></p><p>Mais higiene e melhor desempenho durante a limpeza.</p><p><br></p><p>Tela LED inteligente</p><p><br></p><p>Indica nível de bateria, alertas de falta de água, tanque cheio, escova travada e status do equipamento.</p><p><br></p><p>Bateria recarregável</p><p><br></p><p>Bateria de 21,6 V / 4000 mAh, com tempo de carregamento de aproximadamente 6 a 8 horas.</p><p><br></p><p>Pode ser carregado tanto no 110v quanto no 220v</p><p><br></p><p>Modo de Uso</p><p><br></p><p>Antes do primeiro uso</p><p><br></p><p>Carregue totalmente o aparelho na base de carregamento.</p><p><br></p><p>Encha o tanque de água limpa com água.</p><p><br></p><p>Certifique-se de que o tanque de água suja esteja corretamente instalado.</p><p><br></p><p>Como iniciar a limpeza</p><p><br></p><p>Posicione o aparelho na vertical e incline-o levemente para trás.</p><p><br></p><p>Pressione o botão de ligar para iniciar o funcionamento.</p><p><br></p><p>Pressione o botão de modo para alternar entre:</p><p><br></p><p>Modo Smart</p><p><br></p><p>Modo Forte</p><p><br></p><p>Modo Sucção a Seco</p><p><br></p><p>⚠️ Observação: quando o aparelho está totalmente na posição vertical, ele pausa automaticamente.</p><p><br></p><p>Durante o uso</p><p><br></p><p>Utilize apenas em pisos duros e nivelados.</p><p><br></p><p>Não incline o aparelho além de 140° para evitar vazamento de água.</p><p><br></p><p>Caso o tanque de água limpa esteja vazio ou o tanque de água suja esteja cheio, o aparelho irá parar automaticamente e emitir aviso no visor.</p><p><br></p><p>Após a limpeza</p><p><br></p><p>Posicione o aparelho na base de carregamento.</p><p><br></p><p>Pressione o botão de auto-limpeza para lavar automaticamente a escova e os dutos internos.</p><p><br></p><p>Após a auto-limpeza, o aparelho iniciará o processo de secagem automática.</p><p><br></p><p>Esvazie o tanque de água suja e deixe os componentes secarem adequadamente.</p><p><br></p><p>Indicação de Uso</p><p><br></p><p>Uso exclusivo em ambientes internos.</p><p><br></p><p>Indicado para pisos de cerâmica, porcelanato, mármore, granito, madeira tratada e pisos laminados.</p><p><br></p><p>Não indicado para carpetes, tapetes ou superfícies irregulares.</p>', 1085.6, 1180, NULL, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585459422-tcljvwxjlvr.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585471916-a011pn94bug.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585475488-lvoc86nz7bo.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585478820-k8sq5x7jy2g.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585484951-3r4yr6gfevj.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585497421-083pjcmtkq49.jpg}', 'Mais vendido', 'Shopee', 'https://s.shopee.com.br/1gDtpffB91', 0, 0, 0, true, NULL, '2026-03-15 14:45:27.470318+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 8.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('a6204a5c-b58d-4204-9cdd-e8d99cdb0e8e', 'Robô Aspirador de Pó MultiClean, Mondial, Vermelho/Preto, 30W, Bivolt - RB-09', '<p>Com o Robô Aspirador de Pó Multi Clean RB-09 é possível limpar o chão da sua casa com apenas um toque! Limpeza inteligente, ele varre, aspira, limpa e passa pano. O robô limpa com eficiência diversos tipos de piso e possui sensor antiqueda. A combinação da programação inteligente e do design compacto permite que o aspirador sugue poeiras e detritos até embaixo de móveis e em áreas de acesso mais difícil. Saiba mais sobre o RB-09 da Mondial:</p><p><br></p><p>LIMPEZA INTELIGENTE: Varre, aspira, limpa e passa pano com apenas um toque.</p><p><br></p><p>FUNÇÃO MOP: Passa pano enquanto aspira, garantindo uma limpeza profunda.</p><p><br></p><p>ESCOVAS LATERAIS: As 2 escovas laterais foram projetadas para a limpeza de cantos e frestas.</p><p><br></p><p>SUPER SLIM: Com 7,5cm de altura, entra com facilidade embaixo de móveis, camas e sofás.</p><p><br></p><p>SENSOR ANTIQUEDA: Identifica os desníveis do piso e o robô aspirador desvia de obstáculos, evitando colisões e quedas.</p><p><br></p><p>RESERVATÓRIO DE 140mL: Espaço ideal para o robô aspirador de pó sugar poeiras, cabelos, pelos dos pets e detritos.</p><p><br></p><p>PROTEÇÃO ANTIRRISCO: O robô aspirador possui uma proteção com borracha para preservar móveis e pisos contra riscos e danos.</p><p><br></p><p>PARA DIFERENTES TIPOS DE PISO: O robô aspirador Mondial limpa com eficiência diversos tipos de piso como madeira, carpetes baixos e pisos frios.</p><p><br></p><p>30W DE POTÊNCIA E 90 MINUTOS DE AUTONOMIA: Alta performance de sucção durante o tempo ideal para as tarefas mais pesadas.</p><p><br></p><p>LÂMPADA PILOTO: Indica o funcionamento do produto e, inclusive, mostra o status da bateria.</p><p><br></p><p>BIVOLT: Pode ser utilizado tanto na voltagem 127V, quanto na 220V.</p><p><br></p><p>UM ANO DE GARANTIA MONDIAL: A Mondial é a escolha de milhões de consumidores. Mondial, a escolha inteligente!</p>', 284.99, 441.56, 54, 'https://m.media-amazon.com/images/I/71uzreWVdPL._AC_SX679_.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456925832-2j8xbbrmp3s.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456931425-qg1x0p2us.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456937869-uaf5ftbacog.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456946461-rlebcy617l.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456954032-1lmkes37du2.jpg}', 'Redução No Preço', 'Amazon', 'https://amzn.to/3NoblM6', 0, 0, 0, true, NULL, '2026-03-14 02:59:33.017817+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '31640105-56f9-43ab-8204-465c8717d731', NULL, 35.5, NULL, '3ef27b40-a2db-4664-abe6-7a1cccd8e9a3', NULL);
-INSERT INTO public.products VALUES ('0ba1a569-0924-48e7-ba16-be4dfc0a4577', 'Torneira de Banheiro Lavabo cuba Preta Prata Luxo Metal Cromada Moderna 1/2 Cuba Fosco Inox Quadrada', '<p>Torneira Banheiro Inox Lavabo Cuba 1/2"</p><p><br></p><p>Deixe o ambiente bonito e elegante, invista neste torneira e tenha um produto de qualidade e designer fantástico, perfeita para pequenos ambientes, essa peça oferece maior praticidade e charme. Seu mecanismo inovador de fecho rápido oferece controle total no fluxo de água em um simples toque.</p><p><br></p><p>- Fácil instalação e manutenção.</p><p>- Aço Inoxidável (Inox)</p><p>- Modelo: Curta</p><p>- Quantidade de furos: 1</p><p>- Tipo de Montagem: Mesa</p><p>- Linha: Luxo</p><p><br></p><p>Medidas aproximadas do produto</p><p><br></p><p>- Comprimento: 8 cm</p><p>- Altura: 21 cm</p><p>- Largura: 18 cm</p><p><br></p><p>Cores disponíveis: Preto, Prata</p><p>Inclui: 01 Torneira Cromada de Luxo</p>', 44.99, 100, 75, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457304562-uliwmmzh65r.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457604781-nx7wxp0l26k.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457610182-lhcoes1j7x.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457613858-0th3i4c0b6gf.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457618038-qvh5q6g9vh9.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457621650-zdewmxe48j.webp}', 'Desconto Alto', 'Shopee', 'https://s.shopee.com.br/5VQa24lVgG', 0, 0, 0, true, NULL, '2026-03-14 03:07:36.058629+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 55.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('cfd08ce1-1a30-4472-b0f9-5a431668b8bc', 'Aspirador Vertical de Pó Liectroux i7 Pro Sem Fio 3 em 1 Aspira Passa Pano Autolimpante Para Sólidos e Líquidos Pelos de Pet Cachorro Gato Potente Com Filtro HEPA Bivolt', '<h1><strong>Descrição do Produto</strong></h1><ol><li><strong>3 em 1:</strong>&nbsp;Aspira, Passa Pano e se Autolimpa.</li><li><strong>Sem fio:</strong>&nbsp;O i7 Pro não possui fio, para uma maior praticidade na hora da limpeza.</li><li><strong>Limpeza completa:</strong>&nbsp;Limpa pisos e carpetes.</li><li><strong>Versátil:</strong>&nbsp;Limpa sujeira molhada e seca, tais como sucos, arroz, pelos de pet, areia de gato, entre outros.</li><li><strong>Super potente:</strong>&nbsp;Máxima potência (14000 Pa) para uma limpeza eficaz, removendo as manchas.</li><li><strong>Autolimpeza e Autossecagem:</strong>&nbsp;Após a limpeza basta deixá-lo na base de carregamento e ele efetuará a limpeza e secagem da escova de limpeza automaticamente. Para que você não precise ter contato com a sujeira!</li><li><strong>Fácil usabilidade:</strong>&nbsp;Leve, flexível, fácil de manobrar e se autoimpulsiona. Para uma limpeza sem esforços!</li><li><strong>Display de led:</strong>&nbsp;Para uma melhor visualização do processo de limpeza.</li><li><strong>Baixo ruído:</strong>&nbsp;Para maior conforto.</li><li><strong>Reservatório de água limpa de alta capacidade:</strong>&nbsp;Com 600 mL, para limpar toda a casa.</li></ol>', 1798.99, 2769, 30, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589264959-wmyekukn4m.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589271989-40vgqzlghzo.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589281029-crsj49lncit.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589295632-2xuevu92dgg.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589300906-ljbd2kyxg4g.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589313489-e91wx4s8v1v.jpg}', 'Queridinho ', 'Amazon', 'https://amzn.to/4sJl9z4', 0, 0, 0, true, NULL, '2026-03-15 14:52:48.400558+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '31640105-56f9-43ab-8204-465c8717d731', NULL, 35.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('830cafa9-bffe-442a-93b8-3931dafbfbcb', '40 Peças / 46 Peças Jogo De Chave Catraca Caixa De Ferramentas Completa Reversível Soquetes Maleta', '<p>-Conteúdo da embalagem:45 componentes + 1 caixa de ferramentas</p><p>-Tamanho：15*2.1*2.7CM</p><p>-Peso do produto: 1057G</p><p>-Cores do produto: Verde</p><p>-Pode ser usado em ar condicionado, porca de assento, para-choques, pneus, travas de porta de carro, casa (contém básico), amplamente utilizado em bicicletas, estranguladores abertos, entre outras manutenções</p><p><br></p><p>LISTA DE PEÇAS DA EMBALAGEM:</p><p><br></p><p>- 13 Soquetes 1/4"( 4mm - 4,5mm - 5mm - 5,5mm - 6mm - 7mm - 8mm - 9mm - 10mm - 11mm - 12mm - 13mm - 14mm.</p><p>                                               - Ponta Fenda: 4mm - 5,5mm - 7mm.</p><p>                                               - Ponta Philips: 1 - 2 - 3.</p><p>- 21 Soquetes com Bits{   - Ponta HEX: 3mm - 4mm - 5mm - 6mm - 7mm -8mm.</p><p>                                               - Ponta PZ: 1 - 2 - 3.</p><p>                                              - Ponta T: T10 - T15 - T20 - T25 - T30 - T40.</p><p>- 03 Chaves Hexagonais L: 1,5mm - 2mm - 2,5mm.</p><p>- 01 Cabo Fixo 1/4".</p><p>- 02 Barras Extensão 50mm (2”) e 100 mm (4”).</p><p>- 01 Extensão Flexível 150mm (6”).</p><p>- 01 Catraca Giro Rápido 1/4".</p><p>- 01 Cabo T de Contato.</p><p>- 01 Junta Universal.</p><p>- 01 Bit Adaptador.</p><p>- 01 Maleta.</p><p><br></p><p> O soquete usa AÇO TITANIUM vanádio de alta qualidade 50 bv30 formação de prensa a frio, torque 50% maior que o de aço carbono, protegido conta a ferrugem.</p><p> A cabeça do lote adota materiais CR-V, para que a peça tenha uma resistência mais alta.</p><p> Chave de catraca de giro rápido (ajuste positivo e negativo), o recurso de liberação rápida do botão de pressão garante que o soquete seja travado com segurança durante o uso, mas também permite fácil remoção ou troca rápida de soquetes.</p><p> A catraca possui 45 dentes de alta qualidade, o que melhora a performance do trabalho que será executado.</p><p> Pode ser usado em infinitos objetos desde objetos pequenos do ambiente domestico até reparro em caminhões.</p>', 35.99, 99.89, 64, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200387234-oz0n78lnq7.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200423125-mrhbztbix8j.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200431046-xlu77oe7zs.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200437938-wvctf7wnt8.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200444143-w49nkafn6mi.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200449155-yl9j2709ebh.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/3VfQuKsUWx', 0, 0, 0, true, NULL, '2026-03-11 03:43:08.181576+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 64.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('12495a26-4e1b-41d2-bdcf-f97c6864c8d4', 'Calça Jeans Preta Feminina Skinny Cintura Alta com Lycra Levanta Bumbum', '<p>-A Calça Jeans que é o sonho de toda mulher! Que vai valorizar o seu corpo, com a costura atrás levanta isso vai te ajudar no ganho de bumbum empinado que todas mulheres desejam! compre com tranquilidade! Comprou enviou!!! </p><p><br></p><p>-COMPOSIÇÃO: 69% ALGODÃO, 29% POLIESTER, 2% ELASTANO (ELA ESTICA BASTANTE, MAS MEDE SUA CINTURA E QUADRIL E COMPARA COM A TABELA DE MEDIDAS) </p><p><br></p><p>PRIMEIRO PASSO: SAIBA A SUA MEDIDIAS DE QUADRIL E CINTURA </p><p><br></p><p>SEGUNDO PASSO: COMPARE SUAS MEDIDAS COM A TABELA DE MEDIDAS DA DESCRIÇÃO AQUI EM BAIXO OU NAS FOTOS</p><p><br></p><p>TERCEIRO PASSO: REALIZE A COMPRA DA CALÇA E AO CHEGAR ARRASE FORMANDO VÁRIOS LOOKS COM A VULGATA JEANS</p><p><br></p><p>TAMANO 36</p><p><br></p><p>CINTURA: 64CM - 74CM</p><p>QUADRIL: 82CM - 106CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 38</p><p><br></p><p>CINTURA: 70CM - 84CM</p><p>QUADRIL: 90CM - 116CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 40</p><p><br></p><p>CINTURA: 74CM - 86CM</p><p>QUADRIL: 100CM - 118CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 42</p><p><br></p><p>CINTURA: 76CM - 88CM</p><p>QUADRIL: 104CM - 124CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 44</p><p><br></p><p>CINTURA: 80CM - 92CM</p><p>QUADRIL: 110CM - 126CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>-COMPOSIÇÃO: 69% ALGODÃO, 29% POLIESTER, 2% ELASTANO (ELA ESTICA BASTANTE, MAS MEDE SUA CINTURA E QUADRIL E COMPARA COM A TABELA DE MEDIDAS</p>', 51.2, 59.99, 15, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200713844-3hpmqlu1mvs.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200721474-owp1bwsr7mh.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200726138-x9z1x68rcvl.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200733145-wblaw2njro.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/30jAJlyhuP', 0, 0, 1, true, NULL, '2026-03-11 03:47:12.513017+00', '2026-03-16 23:55:14.739342+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 14.7, NULL, '14d349aa-ea80-4c42-b91a-720c2ef3497c', NULL);
-INSERT INTO public.products VALUES ('6ed00fa8-aa77-4fad-98c3-0db651688bab', 'Máquina de Crepe Crepeira Elétrica Antiaderente Hot Dog Queijo Coalho Espetinho No Palito LCK.XHL_HOME', '<p>Máquina de Crepe Crepeira Elétrica Antiaderente Hot Dog Queijo Coalho Espetinho No Palito LCK</p><p><br></p><p>- Versatilidade Total: Prepare crepes doces ou salgados, hot dogs gourmet, queijos derretidos, linguiças grelhadas e até mesmo panquecas. A máquina é ideal para quem ama variar no cardápio!</p><p><br></p><p>- Praticidade e Facilidade de Uso: Com superfície antiaderente e aquecimento uniforme, você não precisa se preocupar com alimentos grudando ou queimando. Basta ligar na tomada, esperar esquentar e começar a cozinhar!</p><p><br></p><p>- Design Compacto e Moderno: Ocupa pouco espaço na cozinha e é fácil de limpar. Perfeita para quem busca praticidade no dia a dia.</p><p><br></p><p>- Voltagem 110V: Pronta para uso em qualquer tomada comum, sem necessidade de adaptadores.</p><p><br></p><p>- Material Resistente e Durável: Feita com materiais de alta qualidade, garantindo segurança e longa vida útil.</p><p><br></p><p>-ITENS INCLUSOS-</p><p><br></p><p>1x Crepeira Elétrica1200W</p>', 79.89, 199, 60, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457831379-cxri70pha15.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457839051-xs0z8u2q1qo.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457847032-bsdnz709bx9.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457855076-l09adga68f.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/8fNboOVO6l', 0, 0, 1, true, NULL, '2026-03-14 03:11:29.556701+00', '2026-03-19 18:55:27.211554+00', 'd222f8c0-49d1-499d-880f-3e823cebdab5', '4fa1de81-235e-4034-ac31-56b17cbc3dd3', '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 59.9, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('867a5ff6-2980-4961-a3d9-58b8a5a55425', 'Kit teclado e mouse gamer mouse teclado Teclado Semi Mecânico + Mouse Gamer 3200dpi Rgb Led -H8', '<p>Kit Gamer: Teclado Semi-Mecânico RGB Rainbow + Mouse Gamer com LED – Performance e Estilo para Seus Jogos!</p><p><br></p><p>Teclado Gamer Semi-Mecânico RGB Rainbow:</p><p>✔ Iluminação Rainbow Vibrante – Teclas retroiluminadas com efeito RGB colorido para um visual gamer imersivo.</p><p>✔ Teclas Semi-Mecânicas – Resposta ágil e toque confortável para maior precisão em jogos.</p><p>✔ Design Ergonômico – Conforto prolongado em sessões intensivas de jogatina.</p><p>✔ Conexão USB com Fio – Estabilidade sem delays (cabo de 1,35m).</p><p>✔ Funções Multimídia – Controle rápido de volume e mídia com teclas dedicadas.</p><p>✔ Cor Preto Moderna – Combina com qualquer setup gamer.</p><p><br></p><p>Mouse Gamer com LED:</p><p>✔ Plug &amp; Play – Prático e fácil de usar, sem necessidade de drivers.</p><p>✔ Iluminação LED Ajustável – Estilo agressivo para acompanhar seu teclado.</p><p>✔ Design Preciso – Ideal para jogos casuais e competitivos.</p><p><br></p><p>Kit Completo Inclui:</p><p>✅ 1x Teclado Gamer RGB Rainbow</p><p>✅ 1x Mouse Gamer com LED</p><p><br></p><p>Especificações Técnicas:</p><p>📌 Tipo de Teclas: Membrana (Híbrido Semi-Mecânico)</p><p>📌 Foco Gamer: Sim</p><p>📌 Garantia: Garantia do Fornecedor</p><p><br></p><p>Perfeito para: Gamers que buscam um combo acessível, durável e cheio de estilo! 🎮✨</p><p><br></p><p>(Produto vendido como kit – não inclui outros acessórios.)</p><p><br></p><p>#kit teclado e mouse gamer #mouse teclado </p>', 66.99, 150, 55, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597473530-1vbcbg32d8i.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597485567-jnpqsr6xbwb.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597535567-stshq5unlf.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597541699-qw5ww3lwvz8.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597547475-bs2ki1avoz8.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597554936-hu3nk302h7j.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597560082-u9vecu6g8jl.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597565983-wvx03r1mjzi.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773597571070-bm8833ylqkh.webp}', 'Mais vendidos', 'Shopee', 'https://s.shopee.com.br/7VBgzymHoS', 0, 0, 4, true, NULL, '2026-03-15 18:02:19.415264+00', '2026-03-16 14:34:54.656652+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', 'https://down-ws-br.vod.susercontent.com/api/v4/11110105/mms/br-11110105-6kfkr-m1gg0f3l5jpk73.16000081729133003.mp4', 55.3, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', NULL);
-INSERT INTO public.products VALUES ('7003fe61-851a-48ac-841c-105e281b3240', 'EQUALIV - Body Protein Neutro em Pó - Rico em Colágeno e Aminoácidos Essenciais para Desenvolvimento e Recuperação Muscular - Sem Glúten, Sem Lactose, Zero Açúcar - Sem Sabor, Lata (450g)', '<h2><strong>Informações importantes</strong></h2><p><br></p><h4><strong>Informações de segurança</strong></h4><p>“SEM ADIÇÃO DE AÇUCARES.” “ESTE NÃO É UM ALIMENTO BAIXO OU REDUZIDO EM VALOR ENERGÉTICO.” "CONSUMIR ESTE PRODUTO CONFORME A RECOMENDAÇÃO DE INGESTÃO DIÁRIA CONSTANTE DA EMBALAGEM" "GESTANTES, NUTRIZES E CRIANÇAS ATÉ 3 (TRÊS) ANOS, SOMENTE DEVEM CONSUMIR ESTE PRODUTO SOB ORIENTAÇÃO DE NUTRICIONISTAOU MÉDICO". Reg. MS.: Produto dispensado da obrigatoriedade de registro conforme RDC nº 27/2010.</p><p><br></p><h4><strong>Ingredientes</strong></h4><p>SUGESTÃO DE USO: Consumir 1 (um) ou 2 (dois) copo-medida (scoop) ao dia, antes e/ou depois do treino ou conforme orientação do médico e/ou nutricionista. Adicionar o conteúdo de 1 (um) copo-medida (scoop) para cada 200 ml de água ou bebida de sua preferência, agitando até dissolver. Ou consuma conforme orientação profissional. INGREDIENTES: Neutro: Colágeno Hidrolisado. NÃO CONTÉM GLÚTEN. SEM ADIÇÃO DE AÇÚCARES. Cacau: Colágeno hidrolisado, cacau em pó, (edulcorantes naturais) taumatina e glicosídeos de esteviol, (espessante) goma xantana e (antiumectante) dióxido de silício e (aromatizantes) aroma idêntico ao natural de creme e aroma idêntico do natural de cacauçlç. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Frutas Vermelhas: Colágeno hidrolisado, morango, amora e framboesa em pó, (aromatizantes) aromas naturais de baunilha e morango (espessante) goma xantana, (acidulante) ácido cítrico, (antiumectante) dióxido de silício e (edulcorantes naturais) taumatina e glicosídeos de esteviol. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Baunilha: Colágeno hidrolisado, triglicerídeos de cadeia média em pó, (aromatizantes) aromas naturais de baunilha, (antiumectante) dióxido de silício, (espessante) goma xantana e (edulcorantes naturais) taumatina e glicosídeos de esteviol. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Coco: Colágeno hidrolisado, coco em pó, triglicerídeos de cadeia média em pó, (espessantes) goma arábica, goma xantana, (antiumectante) dióxido de silício, (aromatizantes) mix de aromas natural e idênticos ao natural e (edulcorantes naturais) taumatina e glicosídeos de esteviol de Stevia rebaudiana Bertoni. NÃO CONTÉM GLÚTEN. Cookies: Colágeno hidrolisado, nibs de cacau", triglicerídeos de cadeia média, (aromatizantes) mix de aroma natural e idênticos ao natural, (antiumectante) dióxido de silício, (emulsificantes) goma xantana e goma arábica, (edulcorantes naturais) glicosídeos de esteviol de Stevia rebaudiana Bertoni e taumatina. (*) fornece quantidades não significativas de açúcares. ALÉRGICOS: PODE CONTER LEITE. NÃO CONTÉM GLÚTEN.</p><p><br></p><h4><strong>Instruções</strong></h4><p>Consumir 1 (um) ou 2 (dois) copo-medida (scoop) ao dia, antes e/ou depois do treino ou conforme orientação do médico e/ou nutricionista. Adicionar o conteúdo de 1 (um) copo-medida (scoop) para cada 200 ml de água ou bebida de sua preferência, agitando até dissolver.</p><p><br></p><h4><strong>Aviso legal</strong></h4><p>A Amazon trabalha para garantir informações corretas e completas sobre o produto, mas as páginas de oferta são criadas a partir da contribuição de terceiros que vendem na Amazon. Pode acontecer do rótulo do produto conter informações adicionais/diferentes das constantes do site, e é por isso que recomendamos que você sempre leia rótulos, advertências e modo de uso antes de consumir um produto. Para informações adicionais, por favor entre em contato com o fabricante. A Amazon não se responsabiliza por informações imprecisas ou incorretas disponibilizadas por fabricantes ou terceiros.</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/81eb0557-8e7c-475e-a95c-d0e92554314f.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/f11e1eb1-447e-46c2-85c0-23a772225d25.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/b5e2318f-303d-4873-9aba-7cce5fc8a8cc.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p>', 179.05, 222.9, 20, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773690180563-eegjkar6alw.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8449942039100002.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2273626709160027.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7060452079211895.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6697629916396866.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.705227580480899.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.31359794304408095.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7978730482419226.jpg}', 'Novidade', 'Amazon', 'https://amzn.to/3P8jJzX', 0, 0, 0, true, NULL, '2026-03-16 19:43:08.153009+00', '2026-03-16 20:16:49.637463+00', '22e97655-8957-45f8-9512-3fb1d2b14b9f', '313ff752-18c8-41fe-a46e-7e91796ea889', '31640105-56f9-43ab-8204-465c8717d731', NULL, 19.7, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '14d349aa-ea80-4c42-b91a-720c2ef3497c', NULL);
-INSERT INTO public.products VALUES ('c3baa34b-8073-4c2b-a0b5-620537163aa7', 'Fone de Ouvido Bluetooth Sem Fio Digital Alta Qualidade Intra Auricular M47', '<p>Alcance de transmissão: 10 metros</p><p>NFC: Função, controle de voz, suporte para música, display digital,</p><p>Bluetooth: 5.3</p><p>Protocolo Gancho Use Estéreo Bilateral Preto, Cor da Pele LAZADA, Outras Plataformas América do Norte, Nordeste Asiático, Oriente Médio, Outras Principais Regiões de Vendas</p><p>Tempo de uso 4 horas</p><p><br></p><p>Brincos de uso de brincos</p><p>Transmissão direcional direta</p><p> Design totalmente aberto </p><p> Transmissão direcional direta</p><p>Confortável de usar</p><p>Sem vazamento</p><p>Som Surround</p><p>Exibição Digital Digital</p><p>100</p><p>360 °Som surround</p><p> Tempo Real</p><p> Potência de Surging</p><p>Controle de bateria de controle de bateria </p><p> Faixa Extra Longa Faixa</p><p>Sem fio 5.3 sem fio</p><p>Alta capacidade</p><p>Conexão rápida </p><p>Configuração da bateria da configuração da bateria </p><p>Rápido e estável</p><p>Chamada de voz HD HD de chamada de voz HD </p><p>Totalmente compatível</p><p>Faça você mesmo</p><p>Converse claramente com o bate-papo</p><p>Faça você mesmo</p><p>Iphone/android</p>', 50.49, 79, 36, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773693050493-xzi60est18b.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.32225771434351835.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7180593746971142.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2582148944815016.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.46384725213935984.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6514552209362939.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/BP826J4DT', 0, 0, 0, true, NULL, '2026-03-16 20:34:21.470143+00', '2026-03-18 21:45:49.821548+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', 'https://down-bs-br.vod.susercontent.com/api/v4/11110105/mms/br-11110105-6v65g-miu03sgtnx1dce.16000081767000864.mp4', 36.1, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '8457e2f0-3ce7-4624-afcd-6a918589d12c', NULL);
-INSERT INTO public.products VALUES ('c4ce3766-d0fa-4e7b-b444-3df28b7fd502', 'Cafeteira Espresso Eos 2 em 1 Italiana com 20 Bar de Pressão Inox Ecf06ec 110v', '<p><strong>Cafeteira Espresso EOS 2 em 1 Italiana com 20 Bar de Pressão Inox ECF06EC</strong></p><p><br></p><p>Cafeteira Espresso EOS 2 em 1 Italiana Inox ECF06EC</p><p>Para quem valoriza um bom café logo cedo ou ao longo do dia, a Cafeteira Espresso EOS 2 em 1 oferece qualidade profissional na sua cozinha. Compacta e eficiente, conta com bomba de alta pressão de 20 BAR, garantindo extração intensa, com sabor e aroma marcantes.</p><p>Ideal também para cappuccinos e lattes, vem com espumador de leite integrado, que proporciona espuma cremosa na temperatura certa. Seu design moderno em inox combina com qualquer ambiente e traz sofisticação ao preparo.</p><p>Além do desempenho, é fácil de usar e limpar, com controles intuitivos e peças removíveis que facilitam o dia a dia.</p><p>Principais vantagens:</p><p>Prepara cafés encorpados e aromáticos com extração profissional</p><p>Espumador de leite para bebidas cremosas como cappuccino e latte</p><p>Design moderno em inox, compacto e elegante</p><p>Bomba de 20 BAR que preserva o creme e aquece na medida certa</p><p>Fácil operação e limpeza prática</p>', 419.91, 554.44, 24, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773852138617-yp4yci7a2mi.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4106207902082657.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2032296427539163.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5847370238422237.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7637906531408734.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8892032847863243.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.22555699099576032.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2953870401263423.jpg}', 'Cupom R$ 30', 'Amazon', 'https://amzn.to/4rGUd2h', 0, 0, 1, true, NULL, '2026-03-18 16:51:22.561262+00', '2026-03-19 16:58:28.084883+00', 'fd806438-e4a9-4afa-a0c7-a16338105f8d', '4c10c67b-fc64-45c6-bd08-5f559c5b468d', '31640105-56f9-43ab-8204-465c8717d731', 'https://www.amazon.com.br/vdp/0a3f8140c7054980b5d7696156ad7977?product=B0FHWVCVLM&ref=cm_sw_cp_r_ib_dt_RsRM2hUSbceGK', 24.3, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('f891a701-12b9-4a70-8677-5c2bee61e4f2', 'Sanduicheira Elétrica Cadence Toast & Grill, Preta, 750W, 110V', '<ul><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">NOVO DESIGN exclusivo Cadence, com Porta-fio e trava na alça;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">IDEAL para preparar 2 sanduíches ao mesmo tempo;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">CHAPA antiaderente, luz indicadora de funcionamento;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">ALTA POTÊNCIA: 750W para preparos rápidos e práticos para o dia a dia;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">COM ALÇA ISOTÉRMICA, trava de segurança e pés antiderrapantes que auxiliam na segurança durante o uso.</span></li></ul><p><br></p>', 59.7, 100.89, 41, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773706011992-sbubl28shd.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.19691294741351384.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8038771897070267.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9852977507152725.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2849525776766926.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5340661938006928.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.01045378692862764.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/4bj54sQ', 0, 0, 1, true, NULL, '2026-03-17 00:07:00.220193+00', '2026-03-18 21:42:52.232994+00', 'ba613e78-541a-42cd-af86-a45ce0aeb055', 'ea5cf827-a778-498f-8e6e-0547df9157a3', '31640105-56f9-43ab-8204-465c8717d731', NULL, 40.8, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('95624526-4b7c-4185-93df-9a3426c494ca', 'Kit com 12 pincéis para maquiagem - Macrilan', '<p>Transforme sua rotina de beleza com o Kit Profissional Macrilan KP9-1A, o segredo para um acabamento impecável que fará você dizer ''Amei''. Este conjunto de 12 pincéis foi cuidadosamente selecionado para oferecer a versatilidade e a precisão necessárias para qualquer look, desde o básico do dia a dia até maquiagens mais elaboradas. </p><p><br></p><p>Qualidade Profissional ao Seu Alcance:</p><p>Desenvolvido pela Macrilan, uma marca reconhecida por sua excelência, este kit garante que você tenha as ferramentas certas para depositar e esfumar produtos em pó, cremosos ou líquidos. Nossas cerdas são incrivelmente macias, proporcionando uma aplicação suave e não irritante, ideal para quem está ''iniciando no mundo da maquiagem'' e busca transições uniformes e sem marcações. </p><p><br></p><p>Custo-Benefício Inigualável – Sem Objeções: Sabemos que a durabilidade é crucial. Por isso, investimos em materiais de alta qualidade para minimizar a temida ''queda de cerdas'', um problema comum em kits de entrada. </p><p><br></p><p>O Kit KP9-1A é o verdadeiro ''custo-benefício imbatível'', oferecendo desempenho de nível profissional a um preço acessível. Você compra um kit completo e durável, que realmente ''cumpre o que promete''. </p><p><br></p><p>Versatilidade Completa: O conjunto inclui pincéis essenciais para face (base, pó, blush, contorno) e olhos (esfumar, delinear, aplicar sombra), garantindo que você tenha a ferramenta certa para cada etapa. Embora os pincéis de face tenham um tamanho prático, semelhante ao de viagem, eles mantêm a densidade e o formato ideais para uma aplicação eficiente e precisa, facilitando o transporte e a organização. </p><p><br></p><p>Confiança e Credibilidade Macrilan: Ao escolher Macrilan, você investe em um produto original e de procedência, sinônimo de credibilidade no mercado brasileiro. Sua satisfação é nossa prioridade. Adquira agora o Kit KP9-1A e descubra porque milhares de clientes ''super recomendam'' esta ferramenta essencial para maquiagem. Eleve seu nível de aplicação e conquiste o acabamento que você sempre sonhou.</p>', 67.2, 93.9, 28, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773707730065-pnpimksxf6m.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5062358174491908.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.06966345548027641.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.17444364530211587.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9422174451321388.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4623481835030996.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.13973970928943058.jpg}', 'Muito Barato', 'Amazon', 'https://amzn.to/3P4yyUd', 0, 0, 1, true, NULL, '2026-03-17 00:39:26.991813+00', '2026-03-18 21:43:15.627415+00', 'fa5f9497-65b1-4e55-8e15-251f6004750c', '0d08037f-a514-4400-baab-474f65aadf54', '31640105-56f9-43ab-8204-465c8717d731', NULL, 28.4, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '863befde-b087-4dee-bc39-36e519b18a48', NULL);
-INSERT INTO public.products VALUES ('23d3425b-8c78-4c9f-8b76-11b145e53777', 'Jogo de Cama Casal Padrão Percal 400 Fios Ponto Palito 04 Peças, Antiácaro, Não faz bolinha Toque Extra Macio – Branco', '<ul><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Toque extremamente macio e confortável com anti pilling (não faz bolinha)</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Tecido com tratamento Antiácaro, não encolhe e não precisa passar</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Jogo de cama confeccionado em tecido Percal 400 Fios de Poliéster com detalhes em ponto palito</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Lençol ajustável com elástico na volta toda, ideal para colchão de até 30cm de Altura</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Kit composto por 04 peças (1 lençol com elástico, 1 lençol de cima com detalhes em ponto palito e 2 fronhas em ponto palito)</span></li></ul><p><br></p>', 64.97, 108.99, 40, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773871091852-j3bc1wjoy2.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.33993467783714126.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9564488174404464.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6172358085738827.jpg}', 'Menor Preço', 'Amazon', 'https://amzn.to/4uBZoTR', 0, 0, 2, true, NULL, '2026-03-18 21:57:55.186153+00', '2026-03-19 17:56:01.228748+00', 'fc7eff8d-8e39-4384-8816-16da373293e5', '2fcaa27c-a98f-400c-bb31-46c3234b9ea2', '31640105-56f9-43ab-8204-465c8717d731', NULL, 40.4, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL);
-INSERT INTO public.products VALUES ('d8ae643d-6100-4283-8059-93a6df1164e2', 'Creatina Pura Dark Lab 500g, Monohidratada 100% de Pureza, Sem Sabor (1kg)', '<p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/b9893dc9-d2bf-432c-93cb-cb41fe3c0300.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0503fd5a-dac3-4649-aadf-bcd33ef34a14.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0703ec01-e248-45b6-a638-97eea181825b.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><span class="ql-cursor">﻿</span><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/d0a3c1a1-f7ad-4728-99c2-fe37900aecfe.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p>', 75.9, 85.9, 12, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773940742930-umfdm90qvzg.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9522582495040556.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.17836842891537785.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9272181640919159.jpg}', '100% Pura', 'Amazon', 'https://amzn.to/4774ldd', 0, 0, 0, true, NULL, '2026-03-19 17:19:19.250926+00', '2026-03-19 17:30:14.74989+00', 'cdff3214-2d21-4fbe-afc3-cade5080b0f0', 'de5d95db-6213-402f-84ef-2c88736e1ab1', '31640105-56f9-43ab-8204-465c8717d731', NULL, 11.6, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'af115fa7-66eb-4445-a35b-232023d163f6', NULL);
-INSERT INTO public.products VALUES ('13cb9b81-e991-4cf5-a2c2-fccdd1ee770c', 'Samsung Galaxy Book4 Intel® Core™ i5-1335U, Windows 11 Home, 8GB, 512GB SSD, Iris Xe, 15.6'''' Full HD LED, 1.55kg*.', '<p><span style="color: rgb(86, 89, 89);">À vista no Pix ou NuPay Limite Adicional (4% off)</span></p><p>Oferta&nbsp;90 dias de Amazon Music grátis incluso</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/d8d52a3b-3ea6-4e34-9f57-edff0a230af4.__CR0,27,1440,891_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><h3><strong>Copilot. Sua própria AI personalizada</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/ad3696c5-35e8-45a1-9157-b1a63a0d0d43.__CR196,0,1048,648_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p>Fique em dia com as suas tarefas por meio de avisos rápidos por chat com a assistência personalizada de AI do Copilot. Além disso, utilize ferramentas de comunicação mais inteligentes: acesse contatos e envie mensagens integradas a partir do seu PC ou dispositivo móvel Samsung Galaxy com um simples comando de chat.</p><h3><strong>Desempenho com o qual você pode contar</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/241d1d48-5aed-4909-9812-daea212c49b6.__CR0,20,1440,891_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p>Conquiste os desafios do seu dia com a última geração dos processadores Inte Core 5/7 com gráficos Intel integrados, oferecendo desempenho estável para streaming e todas as suas multitarefas. Além disso, salve todo o conteúdo que você adora com até 2TB de armazenamento.</p><h3><strong>Ecossistema Samsung Galaxy</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/78495afc-e542-40fb-8444-af33f3b6b2ab.__CR168,0,1104,683_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><h4><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0083c620-e101-4861-b431-ea3840e17b66.__CR62,0,596,596_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></h4><p><br></p><p>Mais portas. Suporte total sem hubs externos</p><p>Fino e poderoso, o Galaxy Book4 possui uma ampla variedade de portas integradas para atender às suas necessidades de conectividade. Conecte dispositivos externos via HDMI, duas portas USB-A e duas portas USB-C, slot microSD e até mesmo uma porta RJ45 para conexões LAN de alta velocidade.</p><p><br></p><h4><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/61f0a0ba-d399-4e6d-b034-faf041d056cb.__CR260,0,460,460_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></h4><p><br></p><p>Conecte seu celular e PC para acesso integrado</p><p>Obtenha acesso direto ao conteúdo do seu celular pelo seu notebook com o Explorador de Arquivos. Basta configurar a conexão sem fio entre seus dispositivos e estará tudo pronto; pesquise os arquivos e fotos de que precisa e depois abra-os diretamente do seu PC.</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/2cfe2616-9cef-4d7d-a2b0-7e36a2e85c86.__CR34,0,1136,1136_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p><br></p><h4>Incrivelmente fino<span class="ql-cursor">﻿</span></h4><p>O Galaxy Book4 é envolto em um corpo de metal inteiriço que pesa apenas 1,57 kg, por isso é elegante, compacto e extremamente portátil. E com um grande display Full HD de 15,6”, você pode apreciar uma imagem nítida e vibrante na tela enquanto relaxa com seus vídeos e filmes favoritos.</p>', 3836.28, 5799, 34, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773943065216-8q8rqak6fyr.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.029376995757592672.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5547174534561247.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.14362783623812492.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2583498149717929.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2903031478878043.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8061876549234315.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9300271803467774.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.706094074438073.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.010294357573605417.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/4rK5XB7', 0, 0, 0, true, NULL, '2026-03-19 18:04:02.552336+00', '2026-03-19 18:05:33.35562+00', '73fc119a-b8cb-4e2a-b3e2-c42abc9ce67c', '99fd7455-3302-455e-b01f-2f237c98cad7', '31640105-56f9-43ab-8204-465c8717d731', NULL, 33.8, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', NULL);
-INSERT INTO public.products VALUES ('9e601a93-e57e-47a4-95be-8589694dd340', 'Impressora HP 107W Laser Monocromática USB e Wi-Fi 110V.', '<p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/ecb58bf7-37dc-4247-87b9-43d4947b61ee.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt=" Impressora laser 107w, impressora laser"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/1352217a-0ba7-4146-8a76-4fe1e6255774.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/16bd503d-0246-4429-b05f-e2b4421dcb46.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser HP 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/5c317c86-1c79-4299-8fdb-246b225dda36.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser HP 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/8c99c77c-108f-414f-b2e9-8dbbe1b2b42f.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora Multifuncional HP Smart Tank 724"></p><p><br></p>', 854.9, 1249, 32, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773944375746-m69p5zi3hf.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7329282897085794.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.21817486504630257.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9405172446405612.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.46786668834564993.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4159400595994377.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.3362654911494043.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.42191952433593616.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4585613759474839.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8611290543605202.jpg}', 'Mais vendido', 'Amazon', 'https://amzn.to/40GMFSc', 0, 0, 0, true, NULL, '2026-03-19 18:12:35.114+00', '2026-03-19 18:32:26.664103+00', '96368808-68b7-4952-acce-afbe609ee403', 'c011427a-d183-429f-bc8b-1156021c9556', '31640105-56f9-43ab-8204-465c8717d731', NULL, 31.6, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', NULL);
+INSERT INTO public.products VALUES ('a91825fe-8053-49ee-9b6c-c07f2d9ea2c7', 'Ar Condicionado Split Hi Wall Inverter Elgin Eco Dream 9000 BTU/h Frio 45HIFI09C2WA – 220 Volts', '<p>Ar-Condicionado Split HW Elgin Eco Dream Inverter Wi-Fi</p><p><br></p><p>A linha Split High Wall&nbsp;<strong>Dream Inverter WIFI</strong>&nbsp;atende nas capacidades de 9.000 a 36.000 Btu/h, nas versões Frio e Quente-Frio. O Eco Dream Inverter da Elgin conta com uma altíssima eficiência energética com classe A trazendo mais economia, de acordo com a nova portaria. Elgin preocupada com o meio ambiente traz para o mercado a linha Inverter Eco Dream Inverter com&nbsp;<strong>gás ecológico R32</strong>. Este fluído refrigerante não agride a camada de ozônio e tem baixo potencial de aquecimento global (G.W.P), sendo este potencial de aquecimento global 1/3 do que seu antecessor R410A.</p><p><br></p><p>A unidade interna possui um display invisível indicando a temperatura, que se acende ao ligar a unidade, e se você preferir, aperte a tecla "visor” para desligar o display para maior conforto durante a noite.</p><p><br></p><p><span style="background-color: rgb(255, 255, 255); color: rgb(51, 51, 51);">Conectividade Wi-Fi</span></p><p><br></p><p>Com o aplicativo&nbsp;<strong>Elgin Smart</strong>&nbsp;você pode controlar seu Eco Dream Inverter via Wi-Fi. Ajuste a temperatura, ligue ou desligue o seu aparelho de onde estiver, até mesmo por comando de voz com a&nbsp;<strong>Alexa</strong>&nbsp;e o&nbsp;<strong>Google Assistente</strong>.</p><p><br></p><p><strong>- Instalação não inclusa!</strong></p><p><span style="background-color: rgb(255, 255, 255); color: rgb(51, 51, 51);">A Marca</span></p><p><br></p><p>A Elgin, em seus mais de 66 anos de história tornou-se uma marca conhecida por sua qualidade, credibilidade e inovações constantes, sempre com o objetivo de oferecer os melhores produtos aos seus consumidores. Hoje conta com uma enorme variedade de produtos para uso comercial e residencial nos segmentos de Ar-Condicionado, Automação Comercial, Energia Solar entre outros...Sempre com o foco no bem-estar das pessoas e na preservação ambiental, a Elgin procura agregar em suas linhas de produtos, atributos sustentáveis que colaboram com as metas de redução de emissão de poluentes e baixos níveis de consumo de energia.</p><p><em>1) De acordo com a nova portaria de classificação energética do Inmetro nº269, de 22 de junho de 2021 (baseada na ISO 16.358)</em></p>', 1899, 2189, 13, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773704979886-lxnvgggtgc.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7851943107190276.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.45270689894587335.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7325696870480343.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6152228301389535.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/3NlfwbA', 0, 0, 1, true, NULL, '2026-03-16 23:54:27.052374+00', '2026-03-18 21:44:50.328983+00', '2f146099-debe-472a-9333-7229545a2f08', 'd0b04eef-c5e7-450d-90a5-b10a2f0a072a', '31640105-56f9-43ab-8204-465c8717d731', NULL, 13.2, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '3ef27b40-a2db-4664-abe6-7a1cccd8e9a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('e2fe3739-5db6-4666-b31a-806e22dd585c', 'Aspirador e Lavadora Vertical de Piso Sem Fio com Auto-limpeza 3 Modo de Limpeza Aspira Lava Esfrega', '<p>Lavadora de Piso Multifuncional FFW-F11</p><p><br></p><p>A FFW-F11 é uma lavadora de piso multifuncional que combina lavagem, aspiração e secagem em um único equipamento, proporcionando uma limpeza profunda, prática e higiênica para o uso doméstico. Ideal para pisos duros como cerâmica, porcelanato, mármore, granito e pisos laminados.</p><p><br></p><p>Principais Características</p><p><br></p><p>3 modos de limpeza</p><p><br></p><p>Modo Smart: ajusta automaticamente a potência conforme o nível de sujeira (até 40 minutos)</p><p><br></p><p>Modo Forte: indicado para sujeiras difíceis e manchas persistentes (até 22 minutos).</p><p><br></p><p>Modo Sucção a Seco: aspira água e poeira sem liberar água.</p><p><br></p><p>Sistema de auto-limpeza com secagem</p><p><br></p><p>Lava automaticamente a escova e os dutos internos e, em seguida, realiza a secagem, reduzindo odores e facilitando a manutenção.</p><p><br></p><p>Tanques de água separados</p><p><br></p><p>Água limpa: 650 ml</p><p><br></p><p>Água suja: 550 ml</p><p><br></p><p>Mais higiene e melhor desempenho durante a limpeza.</p><p><br></p><p>Tela LED inteligente</p><p><br></p><p>Indica nível de bateria, alertas de falta de água, tanque cheio, escova travada e status do equipamento.</p><p><br></p><p>Bateria recarregável</p><p><br></p><p>Bateria de 21,6 V / 4000 mAh, com tempo de carregamento de aproximadamente 6 a 8 horas.</p><p><br></p><p>Pode ser carregado tanto no 110v quanto no 220v</p><p><br></p><p>Modo de Uso</p><p><br></p><p>Antes do primeiro uso</p><p><br></p><p>Carregue totalmente o aparelho na base de carregamento.</p><p><br></p><p>Encha o tanque de água limpa com água.</p><p><br></p><p>Certifique-se de que o tanque de água suja esteja corretamente instalado.</p><p><br></p><p>Como iniciar a limpeza</p><p><br></p><p>Posicione o aparelho na vertical e incline-o levemente para trás.</p><p><br></p><p>Pressione o botão de ligar para iniciar o funcionamento.</p><p><br></p><p>Pressione o botão de modo para alternar entre:</p><p><br></p><p>Modo Smart</p><p><br></p><p>Modo Forte</p><p><br></p><p>Modo Sucção a Seco</p><p><br></p><p>⚠️ Observação: quando o aparelho está totalmente na posição vertical, ele pausa automaticamente.</p><p><br></p><p>Durante o uso</p><p><br></p><p>Utilize apenas em pisos duros e nivelados.</p><p><br></p><p>Não incline o aparelho além de 140° para evitar vazamento de água.</p><p><br></p><p>Caso o tanque de água limpa esteja vazio ou o tanque de água suja esteja cheio, o aparelho irá parar automaticamente e emitir aviso no visor.</p><p><br></p><p>Após a limpeza</p><p><br></p><p>Posicione o aparelho na base de carregamento.</p><p><br></p><p>Pressione o botão de auto-limpeza para lavar automaticamente a escova e os dutos internos.</p><p><br></p><p>Após a auto-limpeza, o aparelho iniciará o processo de secagem automática.</p><p><br></p><p>Esvazie o tanque de água suja e deixe os componentes secarem adequadamente.</p><p><br></p><p>Indicação de Uso</p><p><br></p><p>Uso exclusivo em ambientes internos.</p><p><br></p><p>Indicado para pisos de cerâmica, porcelanato, mármore, granito, madeira tratada e pisos laminados.</p><p><br></p><p>Não indicado para carpetes, tapetes ou superfícies irregulares.</p>', 1085.6, 1180, NULL, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585459422-tcljvwxjlvr.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585471916-a011pn94bug.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585475488-lvoc86nz7bo.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585478820-k8sq5x7jy2g.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585484951-3r4yr6gfevj.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773585497421-083pjcmtkq49.jpg}', 'Mais vendido', 'Shopee', 'https://s.shopee.com.br/1gDtpffB91', 0, 0, 0, true, NULL, '2026-03-15 14:45:27.470318+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 8.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('a6204a5c-b58d-4204-9cdd-e8d99cdb0e8e', 'Robô Aspirador de Pó MultiClean, Mondial, Vermelho/Preto, 30W, Bivolt - RB-09', '<p>Com o Robô Aspirador de Pó Multi Clean RB-09 é possível limpar o chão da sua casa com apenas um toque! Limpeza inteligente, ele varre, aspira, limpa e passa pano. O robô limpa com eficiência diversos tipos de piso e possui sensor antiqueda. A combinação da programação inteligente e do design compacto permite que o aspirador sugue poeiras e detritos até embaixo de móveis e em áreas de acesso mais difícil. Saiba mais sobre o RB-09 da Mondial:</p><p><br></p><p>LIMPEZA INTELIGENTE: Varre, aspira, limpa e passa pano com apenas um toque.</p><p><br></p><p>FUNÇÃO MOP: Passa pano enquanto aspira, garantindo uma limpeza profunda.</p><p><br></p><p>ESCOVAS LATERAIS: As 2 escovas laterais foram projetadas para a limpeza de cantos e frestas.</p><p><br></p><p>SUPER SLIM: Com 7,5cm de altura, entra com facilidade embaixo de móveis, camas e sofás.</p><p><br></p><p>SENSOR ANTIQUEDA: Identifica os desníveis do piso e o robô aspirador desvia de obstáculos, evitando colisões e quedas.</p><p><br></p><p>RESERVATÓRIO DE 140mL: Espaço ideal para o robô aspirador de pó sugar poeiras, cabelos, pelos dos pets e detritos.</p><p><br></p><p>PROTEÇÃO ANTIRRISCO: O robô aspirador possui uma proteção com borracha para preservar móveis e pisos contra riscos e danos.</p><p><br></p><p>PARA DIFERENTES TIPOS DE PISO: O robô aspirador Mondial limpa com eficiência diversos tipos de piso como madeira, carpetes baixos e pisos frios.</p><p><br></p><p>30W DE POTÊNCIA E 90 MINUTOS DE AUTONOMIA: Alta performance de sucção durante o tempo ideal para as tarefas mais pesadas.</p><p><br></p><p>LÂMPADA PILOTO: Indica o funcionamento do produto e, inclusive, mostra o status da bateria.</p><p><br></p><p>BIVOLT: Pode ser utilizado tanto na voltagem 127V, quanto na 220V.</p><p><br></p><p>UM ANO DE GARANTIA MONDIAL: A Mondial é a escolha de milhões de consumidores. Mondial, a escolha inteligente!</p>', 284.99, 441.56, 54, 'https://m.media-amazon.com/images/I/71uzreWVdPL._AC_SX679_.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456925832-2j8xbbrmp3s.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456931425-qg1x0p2us.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456937869-uaf5ftbacog.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456946461-rlebcy617l.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773456954032-1lmkes37du2.jpg}', 'Redução No Preço', 'Amazon', 'https://amzn.to/3NoblM6', 0, 0, 0, true, NULL, '2026-03-14 02:59:33.017817+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '31640105-56f9-43ab-8204-465c8717d731', NULL, 35.5, NULL, '3ef27b40-a2db-4664-abe6-7a1cccd8e9a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('0ba1a569-0924-48e7-ba16-be4dfc0a4577', 'Torneira de Banheiro Lavabo cuba Preta Prata Luxo Metal Cromada Moderna 1/2 Cuba Fosco Inox Quadrada', '<p>Torneira Banheiro Inox Lavabo Cuba 1/2"</p><p><br></p><p>Deixe o ambiente bonito e elegante, invista neste torneira e tenha um produto de qualidade e designer fantástico, perfeita para pequenos ambientes, essa peça oferece maior praticidade e charme. Seu mecanismo inovador de fecho rápido oferece controle total no fluxo de água em um simples toque.</p><p><br></p><p>- Fácil instalação e manutenção.</p><p>- Aço Inoxidável (Inox)</p><p>- Modelo: Curta</p><p>- Quantidade de furos: 1</p><p>- Tipo de Montagem: Mesa</p><p>- Linha: Luxo</p><p><br></p><p>Medidas aproximadas do produto</p><p><br></p><p>- Comprimento: 8 cm</p><p>- Altura: 21 cm</p><p>- Largura: 18 cm</p><p><br></p><p>Cores disponíveis: Preto, Prata</p><p>Inclui: 01 Torneira Cromada de Luxo</p>', 44.99, 100, 75, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457304562-uliwmmzh65r.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457604781-nx7wxp0l26k.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457610182-lhcoes1j7x.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457613858-0th3i4c0b6gf.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457618038-qvh5q6g9vh9.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457621650-zdewmxe48j.webp}', 'Desconto Alto', 'Shopee', 'https://s.shopee.com.br/5VQa24lVgG', 0, 0, 0, true, NULL, '2026-03-14 03:07:36.058629+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 55.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('cfd08ce1-1a30-4472-b0f9-5a431668b8bc', 'Aspirador Vertical de Pó Liectroux i7 Pro Sem Fio 3 em 1 Aspira Passa Pano Autolimpante Para Sólidos e Líquidos Pelos de Pet Cachorro Gato Potente Com Filtro HEPA Bivolt', '<h1><strong>Descrição do Produto</strong></h1><ol><li><strong>3 em 1:</strong>&nbsp;Aspira, Passa Pano e se Autolimpa.</li><li><strong>Sem fio:</strong>&nbsp;O i7 Pro não possui fio, para uma maior praticidade na hora da limpeza.</li><li><strong>Limpeza completa:</strong>&nbsp;Limpa pisos e carpetes.</li><li><strong>Versátil:</strong>&nbsp;Limpa sujeira molhada e seca, tais como sucos, arroz, pelos de pet, areia de gato, entre outros.</li><li><strong>Super potente:</strong>&nbsp;Máxima potência (14000 Pa) para uma limpeza eficaz, removendo as manchas.</li><li><strong>Autolimpeza e Autossecagem:</strong>&nbsp;Após a limpeza basta deixá-lo na base de carregamento e ele efetuará a limpeza e secagem da escova de limpeza automaticamente. Para que você não precise ter contato com a sujeira!</li><li><strong>Fácil usabilidade:</strong>&nbsp;Leve, flexível, fácil de manobrar e se autoimpulsiona. Para uma limpeza sem esforços!</li><li><strong>Display de led:</strong>&nbsp;Para uma melhor visualização do processo de limpeza.</li><li><strong>Baixo ruído:</strong>&nbsp;Para maior conforto.</li><li><strong>Reservatório de água limpa de alta capacidade:</strong>&nbsp;Com 600 mL, para limpar toda a casa.</li></ol>', 1798.99, 2769, 30, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589264959-wmyekukn4m.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589271989-40vgqzlghzo.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589281029-crsj49lncit.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589295632-2xuevu92dgg.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589300906-ljbd2kyxg4g.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773589313489-e91wx4s8v1v.jpg}', 'Queridinho ', 'Amazon', 'https://amzn.to/4sJl9z4', 0, 0, 0, true, NULL, '2026-03-15 14:52:48.400558+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '31640105-56f9-43ab-8204-465c8717d731', NULL, 35.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('830cafa9-bffe-442a-93b8-3931dafbfbcb', '40 Peças / 46 Peças Jogo De Chave Catraca Caixa De Ferramentas Completa Reversível Soquetes Maleta', '<p>-Conteúdo da embalagem:45 componentes + 1 caixa de ferramentas</p><p>-Tamanho：15*2.1*2.7CM</p><p>-Peso do produto: 1057G</p><p>-Cores do produto: Verde</p><p>-Pode ser usado em ar condicionado, porca de assento, para-choques, pneus, travas de porta de carro, casa (contém básico), amplamente utilizado em bicicletas, estranguladores abertos, entre outras manutenções</p><p><br></p><p>LISTA DE PEÇAS DA EMBALAGEM:</p><p><br></p><p>- 13 Soquetes 1/4"( 4mm - 4,5mm - 5mm - 5,5mm - 6mm - 7mm - 8mm - 9mm - 10mm - 11mm - 12mm - 13mm - 14mm.</p><p>                                               - Ponta Fenda: 4mm - 5,5mm - 7mm.</p><p>                                               - Ponta Philips: 1 - 2 - 3.</p><p>- 21 Soquetes com Bits{   - Ponta HEX: 3mm - 4mm - 5mm - 6mm - 7mm -8mm.</p><p>                                               - Ponta PZ: 1 - 2 - 3.</p><p>                                              - Ponta T: T10 - T15 - T20 - T25 - T30 - T40.</p><p>- 03 Chaves Hexagonais L: 1,5mm - 2mm - 2,5mm.</p><p>- 01 Cabo Fixo 1/4".</p><p>- 02 Barras Extensão 50mm (2”) e 100 mm (4”).</p><p>- 01 Extensão Flexível 150mm (6”).</p><p>- 01 Catraca Giro Rápido 1/4".</p><p>- 01 Cabo T de Contato.</p><p>- 01 Junta Universal.</p><p>- 01 Bit Adaptador.</p><p>- 01 Maleta.</p><p><br></p><p> O soquete usa AÇO TITANIUM vanádio de alta qualidade 50 bv30 formação de prensa a frio, torque 50% maior que o de aço carbono, protegido conta a ferrugem.</p><p> A cabeça do lote adota materiais CR-V, para que a peça tenha uma resistência mais alta.</p><p> Chave de catraca de giro rápido (ajuste positivo e negativo), o recurso de liberação rápida do botão de pressão garante que o soquete seja travado com segurança durante o uso, mas também permite fácil remoção ou troca rápida de soquetes.</p><p> A catraca possui 45 dentes de alta qualidade, o que melhora a performance do trabalho que será executado.</p><p> Pode ser usado em infinitos objetos desde objetos pequenos do ambiente domestico até reparro em caminhões.</p>', 35.99, 99.89, 64, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200387234-oz0n78lnq7.jpeg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200423125-mrhbztbix8j.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200431046-xlu77oe7zs.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200437938-wvctf7wnt8.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200444143-w49nkafn6mi.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200449155-yl9j2709ebh.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/3VfQuKsUWx', 0, 0, 0, true, NULL, '2026-03-11 03:43:08.181576+00', '2026-03-15 19:00:19.082348+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 64.0, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('12495a26-4e1b-41d2-bdcf-f97c6864c8d4', 'Calça Jeans Preta Feminina Skinny Cintura Alta com Lycra Levanta Bumbum', '<p>-A Calça Jeans que é o sonho de toda mulher! Que vai valorizar o seu corpo, com a costura atrás levanta isso vai te ajudar no ganho de bumbum empinado que todas mulheres desejam! compre com tranquilidade! Comprou enviou!!! </p><p><br></p><p>-COMPOSIÇÃO: 69% ALGODÃO, 29% POLIESTER, 2% ELASTANO (ELA ESTICA BASTANTE, MAS MEDE SUA CINTURA E QUADRIL E COMPARA COM A TABELA DE MEDIDAS) </p><p><br></p><p>PRIMEIRO PASSO: SAIBA A SUA MEDIDIAS DE QUADRIL E CINTURA </p><p><br></p><p>SEGUNDO PASSO: COMPARE SUAS MEDIDAS COM A TABELA DE MEDIDAS DA DESCRIÇÃO AQUI EM BAIXO OU NAS FOTOS</p><p><br></p><p>TERCEIRO PASSO: REALIZE A COMPRA DA CALÇA E AO CHEGAR ARRASE FORMANDO VÁRIOS LOOKS COM A VULGATA JEANS</p><p><br></p><p>TAMANO 36</p><p><br></p><p>CINTURA: 64CM - 74CM</p><p>QUADRIL: 82CM - 106CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 38</p><p><br></p><p>CINTURA: 70CM - 84CM</p><p>QUADRIL: 90CM - 116CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 40</p><p><br></p><p>CINTURA: 74CM - 86CM</p><p>QUADRIL: 100CM - 118CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 42</p><p><br></p><p>CINTURA: 76CM - 88CM</p><p>QUADRIL: 104CM - 124CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>TAMANHO 44</p><p><br></p><p>CINTURA: 80CM - 92CM</p><p>QUADRIL: 110CM - 126CM</p><p>COMPRIMENTO: 1,04CM</p><p><br></p><p>-COMPOSIÇÃO: 69% ALGODÃO, 29% POLIESTER, 2% ELASTANO (ELA ESTICA BASTANTE, MAS MEDE SUA CINTURA E QUADRIL E COMPARA COM A TABELA DE MEDIDAS</p>', 51.2, 59.99, 15, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200713844-3hpmqlu1mvs.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200721474-owp1bwsr7mh.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200726138-x9z1x68rcvl.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773200733145-wblaw2njro.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/30jAJlyhuP', 0, 0, 1, true, NULL, '2026-03-11 03:47:12.513017+00', '2026-03-16 23:55:14.739342+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 14.7, NULL, '14d349aa-ea80-4c42-b91a-720c2ef3497c', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('6ed00fa8-aa77-4fad-98c3-0db651688bab', 'Máquina de Crepe Crepeira Elétrica Antiaderente Hot Dog Queijo Coalho Espetinho No Palito LCK.XHL_HOME', '<p>Máquina de Crepe Crepeira Elétrica Antiaderente Hot Dog Queijo Coalho Espetinho No Palito LCK</p><p><br></p><p>- Versatilidade Total: Prepare crepes doces ou salgados, hot dogs gourmet, queijos derretidos, linguiças grelhadas e até mesmo panquecas. A máquina é ideal para quem ama variar no cardápio!</p><p><br></p><p>- Praticidade e Facilidade de Uso: Com superfície antiaderente e aquecimento uniforme, você não precisa se preocupar com alimentos grudando ou queimando. Basta ligar na tomada, esperar esquentar e começar a cozinhar!</p><p><br></p><p>- Design Compacto e Moderno: Ocupa pouco espaço na cozinha e é fácil de limpar. Perfeita para quem busca praticidade no dia a dia.</p><p><br></p><p>- Voltagem 110V: Pronta para uso em qualquer tomada comum, sem necessidade de adaptadores.</p><p><br></p><p>- Material Resistente e Durável: Feita com materiais de alta qualidade, garantindo segurança e longa vida útil.</p><p><br></p><p>-ITENS INCLUSOS-</p><p><br></p><p>1x Crepeira Elétrica1200W</p>', 79.89, 199, 60, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457831379-cxri70pha15.webp', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457839051-xs0z8u2q1qo.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457847032-bsdnz709bx9.webp,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773457855076-l09adga68f.webp}', 'Indicado', 'Shopee', 'https://s.shopee.com.br/8fNboOVO6l', 0, 0, 1, true, NULL, '2026-03-14 03:11:29.556701+00', '2026-03-19 18:55:27.211554+00', 'd222f8c0-49d1-499d-880f-3e823cebdab5', '4fa1de81-235e-4034-ac31-56b17cbc3dd3', '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, 59.9, NULL, '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('7003fe61-851a-48ac-841c-105e281b3240', 'EQUALIV - Body Protein Neutro em Pó - Rico em Colágeno e Aminoácidos Essenciais para Desenvolvimento e Recuperação Muscular - Sem Glúten, Sem Lactose, Zero Açúcar - Sem Sabor, Lata (450g)', '<h2><strong>Informações importantes</strong></h2><p><br></p><h4><strong>Informações de segurança</strong></h4><p>“SEM ADIÇÃO DE AÇUCARES.” “ESTE NÃO É UM ALIMENTO BAIXO OU REDUZIDO EM VALOR ENERGÉTICO.” "CONSUMIR ESTE PRODUTO CONFORME A RECOMENDAÇÃO DE INGESTÃO DIÁRIA CONSTANTE DA EMBALAGEM" "GESTANTES, NUTRIZES E CRIANÇAS ATÉ 3 (TRÊS) ANOS, SOMENTE DEVEM CONSUMIR ESTE PRODUTO SOB ORIENTAÇÃO DE NUTRICIONISTAOU MÉDICO". Reg. MS.: Produto dispensado da obrigatoriedade de registro conforme RDC nº 27/2010.</p><p><br></p><h4><strong>Ingredientes</strong></h4><p>SUGESTÃO DE USO: Consumir 1 (um) ou 2 (dois) copo-medida (scoop) ao dia, antes e/ou depois do treino ou conforme orientação do médico e/ou nutricionista. Adicionar o conteúdo de 1 (um) copo-medida (scoop) para cada 200 ml de água ou bebida de sua preferência, agitando até dissolver. Ou consuma conforme orientação profissional. INGREDIENTES: Neutro: Colágeno Hidrolisado. NÃO CONTÉM GLÚTEN. SEM ADIÇÃO DE AÇÚCARES. Cacau: Colágeno hidrolisado, cacau em pó, (edulcorantes naturais) taumatina e glicosídeos de esteviol, (espessante) goma xantana e (antiumectante) dióxido de silício e (aromatizantes) aroma idêntico ao natural de creme e aroma idêntico do natural de cacauçlç. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Frutas Vermelhas: Colágeno hidrolisado, morango, amora e framboesa em pó, (aromatizantes) aromas naturais de baunilha e morango (espessante) goma xantana, (acidulante) ácido cítrico, (antiumectante) dióxido de silício e (edulcorantes naturais) taumatina e glicosídeos de esteviol. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Baunilha: Colágeno hidrolisado, triglicerídeos de cadeia média em pó, (aromatizantes) aromas naturais de baunilha, (antiumectante) dióxido de silício, (espessante) goma xantana e (edulcorantes naturais) taumatina e glicosídeos de esteviol. NÃO CONTÉM GLUTEN. SEM ADIÇÃO DE AÇÚCARES. Coco: Colágeno hidrolisado, coco em pó, triglicerídeos de cadeia média em pó, (espessantes) goma arábica, goma xantana, (antiumectante) dióxido de silício, (aromatizantes) mix de aromas natural e idênticos ao natural e (edulcorantes naturais) taumatina e glicosídeos de esteviol de Stevia rebaudiana Bertoni. NÃO CONTÉM GLÚTEN. Cookies: Colágeno hidrolisado, nibs de cacau", triglicerídeos de cadeia média, (aromatizantes) mix de aroma natural e idênticos ao natural, (antiumectante) dióxido de silício, (emulsificantes) goma xantana e goma arábica, (edulcorantes naturais) glicosídeos de esteviol de Stevia rebaudiana Bertoni e taumatina. (*) fornece quantidades não significativas de açúcares. ALÉRGICOS: PODE CONTER LEITE. NÃO CONTÉM GLÚTEN.</p><p><br></p><h4><strong>Instruções</strong></h4><p>Consumir 1 (um) ou 2 (dois) copo-medida (scoop) ao dia, antes e/ou depois do treino ou conforme orientação do médico e/ou nutricionista. Adicionar o conteúdo de 1 (um) copo-medida (scoop) para cada 200 ml de água ou bebida de sua preferência, agitando até dissolver.</p><p><br></p><h4><strong>Aviso legal</strong></h4><p>A Amazon trabalha para garantir informações corretas e completas sobre o produto, mas as páginas de oferta são criadas a partir da contribuição de terceiros que vendem na Amazon. Pode acontecer do rótulo do produto conter informações adicionais/diferentes das constantes do site, e é por isso que recomendamos que você sempre leia rótulos, advertências e modo de uso antes de consumir um produto. Para informações adicionais, por favor entre em contato com o fabricante. A Amazon não se responsabiliza por informações imprecisas ou incorretas disponibilizadas por fabricantes ou terceiros.</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/81eb0557-8e7c-475e-a95c-d0e92554314f.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/f11e1eb1-447e-46c2-85c0-23a772225d25.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/b5e2318f-303d-4873-9aba-7cce5fc8a8cc.__CR0,0,970,600_PT0_SX970_V1___.png" alt="a"></p>', 179.05, 222.9, 20, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773690180563-eegjkar6alw.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8449942039100002.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2273626709160027.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7060452079211895.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6697629916396866.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.705227580480899.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.31359794304408095.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7978730482419226.jpg}', 'Novidade', 'Amazon', 'https://amzn.to/3P8jJzX', 0, 0, 0, true, NULL, '2026-03-16 19:43:08.153009+00', '2026-03-16 20:16:49.637463+00', '22e97655-8957-45f8-9512-3fb1d2b14b9f', '313ff752-18c8-41fe-a46e-7e91796ea889', '31640105-56f9-43ab-8204-465c8717d731', NULL, 19.7, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '14d349aa-ea80-4c42-b91a-720c2ef3497c', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('c4ce3766-d0fa-4e7b-b444-3df28b7fd502', 'Cafeteira Espresso Eos 2 em 1 Italiana com 20 Bar de Pressão Inox Ecf06ec 110v', '<p><strong>Cafeteira Espresso EOS 2 em 1 Italiana com 20 Bar de Pressão Inox ECF06EC</strong></p><p><br></p><p>Cafeteira Espresso EOS 2 em 1 Italiana Inox ECF06EC</p><p>Para quem valoriza um bom café logo cedo ou ao longo do dia, a Cafeteira Espresso EOS 2 em 1 oferece qualidade profissional na sua cozinha. Compacta e eficiente, conta com bomba de alta pressão de 20 BAR, garantindo extração intensa, com sabor e aroma marcantes.</p><p>Ideal também para cappuccinos e lattes, vem com espumador de leite integrado, que proporciona espuma cremosa na temperatura certa. Seu design moderno em inox combina com qualquer ambiente e traz sofisticação ao preparo.</p><p>Além do desempenho, é fácil de usar e limpar, com controles intuitivos e peças removíveis que facilitam o dia a dia.</p><p>Principais vantagens:</p><p>Prepara cafés encorpados e aromáticos com extração profissional</p><p>Espumador de leite para bebidas cremosas como cappuccino e latte</p><p>Design moderno em inox, compacto e elegante</p><p>Bomba de 20 BAR que preserva o creme e aquece na medida certa</p><p>Fácil operação e limpeza prática</p>', 419.91, 554.44, 24, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773852138617-yp4yci7a2mi.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4106207902082657.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2032296427539163.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5847370238422237.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7637906531408734.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8892032847863243.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.22555699099576032.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2953870401263423.jpg}', 'Cupom R$ 30', 'Amazon', 'https://amzn.to/4rGUd2h', 0, 0, 1, true, NULL, '2026-03-18 16:51:22.561262+00', '2026-03-19 16:58:28.084883+00', 'fd806438-e4a9-4afa-a0c7-a16338105f8d', '4c10c67b-fc64-45c6-bd08-5f559c5b468d', '31640105-56f9-43ab-8204-465c8717d731', 'https://www.amazon.com.br/vdp/0a3f8140c7054980b5d7696156ad7977?product=B0FHWVCVLM&ref=cm_sw_cp_r_ib_dt_RsRM2hUSbceGK', 24.3, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('f891a701-12b9-4a70-8677-5c2bee61e4f2', 'Sanduicheira Elétrica Cadence Toast & Grill, Preta, 750W, 110V', '<ul><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">NOVO DESIGN exclusivo Cadence, com Porta-fio e trava na alça;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">IDEAL para preparar 2 sanduíches ao mesmo tempo;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">CHAPA antiaderente, luz indicadora de funcionamento;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">ALTA POTÊNCIA: 750W para preparos rápidos e práticos para o dia a dia;</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">COM ALÇA ISOTÉRMICA, trava de segurança e pés antiderrapantes que auxiliam na segurança durante o uso.</span></li></ul><p><br></p>', 59.7, 100.89, 41, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773706011992-sbubl28shd.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.19691294741351384.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8038771897070267.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9852977507152725.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2849525776766926.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5340661938006928.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.01045378692862764.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/4bj54sQ', 0, 0, 1, true, NULL, '2026-03-17 00:07:00.220193+00', '2026-03-18 21:42:52.232994+00', 'ba613e78-541a-42cd-af86-a45ce0aeb055', 'ea5cf827-a778-498f-8e6e-0547df9157a3', '31640105-56f9-43ab-8204-465c8717d731', NULL, 40.8, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('95624526-4b7c-4185-93df-9a3426c494ca', 'Kit com 12 pincéis para maquiagem - Macrilan', '<p>Transforme sua rotina de beleza com o Kit Profissional Macrilan KP9-1A, o segredo para um acabamento impecável que fará você dizer ''Amei''. Este conjunto de 12 pincéis foi cuidadosamente selecionado para oferecer a versatilidade e a precisão necessárias para qualquer look, desde o básico do dia a dia até maquiagens mais elaboradas. </p><p><br></p><p>Qualidade Profissional ao Seu Alcance:</p><p>Desenvolvido pela Macrilan, uma marca reconhecida por sua excelência, este kit garante que você tenha as ferramentas certas para depositar e esfumar produtos em pó, cremosos ou líquidos. Nossas cerdas são incrivelmente macias, proporcionando uma aplicação suave e não irritante, ideal para quem está ''iniciando no mundo da maquiagem'' e busca transições uniformes e sem marcações. </p><p><br></p><p>Custo-Benefício Inigualável – Sem Objeções: Sabemos que a durabilidade é crucial. Por isso, investimos em materiais de alta qualidade para minimizar a temida ''queda de cerdas'', um problema comum em kits de entrada. </p><p><br></p><p>O Kit KP9-1A é o verdadeiro ''custo-benefício imbatível'', oferecendo desempenho de nível profissional a um preço acessível. Você compra um kit completo e durável, que realmente ''cumpre o que promete''. </p><p><br></p><p>Versatilidade Completa: O conjunto inclui pincéis essenciais para face (base, pó, blush, contorno) e olhos (esfumar, delinear, aplicar sombra), garantindo que você tenha a ferramenta certa para cada etapa. Embora os pincéis de face tenham um tamanho prático, semelhante ao de viagem, eles mantêm a densidade e o formato ideais para uma aplicação eficiente e precisa, facilitando o transporte e a organização. </p><p><br></p><p>Confiança e Credibilidade Macrilan: Ao escolher Macrilan, você investe em um produto original e de procedência, sinônimo de credibilidade no mercado brasileiro. Sua satisfação é nossa prioridade. Adquira agora o Kit KP9-1A e descubra porque milhares de clientes ''super recomendam'' esta ferramenta essencial para maquiagem. Eleve seu nível de aplicação e conquiste o acabamento que você sempre sonhou.</p>', 67.2, 93.9, 28, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773707730065-pnpimksxf6m.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5062358174491908.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.06966345548027641.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.17444364530211587.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9422174451321388.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4623481835030996.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.13973970928943058.jpg}', 'Muito Barato', 'Amazon', 'https://amzn.to/3P4yyUd', 0, 0, 1, true, NULL, '2026-03-17 00:39:26.991813+00', '2026-03-18 21:43:15.627415+00', 'fa5f9497-65b1-4e55-8e15-251f6004750c', '0d08037f-a514-4400-baab-474f65aadf54', '31640105-56f9-43ab-8204-465c8717d731', NULL, 28.4, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '863befde-b087-4dee-bc39-36e519b18a48', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('23d3425b-8c78-4c9f-8b76-11b145e53777', 'Jogo de Cama Casal Padrão Percal 400 Fios Ponto Palito 04 Peças, Antiácaro, Não faz bolinha Toque Extra Macio – Branco', '<ul><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Toque extremamente macio e confortável com anti pilling (não faz bolinha)</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Tecido com tratamento Antiácaro, não encolhe e não precisa passar</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Jogo de cama confeccionado em tecido Percal 400 Fios de Poliéster com detalhes em ponto palito</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Lençol ajustável com elástico na volta toda, ideal para colchão de até 30cm de Altura</span></li><li><span style="color: var(--__dChNmAmGoMXsw4B,#0f1111);">Kit composto por 04 peças (1 lençol com elástico, 1 lençol de cima com detalhes em ponto palito e 2 fronhas em ponto palito)</span></li></ul><p><br></p>', 64.97, 108.99, 40, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773871091852-j3bc1wjoy2.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.33993467783714126.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9564488174404464.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.6172358085738827.jpg}', 'Menor Preço', 'Amazon', 'https://amzn.to/4uBZoTR', 0, 0, 2, true, NULL, '2026-03-18 21:57:55.186153+00', '2026-03-19 17:56:01.228748+00', 'fc7eff8d-8e39-4384-8816-16da373293e5', '2fcaa27c-a98f-400c-bb31-46c3234b9ea2', '31640105-56f9-43ab-8204-465c8717d731', NULL, 40.4, 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '4892e78b-d2cc-43b8-8a17-605b03f1d4a3', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('d8ae643d-6100-4283-8059-93a6df1164e2', 'Creatina Pura Dark Lab 500g, Monohidratada 100% de Pureza, Sem Sabor (1kg)', '<p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/b9893dc9-d2bf-432c-93cb-cb41fe3c0300.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0503fd5a-dac3-4649-aadf-bcd33ef34a14.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0703ec01-e248-45b6-a638-97eea181825b.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p><p><span class="ql-cursor">﻿</span><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/d0a3c1a1-f7ad-4728-99c2-fe37900aecfe.__CR0,0,1940,1200_PT0_SX970_V1___.jpg" alt="creatina, whey, max, creatine, protein, dux, monohidratada, integralmedica, nutrition, pura"></p>', 75.9, 85.9, 12, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773940742930-umfdm90qvzg.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9522582495040556.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.17836842891537785.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9272181640919159.jpg}', '100% Pura', 'Amazon', 'https://amzn.to/4774ldd', 0, 0, 0, true, NULL, '2026-03-19 17:19:19.250926+00', '2026-03-19 17:30:14.74989+00', 'cdff3214-2d21-4fbe-afc3-cade5080b0f0', 'de5d95db-6213-402f-84ef-2c88736e1ab1', '31640105-56f9-43ab-8204-465c8717d731', NULL, 11.6, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'af115fa7-66eb-4445-a35b-232023d163f6', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('13cb9b81-e991-4cf5-a2c2-fccdd1ee770c', 'Samsung Galaxy Book4 Intel® Core™ i5-1335U, Windows 11 Home, 8GB, 512GB SSD, Iris Xe, 15.6'''' Full HD LED, 1.55kg*.', '<p><span style="color: rgb(86, 89, 89);">À vista no Pix ou NuPay Limite Adicional (4% off)</span></p><p>Oferta&nbsp;90 dias de Amazon Music grátis incluso</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/d8d52a3b-3ea6-4e34-9f57-edff0a230af4.__CR0,27,1440,891_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><h3><strong>Copilot. Sua própria AI personalizada</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/ad3696c5-35e8-45a1-9157-b1a63a0d0d43.__CR196,0,1048,648_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p>Fique em dia com as suas tarefas por meio de avisos rápidos por chat com a assistência personalizada de AI do Copilot. Além disso, utilize ferramentas de comunicação mais inteligentes: acesse contatos e envie mensagens integradas a partir do seu PC ou dispositivo móvel Samsung Galaxy com um simples comando de chat.</p><h3><strong>Desempenho com o qual você pode contar</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/241d1d48-5aed-4909-9812-daea212c49b6.__CR0,20,1440,891_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p>Conquiste os desafios do seu dia com a última geração dos processadores Inte Core 5/7 com gráficos Intel integrados, oferecendo desempenho estável para streaming e todas as suas multitarefas. Além disso, salve todo o conteúdo que você adora com até 2TB de armazenamento.</p><h3><strong>Ecossistema Samsung Galaxy</strong></h3><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/78495afc-e542-40fb-8444-af33f3b6b2ab.__CR168,0,1104,683_PT0_SX970_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><h4><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/0083c620-e101-4861-b431-ea3840e17b66.__CR62,0,596,596_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></h4><p><br></p><p>Mais portas. Suporte total sem hubs externos</p><p>Fino e poderoso, o Galaxy Book4 possui uma ampla variedade de portas integradas para atender às suas necessidades de conectividade. Conecte dispositivos externos via HDMI, duas portas USB-A e duas portas USB-C, slot microSD e até mesmo uma porta RJ45 para conexões LAN de alta velocidade.</p><p><br></p><h4><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/61f0a0ba-d399-4e6d-b034-faf041d056cb.__CR260,0,460,460_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></h4><p><br></p><p>Conecte seu celular e PC para acesso integrado</p><p>Obtenha acesso direto ao conteúdo do seu celular pelo seu notebook com o Explorador de Arquivos. Basta configurar a conexão sem fio entre seus dispositivos e estará tudo pronto; pesquise os arquivos e fotos de que precisa e depois abra-os diretamente do seu PC.</p><p><br></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/2cfe2616-9cef-4d7d-a2b0-7e36a2e85c86.__CR34,0,1136,1136_PT0_SX300_V1___.jpg" alt="galaxy book, notebook i5, i7, galaxy book4"></p><p><br></p><h4>Incrivelmente fino<span class="ql-cursor">﻿</span></h4><p>O Galaxy Book4 é envolto em um corpo de metal inteiriço que pesa apenas 1,57 kg, por isso é elegante, compacto e extremamente portátil. E com um grande display Full HD de 15,6”, você pode apreciar uma imagem nítida e vibrante na tela enquanto relaxa com seus vídeos e filmes favoritos.</p>', 3836.28, 5799, 34, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773943065216-8q8rqak6fyr.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.029376995757592672.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.5547174534561247.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.14362783623812492.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2583498149717929.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.2903031478878043.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8061876549234315.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9300271803467774.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.706094074438073.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.010294357573605417.jpg}', 'Oferta', 'Amazon', 'https://amzn.to/4rK5XB7', 0, 0, 0, true, NULL, '2026-03-19 18:04:02.552336+00', '2026-03-19 18:05:33.35562+00', '73fc119a-b8cb-4e2a-b3e2-c42abc9ce67c', '99fd7455-3302-455e-b01f-2f237c98cad7', '31640105-56f9-43ab-8204-465c8717d731', NULL, 33.8, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('3a9ef6c2-2f20-4d14-8044-cdf306574f4d', 'Fone de Ouvido Bluetooth Sem Fio Digital Alta Qualidade Intra Auricular M47', NULL, 50.49, NULL, NULL, 'https://cf.shopee.com.br/file/br-11134207-7r98o-m2dgumrr891y18', '{}', NULL, 'Brasil Mart', 'https://s.shopee.com.br/1VublYAo75', 4.8, 0, 0, true, NULL, '2026-03-20 16:58:43.226628+00', '2026-03-20 16:58:43.226628+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', NULL, NULL, 11, 0);
+INSERT INTO public.products VALUES ('9e601a93-e57e-47a4-95be-8589694dd340', 'Impressora HP 107W Laser Monocromática USB e Wi-Fi 110V.', '<p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/ecb58bf7-37dc-4247-87b9-43d4947b61ee.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt=" Impressora laser 107w, impressora laser"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/1352217a-0ba7-4146-8a76-4fe1e6255774.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/16bd503d-0246-4429-b05f-e2b4421dcb46.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser HP 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/5c317c86-1c79-4299-8fdb-246b225dda36.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora laser HP 107w"></p><p><img src="https://m.media-amazon.com/images/S/aplus-media-library-service-media/8c99c77c-108f-414f-b2e9-8dbbe1b2b42f.__CR0,3,1600,495_PT0_SX970_V1___.jpg" alt="Impressora Multifuncional HP Smart Tank 724"></p><p><br></p>', 854.9, 1249, 32, 'https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/1773944375746-m69p5zi3hf.jpg', '{https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.7329282897085794.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.21817486504630257.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.9405172446405612.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.46786668834564993.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4159400595994377.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.3362654911494043.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.42191952433593616.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.4585613759474839.jpg,https://smfndfyuscgfjedeqysu.supabase.co/storage/v1/object/public/product-images/0.8611290543605202.jpg}', 'Mais vendido', 'Amazon', 'https://amzn.to/40GMFSc', 0, 0, 0, true, NULL, '2026-03-19 18:12:35.114+00', '2026-03-19 18:32:26.664103+00', '96368808-68b7-4952-acce-afbe609ee403', 'c011427a-d183-429f-bc8b-1156021c9556', '31640105-56f9-43ab-8204-465c8717d731', NULL, 31.6, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', 'b8cf1b6a-58d6-48ee-a350-0d02cc6df1f8', NULL, NULL, 0);
+INSERT INTO public.products VALUES ('f1586a36-4e72-445e-99fb-d93fa04e5bf0', 'Jogo De Panelas 10 Peças Antiaderente Conjunto Caçarola Frigideira Fervedor Cor Coffee Cappuccino Kit Talheres', NULL, 199.99, NULL, NULL, 'https://cf.shopee.com.br/file/br-11134207-81z1k-mgqyauzfcc8wdf', '{}', NULL, 'ARARAS ONLINE', 'https://s.shopee.com.br/9KdT6PZfeq', 4.7, 0, 0, true, NULL, '2026-03-20 17:05:26.698784+00', '2026-03-20 17:05:26.698784+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', NULL, NULL, 3, 0);
+INSERT INTO public.products VALUES ('01e2a87d-ad1c-4e2d-9e4a-62f568880b1f', 'Kit Teclado Semi Mecânico + Mouse Gamer 3200dpi Rgb Led -H8', NULL, 66.99, NULL, NULL, 'https://cf.shopee.com.br/file/br-11134207-7r98o-mbf5wx3w43g8e7', '{}', NULL, 'ZAKKA BARAR', 'https://s.shopee.com.br/8V4MaU9oSA', 4.8, 0, 0, true, NULL, '2026-03-21 00:19:11.374449+00', '2026-03-21 00:19:11.374449+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', NULL, NULL, 12, 0);
+INSERT INTO public.products VALUES ('9259e1e8-2450-46d5-910c-c83cda5f35fa', 'Esteira Ergométrica Elétrica Gallant Elite 2.5hp 14km/h 120kg 220v (GEE12)', NULL, 2379, NULL, NULL, 'https://cf.shopee.com.br/file/br-11134207-7r98o-mbp8ig6va3ix11', '{}', NULL, 'Webcontinental', 'https://s.shopee.com.br/AKVzRyh0Hb', 4.9, 0, 0, true, NULL, '2026-03-20 04:24:30.448999+00', '2026-03-20 04:24:30.448999+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', NULL, NULL, 7.000000000000001, 0);
+INSERT INTO public.products VALUES ('37af9dc6-70ac-4dec-a362-8fcbec407f52', 'Cooktop de Indução Amvox ACT 407 4 Bocas 220V Preto com Painel Touch e Mesa Vitrocerâmica', NULL, 899, NULL, NULL, 'https://cf.shopee.com.br/file/br-11134207-81zts-ml2849we4f7k45', '{}', NULL, 'Commshop', 'https://s.shopee.com.br/6AgRK1vKLM', 5, 0, 0, true, NULL, '2026-03-20 16:57:15.936966+00', '2026-03-20 16:57:15.936966+00', NULL, NULL, '5a54bf84-4707-4f0f-a23c-689469fdbbb7', NULL, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', NULL, NULL, 3, 0);
 
 
 --
--- TOC entry 4548 (class 0 OID 17503)
--- Dependencies: 352
+-- TOC entry 4581 (class 0 OID 17503)
+-- Dependencies: 354
 -- Data for Name: profiles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4918,49 +4978,63 @@ INSERT INTO public.profiles VALUES ('ef98ce97-1083-46b9-b819-669565f1b66f', 'ae8
 
 
 --
--- TOC entry 4553 (class 0 OID 17573)
--- Dependencies: 357
+-- TOC entry 4586 (class 0 OID 17573)
+-- Dependencies: 359
 -- Data for Name: reports; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4552 (class 0 OID 17557)
--- Dependencies: 356
+-- TOC entry 4585 (class 0 OID 17557)
+-- Dependencies: 358
 -- Data for Name: reviews; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4571 (class 0 OID 25968)
--- Dependencies: 376
+-- TOC entry 4604 (class 0 OID 25968)
+-- Dependencies: 378
 -- Data for Name: shopee_product_mappings; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO public.shopee_product_mappings VALUES ('c5cd8a92-c3a0-4cbd-830f-2b6ad7746d53', '9259e1e8-2450-46d5-910c-c83cda5f35fa', '22293284362', '889973435', '', 0.07, 'https://cf.shopee.com.br/file/br-11134207-7r98o-mbp8ig6va3ix11', 'https://shopee.com.br/product/889973435/22293284362', 'https://s.shopee.com.br/AKVzRyh0Hb', '2026-03-20 04:24:30.755238+00', 'active', '2026-03-20 04:24:30.755238+00');
+INSERT INTO public.shopee_product_mappings VALUES ('ba02600e-1ac9-454c-9148-e99abfee565f', '37af9dc6-70ac-4dec-a362-8fcbec407f52', '58255648117', '582435128', '', 0.03, 'https://cf.shopee.com.br/file/br-11134207-81zts-ml2849we4f7k45', 'https://shopee.com.br/product/582435128/58255648117', 'https://s.shopee.com.br/6AgRK1vKLM', '2026-03-20 16:57:16.235736+00', 'active', '2026-03-20 16:57:16.235736+00');
+INSERT INTO public.shopee_product_mappings VALUES ('ea605996-6c4c-4ce9-882b-5912c4e9255e', '3a9ef6c2-2f20-4d14-8044-cdf306574f4d', '21099552315', '1284769631', '', 0.11, 'https://cf.shopee.com.br/file/br-11134207-7r98o-m2dgumrr891y18', 'https://shopee.com.br/product/1284769631/21099552315', 'https://s.shopee.com.br/1VublYAo75', '2026-03-20 16:58:43.544492+00', 'active', '2026-03-20 16:58:43.544492+00');
+INSERT INTO public.shopee_product_mappings VALUES ('83f795bd-fdd0-4d70-b5d0-6d00d7baccfc', 'f1586a36-4e72-445e-99fb-d93fa04e5bf0', '53750943172', '1215385259', '', 0.03, 'https://cf.shopee.com.br/file/br-11134207-81z1k-mgqyauzfcc8wdf', 'https://shopee.com.br/product/1215385259/53750943172', 'https://s.shopee.com.br/9KdT6PZfeq', '2026-03-20 17:05:27.011206+00', 'active', '2026-03-20 17:05:27.011206+00');
+INSERT INTO public.shopee_product_mappings VALUES ('1cdbffaa-b043-48a5-9e1a-c6ec89f42aae', '01e2a87d-ad1c-4e2d-9e4a-62f568880b1f', '22693275207', '711141644', '', 0.12, 'https://cf.shopee.com.br/file/br-11134207-7r98o-mbf5wx3w43g8e7', 'https://shopee.com.br/product/711141644/22693275207', 'https://s.shopee.com.br/8V4MaU9oSA', '2026-03-21 00:19:11.700412+00', 'active', '2026-03-21 00:19:11.700412+00');
 
 
 --
--- TOC entry 4572 (class 0 OID 25986)
--- Dependencies: 377
+-- TOC entry 4605 (class 0 OID 25986)
+-- Dependencies: 379
 -- Data for Name: shopee_sync_logs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 INSERT INTO public.shopee_sync_logs VALUES ('23b1306c-eae3-4da2-8448-261eb5c4179f', 'batch_sync', 'success', 0, 0, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 03:03:20.752464+00', '2026-03-20 03:03:21.148+00');
+INSERT INTO public.shopee_sync_logs VALUES ('38945738-a85a-4e98-b2d3-5616fb139530', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 03:56:15.947713+00', '2026-03-20 03:56:15.828+00');
+INSERT INTO public.shopee_sync_logs VALUES ('59cac797-d2e2-4dad-b4f1-74de3bda07fd', 'batch_sync', 'success', 1, 0, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 03:59:39.805647+00', '2026-03-20 03:59:40.986+00');
+INSERT INTO public.shopee_sync_logs VALUES ('1598e654-52e1-4afa-a1c8-b2af9214d949', 'batch_sync', 'success', 1, 0, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:17:55.936565+00', '2026-03-20 04:17:57.141+00');
+INSERT INTO public.shopee_sync_logs VALUES ('e4edc50f-2996-45f4-a71d-4e80cda5763e', 'batch_sync', 'success', 1, 0, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:20:44.614989+00', '2026-03-20 04:20:45.795+00');
+INSERT INTO public.shopee_sync_logs VALUES ('149e2670-416e-463c-b2bd-2bd3fb2c8446', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:24:30.998235+00', '2026-03-20 04:24:30.861+00');
+INSERT INTO public.shopee_sync_logs VALUES ('db700e3f-0691-4707-8b12-281ad4f817ee', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 16:57:16.512341+00', '2026-03-20 16:57:16.363+00');
+INSERT INTO public.shopee_sync_logs VALUES ('b0bed44b-0c9a-40fa-8a50-d99f97310936', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 16:58:43.836099+00', '2026-03-20 16:58:43.675+00');
+INSERT INTO public.shopee_sync_logs VALUES ('7b613cca-6b64-4b4e-81c9-21e403dc3f92', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 17:05:27.292863+00', '2026-03-20 17:05:27.136+00');
+INSERT INTO public.shopee_sync_logs VALUES ('628545c6-042b-4778-9a42-5e992fda45b9', 'import', 'success', 1, 1, 0, NULL, '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-21 00:19:11.933036+00', '2026-03-21 00:19:11.822+00');
 
 
 --
--- TOC entry 4559 (class 0 OID 22202)
--- Dependencies: 364
+-- TOC entry 4592 (class 0 OID 22202)
+-- Dependencies: 366
 -- Data for Name: special_page_products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4558 (class 0 OID 22188)
--- Dependencies: 363
+-- TOC entry 4591 (class 0 OID 22188)
+-- Dependencies: 365
 -- Data for Name: special_pages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4968,8 +5042,8 @@ INSERT INTO public.special_pages VALUES ('5a8f37c3-a33e-4cd3-8821-78e4c6d56d52',
 
 
 --
--- TOC entry 4549 (class 0 OID 17516)
--- Dependencies: 353
+-- TOC entry 4582 (class 0 OID 17516)
+-- Dependencies: 355
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4979,8 +5053,8 @@ INSERT INTO public.user_roles VALUES ('2f58229a-0be1-4751-9761-bf69ba943081', 'a
 
 
 --
--- TOC entry 4560 (class 0 OID 22222)
--- Dependencies: 365
+-- TOC entry 4593 (class 0 OID 22222)
+-- Dependencies: 367
 -- Data for Name: whatsapp_groups; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -4989,16 +5063,16 @@ INSERT INTO public.whatsapp_groups VALUES ('674a19a5-17be-4c9c-9190-f2ee425c311d
 
 
 --
--- TOC entry 4561 (class 0 OID 22234)
--- Dependencies: 366
+-- TOC entry 4594 (class 0 OID 22234)
+-- Dependencies: 368
 -- Data for Name: wishlists; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 
 
 --
--- TOC entry 4537 (class 0 OID 17120)
--- Dependencies: 337
+-- TOC entry 4570 (class 0 OID 17120)
+-- Dependencies: 339
 -- Data for Name: schema_migrations; Type: TABLE DATA; Schema: realtime; Owner: supabase_admin
 --
 
@@ -5073,16 +5147,16 @@ INSERT INTO realtime.schema_migrations VALUES (20260218120000, '2026-03-11 02:56
 
 
 --
--- TOC entry 4539 (class 0 OID 17143)
--- Dependencies: 340
+-- TOC entry 4572 (class 0 OID 17143)
+-- Dependencies: 342
 -- Data for Name: subscription; Type: TABLE DATA; Schema: realtime; Owner: supabase_admin
 --
 
 
 
 --
--- TOC entry 4541 (class 0 OID 17167)
--- Dependencies: 342
+-- TOC entry 4574 (class 0 OID 17167)
+-- Dependencies: 344
 -- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -5091,24 +5165,24 @@ INSERT INTO storage.buckets VALUES ('product-images', 'product-images', NULL, '2
 
 
 --
--- TOC entry 4545 (class 0 OID 17286)
--- Dependencies: 346
+-- TOC entry 4578 (class 0 OID 17286)
+-- Dependencies: 348
 -- Data for Name: buckets_analytics; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
 
 
 --
--- TOC entry 4546 (class 0 OID 17299)
--- Dependencies: 347
+-- TOC entry 4579 (class 0 OID 17299)
+-- Dependencies: 349
 -- Data for Name: buckets_vectors; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
 
 
 --
--- TOC entry 4540 (class 0 OID 17159)
--- Dependencies: 341
+-- TOC entry 4573 (class 0 OID 17159)
+-- Dependencies: 343
 -- Data for Name: migrations; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -5172,8 +5246,8 @@ INSERT INTO storage.migrations VALUES (56, 'fix-optimized-search-function', 'cb5
 
 
 --
--- TOC entry 4542 (class 0 OID 17177)
--- Dependencies: 343
+-- TOC entry 4575 (class 0 OID 17177)
+-- Dependencies: 345
 -- Data for Name: objects; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -5228,6 +5302,7 @@ INSERT INTO storage.objects VALUES ('f6628d26-e5b2-4d17-b26c-667b44bf17ac', 'pro
 INSERT INTO storage.objects VALUES ('123ce89b-59ce-4a36-8243-ca194d7d9d8c', 'product-images', '1773457831379-cxri70pha15.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-14 03:11:01.79225+00', '2026-03-14 03:11:01.79225+00', '2026-03-14 03:11:01.79225+00', '{"eTag": "\"010add4f5bf45104fc968a2c115c8929\"", "size": 58812, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-14T03:11:02.000Z", "contentLength": 58812, "httpStatusCode": 200}', DEFAULT, 'd10e7873-579e-4df1-abdc-17d3862a9d07', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('0e57c6dd-3ffa-4fee-b3ed-cc68d1cc07a9', 'banners', '1773619384319-tpa4dxpux9.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-16 00:03:37.041365+00', '2026-03-16 00:03:37.041365+00', '2026-03-16 00:03:37.041365+00', '{"eTag": "\"6f55f275a79f72c07c20af7543314915\"", "size": 80454, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-16T00:03:37.000Z", "contentLength": 80454, "httpStatusCode": 200}', DEFAULT, '676548be-00aa-43c6-ac1c-997765357d88', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('8e426741-e7ed-4441-bf1c-e35537ba47ae', 'product-images', '1773457839051-xs0z8u2q1qo.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-14 03:11:09.719292+00', '2026-03-14 03:11:09.719292+00', '2026-03-14 03:11:09.719292+00', '{"eTag": "\"52e701e3e33928e8c2352a88648c5140\"", "size": 66302, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-14T03:11:10.000Z", "contentLength": 66302, "httpStatusCode": 200}', DEFAULT, '921210b4-1d30-45e7-bd22-182fdf91e3f2', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
+INSERT INTO storage.objects VALUES ('1f862794-e6f4-42c4-93c4-8dbd11f0e210', 'product-images', '0.6134864885812055.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:19:59.810733+00', '2026-03-20 04:19:59.810733+00', '2026-03-20 04:19:59.810733+00', '{"eTag": "\"428259208844df77c4cbc58e609a1993\"", "size": 40324, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-20T04:20:00.000Z", "contentLength": 40324, "httpStatusCode": 200}', DEFAULT, '9b18d70b-8ae7-428f-8ae0-c5f426c9ba5d', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('175e0af9-5a98-4af1-b54f-49929f9a6658', 'product-images', '1773457847032-bsdnz709bx9.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-14 03:11:17.106853+00', '2026-03-14 03:11:17.106853+00', '2026-03-14 03:11:17.106853+00', '{"eTag": "\"8e28097db4a2193620101df438ad2c9a\"", "size": 30838, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-14T03:11:18.000Z", "contentLength": 30838, "httpStatusCode": 200}', DEFAULT, 'f9e5889c-1faf-48ce-a2be-de85a82d10e9', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('96432e7f-bf32-4064-ae5a-fc4a24d2164b', 'banners', '1773619766735-e310yiv6wj.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-16 00:09:59.511039+00', '2026-03-16 00:09:59.511039+00', '2026-03-16 00:09:59.511039+00', '{"eTag": "\"a8fc12a85e370bf4ac64c44b9172264c\"", "size": 121979, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-16T00:10:00.000Z", "contentLength": 121979, "httpStatusCode": 200}', DEFAULT, 'df52769b-2613-4346-82f1-f9d4f61e680e', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('392c845a-27a2-4d71-ae23-04a625e4db16', 'product-images', '1773585459422-tcljvwxjlvr.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-15 14:37:40.029847+00', '2026-03-15 14:37:40.029847+00', '2026-03-15 14:37:40.029847+00', '{"eTag": "\"f3a8078f49d7c9605fa5a28c05200f9f\"", "size": 48450, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-15T14:37:40.000Z", "contentLength": 48450, "httpStatusCode": 200}', DEFAULT, '3a28419b-392a-47e5-9875-fd18f96efb27', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
@@ -5275,6 +5350,8 @@ INSERT INTO storage.objects VALUES ('490d862e-322b-4a21-b9e5-9daca3af25f3', 'pro
 INSERT INTO storage.objects VALUES ('371180aa-5ffb-4e87-85df-3030339b6259', 'product-images', '1773943770749-b65e17433v.gif', NULL, '2026-03-19 18:09:31.579226+00', '2026-03-19 18:09:31.579226+00', '2026-03-19 18:09:31.579226+00', '{"eTag": "\"e68cc604cab69bf03b8cd228d940f5ef\"", "size": 43, "mimetype": "image/gif", "cacheControl": "max-age=3600", "lastModified": "2026-03-19T18:09:32.000Z", "contentLength": 43, "httpStatusCode": 200}', DEFAULT, '1d36c4ea-4d7a-469d-a996-425c534333c2', NULL, '{}');
 INSERT INTO storage.objects VALUES ('1b2ae532-ac73-47ff-b14e-b3ab534b125a', 'product-images', '0.7329282897085794.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-19 18:10:35.552357+00', '2026-03-19 18:10:35.552357+00', '2026-03-19 18:10:35.552357+00', '{"eTag": "\"266a96e9b143697a9c46d199417484a0\"", "size": 52075, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-19T18:10:36.000Z", "contentLength": 52075, "httpStatusCode": 200}', DEFAULT, '86eb9db8-fded-4e90-becf-dce6cd30fe0c', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('b62bc6a8-dd72-4904-b403-5af4e81df1ba', 'product-images', '1773944375746-m69p5zi3hf.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-19 18:20:11.888755+00', '2026-03-19 18:20:11.888755+00', '2026-03-19 18:20:11.888755+00', '{"eTag": "\"04d978ae1150640f2a833a0c4ab652d3\"", "size": 146049, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-19T18:20:12.000Z", "contentLength": 146049, "httpStatusCode": 200}', DEFAULT, '730faa80-fae2-4b69-9875-2638d9816867', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
+INSERT INTO storage.objects VALUES ('2f784977-1f84-44e3-bd8d-5afcd35d576e', 'product-images', '0.8164285745752561.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:19:59.871651+00', '2026-03-20 04:19:59.871651+00', '2026-03-20 04:19:59.871651+00', '{"eTag": "\"7339b5e6730b7399071f8f8907f57364\"", "size": 27160, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-20T04:20:00.000Z", "contentLength": 27160, "httpStatusCode": 200}', DEFAULT, '6ed26a4a-8053-46d8-b514-eb42787d86d2', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
+INSERT INTO storage.objects VALUES ('0925fe04-6da9-483e-a4fa-6d6009d89985', 'product-images', '0.9127688623400663.webp', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-20 04:19:59.898379+00', '2026-03-20 04:19:59.898379+00', '2026-03-20 04:19:59.898379+00', '{"eTag": "\"54a6b6b67ad4a1aec8dfa6cd6274dfb4\"", "size": 19270, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-20T04:20:00.000Z", "contentLength": 19270, "httpStatusCode": 200}', DEFAULT, 'c4ea488c-f280-4161-acde-64928f04c889', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('49cea1fe-e409-4641-9562-dfec4070aa49', 'product-images', '0.2583498149717929.jpg', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '2026-03-19 17:58:32.127907+00', '2026-03-19 17:58:32.127907+00', '2026-03-19 17:58:32.127907+00', '{"eTag": "\"387bbfb3bcb58846617037451813d56b\"", "size": 101313, "mimetype": "image/jpeg", "cacheControl": "max-age=3600", "lastModified": "2026-03-19T17:58:33.000Z", "contentLength": 101313, "httpStatusCode": 200}', DEFAULT, '029ff0d5-dbf9-4cc4-ae52-f2ca3fcd5c7d', '18826abb-41b4-49d6-a62d-1ec9b3a0ddb6', '{}');
 INSERT INTO storage.objects VALUES ('a6382276-35de-4329-bb82-f41e6682e6d8', 'product-images', '0.2582148944815016.webp', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '2026-03-16 20:32:35.919239+00', '2026-03-16 20:32:35.919239+00', '2026-03-16 20:32:35.919239+00', '{"eTag": "\"6d769eba4bdc4d1805057ea92330931f\"", "size": 20040, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-16T20:32:36.000Z", "contentLength": 20040, "httpStatusCode": 200}', DEFAULT, 'ae28849c-865b-4a66-94bd-51485b4b4945', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '{}');
 INSERT INTO storage.objects VALUES ('b37e05ef-c522-490b-8301-2e87aac20872', 'product-images', '0.46384725213935984.webp', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '2026-03-16 20:32:35.958356+00', '2026-03-16 20:32:35.958356+00', '2026-03-16 20:32:35.958356+00', '{"eTag": "\"eabf879e3337f1d11aae7db4c927a0b8\"", "size": 103954, "mimetype": "image/webp", "cacheControl": "max-age=3600", "lastModified": "2026-03-16T20:32:36.000Z", "contentLength": 103954, "httpStatusCode": 200}', DEFAULT, 'b2c1f70b-8082-4803-83e2-b65862817c8c', 'ae8dfd8c-5182-41d7-9a4a-c02ebba36890', '{}');
@@ -5335,49 +5412,49 @@ INSERT INTO storage.objects VALUES ('a932791f-183c-4997-ab6b-89fdc7059064', 'pro
 
 
 --
--- TOC entry 4543 (class 0 OID 17226)
--- Dependencies: 344
+-- TOC entry 4576 (class 0 OID 17226)
+-- Dependencies: 346
 -- Data for Name: s3_multipart_uploads; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
 
 
 --
--- TOC entry 4544 (class 0 OID 17240)
--- Dependencies: 345
+-- TOC entry 4577 (class 0 OID 17240)
+-- Dependencies: 347
 -- Data for Name: s3_multipart_uploads_parts; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
 
 
 --
--- TOC entry 4547 (class 0 OID 17309)
--- Dependencies: 348
+-- TOC entry 4580 (class 0 OID 17309)
+-- Dependencies: 350
 -- Data for Name: vector_indexes; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
 
 
 --
--- TOC entry 3738 (class 0 OID 16608)
--- Dependencies: 318
+-- TOC entry 3748 (class 0 OID 16608)
+-- Dependencies: 320
 -- Data for Name: secrets; Type: TABLE DATA; Schema: vault; Owner: supabase_admin
 --
 
 
 
 --
--- TOC entry 4773 (class 0 OID 0)
--- Dependencies: 313
+-- TOC entry 4810 (class 0 OID 0)
+-- Dependencies: 315
 -- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
 --
 
-SELECT pg_catalog.setval('auth.refresh_tokens_id_seq', 79, true);
+SELECT pg_catalog.setval('auth.refresh_tokens_id_seq', 83, true);
 
 
 --
--- TOC entry 4774 (class 0 OID 0)
--- Dependencies: 339
+-- TOC entry 4811 (class 0 OID 0)
+-- Dependencies: 341
 -- Name: subscription_id_seq; Type: SEQUENCE SET; Schema: realtime; Owner: supabase_admin
 --
 
@@ -5385,7 +5462,7 @@ SELECT pg_catalog.setval('realtime.subscription_id_seq', 1, false);
 
 
 --
--- TOC entry 3995 (class 2606 OID 16783)
+-- TOC entry 4018 (class 2606 OID 16783)
 -- Name: mfa_amr_claims amr_id_pk; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5394,7 +5471,7 @@ ALTER TABLE ONLY auth.mfa_amr_claims
 
 
 --
--- TOC entry 3964 (class 2606 OID 16531)
+-- TOC entry 3987 (class 2606 OID 16531)
 -- Name: audit_log_entries audit_log_entries_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5403,7 +5480,7 @@ ALTER TABLE ONLY auth.audit_log_entries
 
 
 --
--- TOC entry 4050 (class 2606 OID 17115)
+-- TOC entry 4073 (class 2606 OID 17115)
 -- Name: custom_oauth_providers custom_oauth_providers_identifier_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5412,7 +5489,7 @@ ALTER TABLE ONLY auth.custom_oauth_providers
 
 
 --
--- TOC entry 4052 (class 2606 OID 17113)
+-- TOC entry 4075 (class 2606 OID 17113)
 -- Name: custom_oauth_providers custom_oauth_providers_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5421,7 +5498,7 @@ ALTER TABLE ONLY auth.custom_oauth_providers
 
 
 --
--- TOC entry 4018 (class 2606 OID 16889)
+-- TOC entry 4041 (class 2606 OID 16889)
 -- Name: flow_state flow_state_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5430,7 +5507,7 @@ ALTER TABLE ONLY auth.flow_state
 
 
 --
--- TOC entry 3973 (class 2606 OID 16907)
+-- TOC entry 3996 (class 2606 OID 16907)
 -- Name: identities identities_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5439,7 +5516,7 @@ ALTER TABLE ONLY auth.identities
 
 
 --
--- TOC entry 3975 (class 2606 OID 16917)
+-- TOC entry 3998 (class 2606 OID 16917)
 -- Name: identities identities_provider_id_provider_unique; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5448,7 +5525,7 @@ ALTER TABLE ONLY auth.identities
 
 
 --
--- TOC entry 3962 (class 2606 OID 16524)
+-- TOC entry 3985 (class 2606 OID 16524)
 -- Name: instances instances_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5457,7 +5534,7 @@ ALTER TABLE ONLY auth.instances
 
 
 --
--- TOC entry 3997 (class 2606 OID 16776)
+-- TOC entry 4020 (class 2606 OID 16776)
 -- Name: mfa_amr_claims mfa_amr_claims_session_id_authentication_method_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5466,7 +5543,7 @@ ALTER TABLE ONLY auth.mfa_amr_claims
 
 
 --
--- TOC entry 3993 (class 2606 OID 16764)
+-- TOC entry 4016 (class 2606 OID 16764)
 -- Name: mfa_challenges mfa_challenges_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5475,7 +5552,7 @@ ALTER TABLE ONLY auth.mfa_challenges
 
 
 --
--- TOC entry 3985 (class 2606 OID 16957)
+-- TOC entry 4008 (class 2606 OID 16957)
 -- Name: mfa_factors mfa_factors_last_challenged_at_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5484,7 +5561,7 @@ ALTER TABLE ONLY auth.mfa_factors
 
 
 --
--- TOC entry 3987 (class 2606 OID 16751)
+-- TOC entry 4010 (class 2606 OID 16751)
 -- Name: mfa_factors mfa_factors_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5493,7 +5570,7 @@ ALTER TABLE ONLY auth.mfa_factors
 
 
 --
--- TOC entry 4031 (class 2606 OID 17016)
+-- TOC entry 4054 (class 2606 OID 17016)
 -- Name: oauth_authorizations oauth_authorizations_authorization_code_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5502,7 +5579,7 @@ ALTER TABLE ONLY auth.oauth_authorizations
 
 
 --
--- TOC entry 4033 (class 2606 OID 17014)
+-- TOC entry 4056 (class 2606 OID 17014)
 -- Name: oauth_authorizations oauth_authorizations_authorization_id_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5511,7 +5588,7 @@ ALTER TABLE ONLY auth.oauth_authorizations
 
 
 --
--- TOC entry 4035 (class 2606 OID 17012)
+-- TOC entry 4058 (class 2606 OID 17012)
 -- Name: oauth_authorizations oauth_authorizations_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5520,7 +5597,7 @@ ALTER TABLE ONLY auth.oauth_authorizations
 
 
 --
--- TOC entry 4045 (class 2606 OID 17074)
+-- TOC entry 4068 (class 2606 OID 17074)
 -- Name: oauth_client_states oauth_client_states_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5529,7 +5606,7 @@ ALTER TABLE ONLY auth.oauth_client_states
 
 
 --
--- TOC entry 4028 (class 2606 OID 16976)
+-- TOC entry 4051 (class 2606 OID 16976)
 -- Name: oauth_clients oauth_clients_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5538,7 +5615,7 @@ ALTER TABLE ONLY auth.oauth_clients
 
 
 --
--- TOC entry 4039 (class 2606 OID 17038)
+-- TOC entry 4062 (class 2606 OID 17038)
 -- Name: oauth_consents oauth_consents_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5547,7 +5624,7 @@ ALTER TABLE ONLY auth.oauth_consents
 
 
 --
--- TOC entry 4041 (class 2606 OID 17040)
+-- TOC entry 4064 (class 2606 OID 17040)
 -- Name: oauth_consents oauth_consents_user_client_unique; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5556,7 +5633,7 @@ ALTER TABLE ONLY auth.oauth_consents
 
 
 --
--- TOC entry 4022 (class 2606 OID 16942)
+-- TOC entry 4045 (class 2606 OID 16942)
 -- Name: one_time_tokens one_time_tokens_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5565,7 +5642,7 @@ ALTER TABLE ONLY auth.one_time_tokens
 
 
 --
--- TOC entry 3956 (class 2606 OID 16514)
+-- TOC entry 3979 (class 2606 OID 16514)
 -- Name: refresh_tokens refresh_tokens_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5574,7 +5651,7 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 
 --
--- TOC entry 3959 (class 2606 OID 16694)
+-- TOC entry 3982 (class 2606 OID 16694)
 -- Name: refresh_tokens refresh_tokens_token_unique; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5583,7 +5660,7 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 
 --
--- TOC entry 4007 (class 2606 OID 16823)
+-- TOC entry 4030 (class 2606 OID 16823)
 -- Name: saml_providers saml_providers_entity_id_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5592,7 +5669,7 @@ ALTER TABLE ONLY auth.saml_providers
 
 
 --
--- TOC entry 4009 (class 2606 OID 16821)
+-- TOC entry 4032 (class 2606 OID 16821)
 -- Name: saml_providers saml_providers_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5601,7 +5678,7 @@ ALTER TABLE ONLY auth.saml_providers
 
 
 --
--- TOC entry 4014 (class 2606 OID 16837)
+-- TOC entry 4037 (class 2606 OID 16837)
 -- Name: saml_relay_states saml_relay_states_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5610,7 +5687,7 @@ ALTER TABLE ONLY auth.saml_relay_states
 
 
 --
--- TOC entry 3967 (class 2606 OID 16537)
+-- TOC entry 3990 (class 2606 OID 16537)
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5619,7 +5696,7 @@ ALTER TABLE ONLY auth.schema_migrations
 
 
 --
--- TOC entry 3980 (class 2606 OID 16715)
+-- TOC entry 4003 (class 2606 OID 16715)
 -- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5628,7 +5705,7 @@ ALTER TABLE ONLY auth.sessions
 
 
 --
--- TOC entry 4004 (class 2606 OID 16804)
+-- TOC entry 4027 (class 2606 OID 16804)
 -- Name: sso_domains sso_domains_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5637,7 +5714,7 @@ ALTER TABLE ONLY auth.sso_domains
 
 
 --
--- TOC entry 3999 (class 2606 OID 16795)
+-- TOC entry 4022 (class 2606 OID 16795)
 -- Name: sso_providers sso_providers_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5646,7 +5723,7 @@ ALTER TABLE ONLY auth.sso_providers
 
 
 --
--- TOC entry 3949 (class 2606 OID 16877)
+-- TOC entry 3972 (class 2606 OID 16877)
 -- Name: users users_phone_key; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5655,7 +5732,7 @@ ALTER TABLE ONLY auth.users
 
 
 --
--- TOC entry 3951 (class 2606 OID 16501)
+-- TOC entry 3974 (class 2606 OID 16501)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -5664,7 +5741,25 @@ ALTER TABLE ONLY auth.users
 
 
 --
--- TOC entry 4102 (class 2606 OID 17556)
+-- TOC entry 4207 (class 2606 OID 27153)
+-- Name: webauthn_challenges webauthn_challenges_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.webauthn_challenges
+    ADD CONSTRAINT webauthn_challenges_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4203 (class 2606 OID 27136)
+-- Name: webauthn_credentials webauthn_credentials_pkey; Type: CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.webauthn_credentials
+    ADD CONSTRAINT webauthn_credentials_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4125 (class 2606 OID 17556)
 -- Name: banners banners_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5673,7 +5768,7 @@ ALTER TABLE ONLY public.banners
 
 
 --
--- TOC entry 4108 (class 2606 OID 22139)
+-- TOC entry 4131 (class 2606 OID 22139)
 -- Name: brands brands_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5682,7 +5777,7 @@ ALTER TABLE ONLY public.brands
 
 
 --
--- TOC entry 4110 (class 2606 OID 22137)
+-- TOC entry 4133 (class 2606 OID 22137)
 -- Name: brands brands_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5691,7 +5786,7 @@ ALTER TABLE ONLY public.brands
 
 
 --
--- TOC entry 4120 (class 2606 OID 22183)
+-- TOC entry 4143 (class 2606 OID 22183)
 -- Name: categories categories_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5700,7 +5795,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- TOC entry 4122 (class 2606 OID 22181)
+-- TOC entry 4145 (class 2606 OID 22181)
 -- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5709,7 +5804,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- TOC entry 4124 (class 2606 OID 22185)
+-- TOC entry 4147 (class 2606 OID 22185)
 -- Name: categories categories_slug_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5718,7 +5813,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
--- TOC entry 4164 (class 2606 OID 22464)
+-- TOC entry 4187 (class 2606 OID 22464)
 -- Name: coupon_votes coupon_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5727,7 +5822,7 @@ ALTER TABLE ONLY public.coupon_votes
 
 
 --
--- TOC entry 4166 (class 2606 OID 22468)
+-- TOC entry 4189 (class 2606 OID 22468)
 -- Name: coupon_votes coupon_votes_session_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5736,7 +5831,7 @@ ALTER TABLE ONLY public.coupon_votes
 
 
 --
--- TOC entry 4168 (class 2606 OID 22466)
+-- TOC entry 4191 (class 2606 OID 22466)
 -- Name: coupon_votes coupon_votes_user_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5745,7 +5840,7 @@ ALTER TABLE ONLY public.coupon_votes
 
 
 --
--- TOC entry 4160 (class 2606 OID 22450)
+-- TOC entry 4183 (class 2606 OID 22450)
 -- Name: coupons coupons_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5754,7 +5849,7 @@ ALTER TABLE ONLY public.coupons
 
 
 --
--- TOC entry 4156 (class 2606 OID 22435)
+-- TOC entry 4179 (class 2606 OID 22435)
 -- Name: institutional_pages institutional_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5763,7 +5858,7 @@ ALTER TABLE ONLY public.institutional_pages
 
 
 --
--- TOC entry 4158 (class 2606 OID 22437)
+-- TOC entry 4181 (class 2606 OID 22437)
 -- Name: institutional_pages institutional_pages_slug_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5772,7 +5867,7 @@ ALTER TABLE ONLY public.institutional_pages
 
 
 --
--- TOC entry 4112 (class 2606 OID 22152)
+-- TOC entry 4135 (class 2606 OID 22152)
 -- Name: models models_brand_id_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5781,7 +5876,7 @@ ALTER TABLE ONLY public.models
 
 
 --
--- TOC entry 4114 (class 2606 OID 22150)
+-- TOC entry 4137 (class 2606 OID 22150)
 -- Name: models models_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5790,7 +5885,7 @@ ALTER TABLE ONLY public.models
 
 
 --
--- TOC entry 4152 (class 2606 OID 22385)
+-- TOC entry 4175 (class 2606 OID 22385)
 -- Name: newsletter_products newsletter_products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5799,7 +5894,7 @@ ALTER TABLE ONLY public.newsletter_products
 
 
 --
--- TOC entry 4150 (class 2606 OID 22380)
+-- TOC entry 4173 (class 2606 OID 22380)
 -- Name: newsletters newsletters_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5808,7 +5903,7 @@ ALTER TABLE ONLY public.newsletters
 
 
 --
--- TOC entry 4116 (class 2606 OID 22170)
+-- TOC entry 4139 (class 2606 OID 22170)
 -- Name: platforms platforms_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5817,7 +5912,7 @@ ALTER TABLE ONLY public.platforms
 
 
 --
--- TOC entry 4118 (class 2606 OID 22168)
+-- TOC entry 4141 (class 2606 OID 22168)
 -- Name: platforms platforms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5826,7 +5921,7 @@ ALTER TABLE ONLY public.platforms
 
 
 --
--- TOC entry 4154 (class 2606 OID 22416)
+-- TOC entry 4177 (class 2606 OID 22416)
 -- Name: price_history price_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5835,7 +5930,7 @@ ALTER TABLE ONLY public.price_history
 
 
 --
--- TOC entry 4144 (class 2606 OID 22334)
+-- TOC entry 4167 (class 2606 OID 22334)
 -- Name: product_clicks product_clicks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5844,7 +5939,7 @@ ALTER TABLE ONLY public.product_clicks
 
 
 --
--- TOC entry 4140 (class 2606 OID 22260)
+-- TOC entry 4163 (class 2606 OID 22260)
 -- Name: product_likes product_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5853,7 +5948,7 @@ ALTER TABLE ONLY public.product_likes
 
 
 --
--- TOC entry 4142 (class 2606 OID 22262)
+-- TOC entry 4165 (class 2606 OID 22262)
 -- Name: product_likes product_likes_user_id_product_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5862,7 +5957,7 @@ ALTER TABLE ONLY public.product_likes
 
 
 --
--- TOC entry 4146 (class 2606 OID 22355)
+-- TOC entry 4169 (class 2606 OID 22355)
 -- Name: product_trust_votes product_trust_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5871,7 +5966,7 @@ ALTER TABLE ONLY public.product_trust_votes
 
 
 --
--- TOC entry 4148 (class 2606 OID 22357)
+-- TOC entry 4171 (class 2606 OID 22357)
 -- Name: product_trust_votes product_trust_votes_user_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5880,7 +5975,7 @@ ALTER TABLE ONLY public.product_trust_votes
 
 
 --
--- TOC entry 4099 (class 2606 OID 17544)
+-- TOC entry 4122 (class 2606 OID 17544)
 -- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5889,7 +5984,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4090 (class 2606 OID 17513)
+-- TOC entry 4113 (class 2606 OID 17513)
 -- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5898,7 +5993,7 @@ ALTER TABLE ONLY public.profiles
 
 
 --
--- TOC entry 4092 (class 2606 OID 17515)
+-- TOC entry 4115 (class 2606 OID 17515)
 -- Name: profiles profiles_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5907,7 +6002,7 @@ ALTER TABLE ONLY public.profiles
 
 
 --
--- TOC entry 4106 (class 2606 OID 17582)
+-- TOC entry 4129 (class 2606 OID 17582)
 -- Name: reports reports_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5916,7 +6011,7 @@ ALTER TABLE ONLY public.reports
 
 
 --
--- TOC entry 4104 (class 2606 OID 17567)
+-- TOC entry 4127 (class 2606 OID 17567)
 -- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5925,7 +6020,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- TOC entry 4172 (class 2606 OID 25980)
+-- TOC entry 4195 (class 2606 OID 25980)
 -- Name: shopee_product_mappings shopee_product_mappings_item_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5934,7 +6029,7 @@ ALTER TABLE ONLY public.shopee_product_mappings
 
 
 --
--- TOC entry 4174 (class 2606 OID 25978)
+-- TOC entry 4197 (class 2606 OID 25978)
 -- Name: shopee_product_mappings shopee_product_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5943,7 +6038,7 @@ ALTER TABLE ONLY public.shopee_product_mappings
 
 
 --
--- TOC entry 4177 (class 2606 OID 25998)
+-- TOC entry 4200 (class 2606 OID 25998)
 -- Name: shopee_sync_logs shopee_sync_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5952,7 +6047,7 @@ ALTER TABLE ONLY public.shopee_sync_logs
 
 
 --
--- TOC entry 4130 (class 2606 OID 22207)
+-- TOC entry 4153 (class 2606 OID 22207)
 -- Name: special_page_products special_page_products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5961,7 +6056,7 @@ ALTER TABLE ONLY public.special_page_products
 
 
 --
--- TOC entry 4132 (class 2606 OID 22209)
+-- TOC entry 4155 (class 2606 OID 22209)
 -- Name: special_page_products special_page_products_special_page_id_product_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5970,7 +6065,7 @@ ALTER TABLE ONLY public.special_page_products
 
 
 --
--- TOC entry 4126 (class 2606 OID 22197)
+-- TOC entry 4149 (class 2606 OID 22197)
 -- Name: special_pages special_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5979,7 +6074,7 @@ ALTER TABLE ONLY public.special_pages
 
 
 --
--- TOC entry 4128 (class 2606 OID 22199)
+-- TOC entry 4151 (class 2606 OID 22199)
 -- Name: special_pages special_pages_slug_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5988,7 +6083,7 @@ ALTER TABLE ONLY public.special_pages
 
 
 --
--- TOC entry 4162 (class 2606 OID 23729)
+-- TOC entry 4185 (class 2606 OID 23729)
 -- Name: coupons uq_coupons_platform_code; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -5997,7 +6092,7 @@ ALTER TABLE ONLY public.coupons
 
 
 --
--- TOC entry 4094 (class 2606 OID 17522)
+-- TOC entry 4117 (class 2606 OID 17522)
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6006,7 +6101,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 4096 (class 2606 OID 17524)
+-- TOC entry 4119 (class 2606 OID 17524)
 -- Name: user_roles user_roles_user_id_role_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6015,7 +6110,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 4134 (class 2606 OID 22231)
+-- TOC entry 4157 (class 2606 OID 22231)
 -- Name: whatsapp_groups whatsapp_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6024,7 +6119,7 @@ ALTER TABLE ONLY public.whatsapp_groups
 
 
 --
--- TOC entry 4136 (class 2606 OID 22240)
+-- TOC entry 4159 (class 2606 OID 22240)
 -- Name: wishlists wishlists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6033,7 +6128,7 @@ ALTER TABLE ONLY public.wishlists
 
 
 --
--- TOC entry 4138 (class 2606 OID 22242)
+-- TOC entry 4161 (class 2606 OID 22242)
 -- Name: wishlists wishlists_user_id_product_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6042,7 +6137,7 @@ ALTER TABLE ONLY public.wishlists
 
 
 --
--- TOC entry 4088 (class 2606 OID 17489)
+-- TOC entry 4111 (class 2606 OID 17489)
 -- Name: messages messages_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -6051,7 +6146,7 @@ ALTER TABLE ONLY realtime.messages
 
 
 --
--- TOC entry 4058 (class 2606 OID 17151)
+-- TOC entry 4081 (class 2606 OID 17151)
 -- Name: subscription pk_subscription; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
@@ -6060,7 +6155,7 @@ ALTER TABLE ONLY realtime.subscription
 
 
 --
--- TOC entry 4055 (class 2606 OID 17124)
+-- TOC entry 4078 (class 2606 OID 17124)
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: realtime; Owner: supabase_admin
 --
 
@@ -6069,7 +6164,7 @@ ALTER TABLE ONLY realtime.schema_migrations
 
 
 --
--- TOC entry 4079 (class 2606 OID 17332)
+-- TOC entry 4102 (class 2606 OID 17332)
 -- Name: buckets_analytics buckets_analytics_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6078,7 +6173,7 @@ ALTER TABLE ONLY storage.buckets_analytics
 
 
 --
--- TOC entry 4066 (class 2606 OID 17175)
+-- TOC entry 4089 (class 2606 OID 17175)
 -- Name: buckets buckets_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6087,7 +6182,7 @@ ALTER TABLE ONLY storage.buckets
 
 
 --
--- TOC entry 4082 (class 2606 OID 17308)
+-- TOC entry 4105 (class 2606 OID 17308)
 -- Name: buckets_vectors buckets_vectors_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6096,7 +6191,7 @@ ALTER TABLE ONLY storage.buckets_vectors
 
 
 --
--- TOC entry 4061 (class 2606 OID 17166)
+-- TOC entry 4084 (class 2606 OID 17166)
 -- Name: migrations migrations_name_key; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6105,7 +6200,7 @@ ALTER TABLE ONLY storage.migrations
 
 
 --
--- TOC entry 4063 (class 2606 OID 17164)
+-- TOC entry 4086 (class 2606 OID 17164)
 -- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6114,7 +6209,7 @@ ALTER TABLE ONLY storage.migrations
 
 
 --
--- TOC entry 4072 (class 2606 OID 17187)
+-- TOC entry 4095 (class 2606 OID 17187)
 -- Name: objects objects_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6123,7 +6218,7 @@ ALTER TABLE ONLY storage.objects
 
 
 --
--- TOC entry 4077 (class 2606 OID 17249)
+-- TOC entry 4100 (class 2606 OID 17249)
 -- Name: s3_multipart_uploads_parts s3_multipart_uploads_parts_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6132,7 +6227,7 @@ ALTER TABLE ONLY storage.s3_multipart_uploads_parts
 
 
 --
--- TOC entry 4075 (class 2606 OID 17234)
+-- TOC entry 4098 (class 2606 OID 17234)
 -- Name: s3_multipart_uploads s3_multipart_uploads_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6141,7 +6236,7 @@ ALTER TABLE ONLY storage.s3_multipart_uploads
 
 
 --
--- TOC entry 4085 (class 2606 OID 17318)
+-- TOC entry 4108 (class 2606 OID 17318)
 -- Name: vector_indexes vector_indexes_pkey; Type: CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6150,7 +6245,7 @@ ALTER TABLE ONLY storage.vector_indexes
 
 
 --
--- TOC entry 3965 (class 1259 OID 16532)
+-- TOC entry 3988 (class 1259 OID 16532)
 -- Name: audit_logs_instance_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6158,7 +6253,7 @@ CREATE INDEX audit_logs_instance_id_idx ON auth.audit_log_entries USING btree (i
 
 
 --
--- TOC entry 3939 (class 1259 OID 16704)
+-- TOC entry 3962 (class 1259 OID 16704)
 -- Name: confirmation_token_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6166,7 +6261,7 @@ CREATE UNIQUE INDEX confirmation_token_idx ON auth.users USING btree (confirmati
 
 
 --
--- TOC entry 4046 (class 1259 OID 17119)
+-- TOC entry 4069 (class 1259 OID 17119)
 -- Name: custom_oauth_providers_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6174,7 +6269,7 @@ CREATE INDEX custom_oauth_providers_created_at_idx ON auth.custom_oauth_provider
 
 
 --
--- TOC entry 4047 (class 1259 OID 17118)
+-- TOC entry 4070 (class 1259 OID 17118)
 -- Name: custom_oauth_providers_enabled_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6182,7 +6277,7 @@ CREATE INDEX custom_oauth_providers_enabled_idx ON auth.custom_oauth_providers U
 
 
 --
--- TOC entry 4048 (class 1259 OID 17116)
+-- TOC entry 4071 (class 1259 OID 17116)
 -- Name: custom_oauth_providers_identifier_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6190,7 +6285,7 @@ CREATE INDEX custom_oauth_providers_identifier_idx ON auth.custom_oauth_provider
 
 
 --
--- TOC entry 4053 (class 1259 OID 17117)
+-- TOC entry 4076 (class 1259 OID 17117)
 -- Name: custom_oauth_providers_provider_type_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6198,7 +6293,7 @@ CREATE INDEX custom_oauth_providers_provider_type_idx ON auth.custom_oauth_provi
 
 
 --
--- TOC entry 3940 (class 1259 OID 16706)
+-- TOC entry 3963 (class 1259 OID 16706)
 -- Name: email_change_token_current_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6206,7 +6301,7 @@ CREATE UNIQUE INDEX email_change_token_current_idx ON auth.users USING btree (em
 
 
 --
--- TOC entry 3941 (class 1259 OID 16707)
+-- TOC entry 3964 (class 1259 OID 16707)
 -- Name: email_change_token_new_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6214,7 +6309,7 @@ CREATE UNIQUE INDEX email_change_token_new_idx ON auth.users USING btree (email_
 
 
 --
--- TOC entry 3983 (class 1259 OID 16785)
+-- TOC entry 4006 (class 1259 OID 16785)
 -- Name: factor_id_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6222,7 +6317,7 @@ CREATE INDEX factor_id_created_at_idx ON auth.mfa_factors USING btree (user_id, 
 
 
 --
--- TOC entry 4016 (class 1259 OID 16893)
+-- TOC entry 4039 (class 1259 OID 16893)
 -- Name: flow_state_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6230,7 +6325,7 @@ CREATE INDEX flow_state_created_at_idx ON auth.flow_state USING btree (created_a
 
 
 --
--- TOC entry 3971 (class 1259 OID 16873)
+-- TOC entry 3994 (class 1259 OID 16873)
 -- Name: identities_email_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6238,8 +6333,8 @@ CREATE INDEX identities_email_idx ON auth.identities USING btree (email text_pat
 
 
 --
--- TOC entry 4775 (class 0 OID 0)
--- Dependencies: 3971
+-- TOC entry 4812 (class 0 OID 0)
+-- Dependencies: 3994
 -- Name: INDEX identities_email_idx; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6247,7 +6342,7 @@ COMMENT ON INDEX auth.identities_email_idx IS 'Auth: Ensures indexed queries on 
 
 
 --
--- TOC entry 3976 (class 1259 OID 16701)
+-- TOC entry 3999 (class 1259 OID 16701)
 -- Name: identities_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6255,7 +6350,7 @@ CREATE INDEX identities_user_id_idx ON auth.identities USING btree (user_id);
 
 
 --
--- TOC entry 4019 (class 1259 OID 16890)
+-- TOC entry 4042 (class 1259 OID 16890)
 -- Name: idx_auth_code; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6263,7 +6358,7 @@ CREATE INDEX idx_auth_code ON auth.flow_state USING btree (auth_code);
 
 
 --
--- TOC entry 4043 (class 1259 OID 17075)
+-- TOC entry 4066 (class 1259 OID 17075)
 -- Name: idx_oauth_client_states_created_at; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6271,7 +6366,7 @@ CREATE INDEX idx_oauth_client_states_created_at ON auth.oauth_client_states USIN
 
 
 --
--- TOC entry 4020 (class 1259 OID 16891)
+-- TOC entry 4043 (class 1259 OID 16891)
 -- Name: idx_user_id_auth_method; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6279,7 +6374,7 @@ CREATE INDEX idx_user_id_auth_method ON auth.flow_state USING btree (user_id, au
 
 
 --
--- TOC entry 3991 (class 1259 OID 16896)
+-- TOC entry 4014 (class 1259 OID 16896)
 -- Name: mfa_challenge_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6287,7 +6382,7 @@ CREATE INDEX mfa_challenge_created_at_idx ON auth.mfa_challenges USING btree (cr
 
 
 --
--- TOC entry 3988 (class 1259 OID 16757)
+-- TOC entry 4011 (class 1259 OID 16757)
 -- Name: mfa_factors_user_friendly_name_unique; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6295,7 +6390,7 @@ CREATE UNIQUE INDEX mfa_factors_user_friendly_name_unique ON auth.mfa_factors US
 
 
 --
--- TOC entry 3989 (class 1259 OID 16902)
+-- TOC entry 4012 (class 1259 OID 16902)
 -- Name: mfa_factors_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6303,7 +6398,7 @@ CREATE INDEX mfa_factors_user_id_idx ON auth.mfa_factors USING btree (user_id);
 
 
 --
--- TOC entry 4029 (class 1259 OID 17027)
+-- TOC entry 4052 (class 1259 OID 17027)
 -- Name: oauth_auth_pending_exp_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6311,7 +6406,7 @@ CREATE INDEX oauth_auth_pending_exp_idx ON auth.oauth_authorizations USING btree
 
 
 --
--- TOC entry 4026 (class 1259 OID 16980)
+-- TOC entry 4049 (class 1259 OID 16980)
 -- Name: oauth_clients_deleted_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6319,7 +6414,7 @@ CREATE INDEX oauth_clients_deleted_at_idx ON auth.oauth_clients USING btree (del
 
 
 --
--- TOC entry 4036 (class 1259 OID 17053)
+-- TOC entry 4059 (class 1259 OID 17053)
 -- Name: oauth_consents_active_client_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6327,7 +6422,7 @@ CREATE INDEX oauth_consents_active_client_idx ON auth.oauth_consents USING btree
 
 
 --
--- TOC entry 4037 (class 1259 OID 17051)
+-- TOC entry 4060 (class 1259 OID 17051)
 -- Name: oauth_consents_active_user_client_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6335,7 +6430,7 @@ CREATE INDEX oauth_consents_active_user_client_idx ON auth.oauth_consents USING 
 
 
 --
--- TOC entry 4042 (class 1259 OID 17052)
+-- TOC entry 4065 (class 1259 OID 17052)
 -- Name: oauth_consents_user_order_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6343,7 +6438,7 @@ CREATE INDEX oauth_consents_user_order_idx ON auth.oauth_consents USING btree (u
 
 
 --
--- TOC entry 4023 (class 1259 OID 16949)
+-- TOC entry 4046 (class 1259 OID 16949)
 -- Name: one_time_tokens_relates_to_hash_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6351,7 +6446,7 @@ CREATE INDEX one_time_tokens_relates_to_hash_idx ON auth.one_time_tokens USING h
 
 
 --
--- TOC entry 4024 (class 1259 OID 16948)
+-- TOC entry 4047 (class 1259 OID 16948)
 -- Name: one_time_tokens_token_hash_hash_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6359,7 +6454,7 @@ CREATE INDEX one_time_tokens_token_hash_hash_idx ON auth.one_time_tokens USING h
 
 
 --
--- TOC entry 4025 (class 1259 OID 16950)
+-- TOC entry 4048 (class 1259 OID 16950)
 -- Name: one_time_tokens_user_id_token_type_key; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6367,7 +6462,7 @@ CREATE UNIQUE INDEX one_time_tokens_user_id_token_type_key ON auth.one_time_toke
 
 
 --
--- TOC entry 3942 (class 1259 OID 16708)
+-- TOC entry 3965 (class 1259 OID 16708)
 -- Name: reauthentication_token_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6375,7 +6470,7 @@ CREATE UNIQUE INDEX reauthentication_token_idx ON auth.users USING btree (reauth
 
 
 --
--- TOC entry 3943 (class 1259 OID 16705)
+-- TOC entry 3966 (class 1259 OID 16705)
 -- Name: recovery_token_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6383,7 +6478,7 @@ CREATE UNIQUE INDEX recovery_token_idx ON auth.users USING btree (recovery_token
 
 
 --
--- TOC entry 3952 (class 1259 OID 16515)
+-- TOC entry 3975 (class 1259 OID 16515)
 -- Name: refresh_tokens_instance_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6391,7 +6486,7 @@ CREATE INDEX refresh_tokens_instance_id_idx ON auth.refresh_tokens USING btree (
 
 
 --
--- TOC entry 3953 (class 1259 OID 16516)
+-- TOC entry 3976 (class 1259 OID 16516)
 -- Name: refresh_tokens_instance_id_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6399,7 +6494,7 @@ CREATE INDEX refresh_tokens_instance_id_user_id_idx ON auth.refresh_tokens USING
 
 
 --
--- TOC entry 3954 (class 1259 OID 16700)
+-- TOC entry 3977 (class 1259 OID 16700)
 -- Name: refresh_tokens_parent_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6407,7 +6502,7 @@ CREATE INDEX refresh_tokens_parent_idx ON auth.refresh_tokens USING btree (paren
 
 
 --
--- TOC entry 3957 (class 1259 OID 16787)
+-- TOC entry 3980 (class 1259 OID 16787)
 -- Name: refresh_tokens_session_id_revoked_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6415,7 +6510,7 @@ CREATE INDEX refresh_tokens_session_id_revoked_idx ON auth.refresh_tokens USING 
 
 
 --
--- TOC entry 3960 (class 1259 OID 16892)
+-- TOC entry 3983 (class 1259 OID 16892)
 -- Name: refresh_tokens_updated_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6423,7 +6518,7 @@ CREATE INDEX refresh_tokens_updated_at_idx ON auth.refresh_tokens USING btree (u
 
 
 --
--- TOC entry 4010 (class 1259 OID 16829)
+-- TOC entry 4033 (class 1259 OID 16829)
 -- Name: saml_providers_sso_provider_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6431,7 +6526,7 @@ CREATE INDEX saml_providers_sso_provider_id_idx ON auth.saml_providers USING btr
 
 
 --
--- TOC entry 4011 (class 1259 OID 16894)
+-- TOC entry 4034 (class 1259 OID 16894)
 -- Name: saml_relay_states_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6439,7 +6534,7 @@ CREATE INDEX saml_relay_states_created_at_idx ON auth.saml_relay_states USING bt
 
 
 --
--- TOC entry 4012 (class 1259 OID 16844)
+-- TOC entry 4035 (class 1259 OID 16844)
 -- Name: saml_relay_states_for_email_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6447,7 +6542,7 @@ CREATE INDEX saml_relay_states_for_email_idx ON auth.saml_relay_states USING btr
 
 
 --
--- TOC entry 4015 (class 1259 OID 16843)
+-- TOC entry 4038 (class 1259 OID 16843)
 -- Name: saml_relay_states_sso_provider_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6455,7 +6550,7 @@ CREATE INDEX saml_relay_states_sso_provider_id_idx ON auth.saml_relay_states USI
 
 
 --
--- TOC entry 3977 (class 1259 OID 16895)
+-- TOC entry 4000 (class 1259 OID 16895)
 -- Name: sessions_not_after_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6463,7 +6558,7 @@ CREATE INDEX sessions_not_after_idx ON auth.sessions USING btree (not_after DESC
 
 
 --
--- TOC entry 3978 (class 1259 OID 17065)
+-- TOC entry 4001 (class 1259 OID 17065)
 -- Name: sessions_oauth_client_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6471,7 +6566,7 @@ CREATE INDEX sessions_oauth_client_id_idx ON auth.sessions USING btree (oauth_cl
 
 
 --
--- TOC entry 3981 (class 1259 OID 16786)
+-- TOC entry 4004 (class 1259 OID 16786)
 -- Name: sessions_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6479,7 +6574,7 @@ CREATE INDEX sessions_user_id_idx ON auth.sessions USING btree (user_id);
 
 
 --
--- TOC entry 4002 (class 1259 OID 16811)
+-- TOC entry 4025 (class 1259 OID 16811)
 -- Name: sso_domains_domain_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6487,7 +6582,7 @@ CREATE UNIQUE INDEX sso_domains_domain_idx ON auth.sso_domains USING btree (lowe
 
 
 --
--- TOC entry 4005 (class 1259 OID 16810)
+-- TOC entry 4028 (class 1259 OID 16810)
 -- Name: sso_domains_sso_provider_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6495,7 +6590,7 @@ CREATE INDEX sso_domains_sso_provider_id_idx ON auth.sso_domains USING btree (ss
 
 
 --
--- TOC entry 4000 (class 1259 OID 16796)
+-- TOC entry 4023 (class 1259 OID 16796)
 -- Name: sso_providers_resource_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6503,7 +6598,7 @@ CREATE UNIQUE INDEX sso_providers_resource_id_idx ON auth.sso_providers USING bt
 
 
 --
--- TOC entry 4001 (class 1259 OID 16958)
+-- TOC entry 4024 (class 1259 OID 16958)
 -- Name: sso_providers_resource_id_pattern_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6511,7 +6606,7 @@ CREATE INDEX sso_providers_resource_id_pattern_idx ON auth.sso_providers USING b
 
 
 --
--- TOC entry 3990 (class 1259 OID 16955)
+-- TOC entry 4013 (class 1259 OID 16955)
 -- Name: unique_phone_factor_per_user; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6519,7 +6614,7 @@ CREATE UNIQUE INDEX unique_phone_factor_per_user ON auth.mfa_factors USING btree
 
 
 --
--- TOC entry 3982 (class 1259 OID 16784)
+-- TOC entry 4005 (class 1259 OID 16784)
 -- Name: user_id_created_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6527,7 +6622,7 @@ CREATE INDEX user_id_created_at_idx ON auth.sessions USING btree (user_id, creat
 
 
 --
--- TOC entry 3944 (class 1259 OID 16864)
+-- TOC entry 3967 (class 1259 OID 16864)
 -- Name: users_email_partial_key; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6535,8 +6630,8 @@ CREATE UNIQUE INDEX users_email_partial_key ON auth.users USING btree (email) WH
 
 
 --
--- TOC entry 4776 (class 0 OID 0)
--- Dependencies: 3944
+-- TOC entry 4813 (class 0 OID 0)
+-- Dependencies: 3967
 -- Name: INDEX users_email_partial_key; Type: COMMENT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6544,7 +6639,7 @@ COMMENT ON INDEX auth.users_email_partial_key IS 'Auth: A partial unique index t
 
 
 --
--- TOC entry 3945 (class 1259 OID 16702)
+-- TOC entry 3968 (class 1259 OID 16702)
 -- Name: users_instance_id_email_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6552,7 +6647,7 @@ CREATE INDEX users_instance_id_email_idx ON auth.users USING btree (instance_id,
 
 
 --
--- TOC entry 3946 (class 1259 OID 16505)
+-- TOC entry 3969 (class 1259 OID 16505)
 -- Name: users_instance_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6560,7 +6655,7 @@ CREATE INDEX users_instance_id_idx ON auth.users USING btree (instance_id);
 
 
 --
--- TOC entry 3947 (class 1259 OID 16919)
+-- TOC entry 3970 (class 1259 OID 16919)
 -- Name: users_is_anonymous_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6568,7 +6663,39 @@ CREATE INDEX users_is_anonymous_idx ON auth.users USING btree (is_anonymous);
 
 
 --
--- TOC entry 4097 (class 1259 OID 25964)
+-- TOC entry 4205 (class 1259 OID 27160)
+-- Name: webauthn_challenges_expires_at_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX webauthn_challenges_expires_at_idx ON auth.webauthn_challenges USING btree (expires_at);
+
+
+--
+-- TOC entry 4208 (class 1259 OID 27159)
+-- Name: webauthn_challenges_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX webauthn_challenges_user_id_idx ON auth.webauthn_challenges USING btree (user_id);
+
+
+--
+-- TOC entry 4201 (class 1259 OID 27142)
+-- Name: webauthn_credentials_credential_id_key; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE UNIQUE INDEX webauthn_credentials_credential_id_key ON auth.webauthn_credentials USING btree (credential_id);
+
+
+--
+-- TOC entry 4204 (class 1259 OID 27143)
+-- Name: webauthn_credentials_user_id_idx; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX webauthn_credentials_user_id_idx ON auth.webauthn_credentials USING btree (user_id);
+
+
+--
+-- TOC entry 4120 (class 1259 OID 25964)
 -- Name: idx_products_external_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6576,7 +6703,7 @@ CREATE INDEX idx_products_external_id ON public.products USING btree (external_i
 
 
 --
--- TOC entry 4169 (class 1259 OID 26003)
+-- TOC entry 4192 (class 1259 OID 26003)
 -- Name: idx_shopee_mappings_item_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6584,7 +6711,7 @@ CREATE INDEX idx_shopee_mappings_item_id ON public.shopee_product_mappings USING
 
 
 --
--- TOC entry 4170 (class 1259 OID 26004)
+-- TOC entry 4193 (class 1259 OID 26004)
 -- Name: idx_shopee_mappings_product_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6592,7 +6719,7 @@ CREATE INDEX idx_shopee_mappings_product_id ON public.shopee_product_mappings US
 
 
 --
--- TOC entry 4175 (class 1259 OID 26005)
+-- TOC entry 4198 (class 1259 OID 26005)
 -- Name: idx_shopee_sync_logs_created; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6600,7 +6727,7 @@ CREATE INDEX idx_shopee_sync_logs_created ON public.shopee_sync_logs USING btree
 
 
 --
--- TOC entry 4100 (class 1259 OID 25967)
+-- TOC entry 4123 (class 1259 OID 25967)
 -- Name: uq_products_external_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6608,7 +6735,7 @@ CREATE UNIQUE INDEX uq_products_external_id ON public.products USING btree (exte
 
 
 --
--- TOC entry 4056 (class 1259 OID 17490)
+-- TOC entry 4079 (class 1259 OID 17490)
 -- Name: ix_realtime_subscription_entity; Type: INDEX; Schema: realtime; Owner: supabase_admin
 --
 
@@ -6616,7 +6743,7 @@ CREATE INDEX ix_realtime_subscription_entity ON realtime.subscription USING btre
 
 
 --
--- TOC entry 4086 (class 1259 OID 17491)
+-- TOC entry 4109 (class 1259 OID 17491)
 -- Name: messages_inserted_at_topic_index; Type: INDEX; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -6624,7 +6751,7 @@ CREATE INDEX messages_inserted_at_topic_index ON ONLY realtime.messages USING bt
 
 
 --
--- TOC entry 4059 (class 1259 OID 17494)
+-- TOC entry 4082 (class 1259 OID 17494)
 -- Name: subscription_subscription_id_entity_filters_action_filter_key; Type: INDEX; Schema: realtime; Owner: supabase_admin
 --
 
@@ -6632,7 +6759,7 @@ CREATE UNIQUE INDEX subscription_subscription_id_entity_filters_action_filter_ke
 
 
 --
--- TOC entry 4064 (class 1259 OID 17176)
+-- TOC entry 4087 (class 1259 OID 17176)
 -- Name: bname; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6640,7 +6767,7 @@ CREATE UNIQUE INDEX bname ON storage.buckets USING btree (name);
 
 
 --
--- TOC entry 4067 (class 1259 OID 17193)
+-- TOC entry 4090 (class 1259 OID 17193)
 -- Name: bucketid_objname; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6648,7 +6775,7 @@ CREATE UNIQUE INDEX bucketid_objname ON storage.objects USING btree (bucket_id, 
 
 
 --
--- TOC entry 4080 (class 1259 OID 17333)
+-- TOC entry 4103 (class 1259 OID 17333)
 -- Name: buckets_analytics_unique_name_idx; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6656,7 +6783,7 @@ CREATE UNIQUE INDEX buckets_analytics_unique_name_idx ON storage.buckets_analyti
 
 
 --
--- TOC entry 4073 (class 1259 OID 17260)
+-- TOC entry 4096 (class 1259 OID 17260)
 -- Name: idx_multipart_uploads_list; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6664,7 +6791,7 @@ CREATE INDEX idx_multipart_uploads_list ON storage.s3_multipart_uploads USING bt
 
 
 --
--- TOC entry 4068 (class 1259 OID 17225)
+-- TOC entry 4091 (class 1259 OID 17225)
 -- Name: idx_objects_bucket_id_name; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6672,7 +6799,7 @@ CREATE INDEX idx_objects_bucket_id_name ON storage.objects USING btree (bucket_i
 
 
 --
--- TOC entry 4069 (class 1259 OID 17340)
+-- TOC entry 4092 (class 1259 OID 17340)
 -- Name: idx_objects_bucket_id_name_lower; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6680,7 +6807,7 @@ CREATE INDEX idx_objects_bucket_id_name_lower ON storage.objects USING btree (bu
 
 
 --
--- TOC entry 4070 (class 1259 OID 17194)
+-- TOC entry 4093 (class 1259 OID 17194)
 -- Name: name_prefix_search; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6688,7 +6815,7 @@ CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_patter
 
 
 --
--- TOC entry 4083 (class 1259 OID 17324)
+-- TOC entry 4106 (class 1259 OID 17324)
 -- Name: vector_indexes_name_bucket_id_idx; Type: INDEX; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6696,7 +6823,7 @@ CREATE UNIQUE INDEX vector_indexes_name_bucket_id_idx ON storage.vector_indexes 
 
 
 --
--- TOC entry 4225 (class 2620 OID 17602)
+-- TOC entry 4258 (class 2620 OID 17602)
 -- Name: users on_auth_user_created; Type: TRIGGER; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6704,7 +6831,7 @@ CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXEC
 
 
 --
--- TOC entry 4232 (class 2620 OID 22298)
+-- TOC entry 4265 (class 2620 OID 22298)
 -- Name: products trg_calc_discount; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6712,7 +6839,7 @@ CREATE TRIGGER trg_calc_discount BEFORE INSERT OR UPDATE ON public.products FOR 
 
 
 --
--- TOC entry 4237 (class 2620 OID 23733)
+-- TOC entry 4270 (class 2620 OID 23733)
 -- Name: coupons trg_coupons_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6720,7 +6847,7 @@ CREATE TRIGGER trg_coupons_updated_at BEFORE UPDATE ON public.coupons FOR EACH R
 
 
 --
--- TOC entry 4236 (class 2620 OID 22532)
+-- TOC entry 4269 (class 2620 OID 22532)
 -- Name: product_clicks trg_increment_product_clicks; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6728,7 +6855,7 @@ CREATE TRIGGER trg_increment_product_clicks AFTER INSERT ON public.product_click
 
 
 --
--- TOC entry 4233 (class 2620 OID 22531)
+-- TOC entry 4266 (class 2620 OID 22531)
 -- Name: products trg_log_price_change; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6736,7 +6863,7 @@ CREATE TRIGGER trg_log_price_change AFTER INSERT OR UPDATE ON public.products FO
 
 
 --
--- TOC entry 4235 (class 2620 OID 17600)
+-- TOC entry 4268 (class 2620 OID 17600)
 -- Name: banners update_banners_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6744,7 +6871,7 @@ CREATE TRIGGER update_banners_updated_at BEFORE UPDATE ON public.banners FOR EAC
 
 
 --
--- TOC entry 4234 (class 2620 OID 17599)
+-- TOC entry 4267 (class 2620 OID 17599)
 -- Name: products update_products_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6752,7 +6879,7 @@ CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON public.products FOR E
 
 
 --
--- TOC entry 4231 (class 2620 OID 17601)
+-- TOC entry 4264 (class 2620 OID 17601)
 -- Name: profiles update_profiles_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -6760,7 +6887,7 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 
 
 --
--- TOC entry 4226 (class 2620 OID 17156)
+-- TOC entry 4259 (class 2620 OID 17156)
 -- Name: subscription tr_check_filters; Type: TRIGGER; Schema: realtime; Owner: supabase_admin
 --
 
@@ -6768,7 +6895,7 @@ CREATE TRIGGER tr_check_filters BEFORE INSERT OR UPDATE ON realtime.subscription
 
 
 --
--- TOC entry 4227 (class 2620 OID 17279)
+-- TOC entry 4260 (class 2620 OID 17279)
 -- Name: buckets enforce_bucket_name_length_trigger; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6776,7 +6903,7 @@ CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF nam
 
 
 --
--- TOC entry 4228 (class 2620 OID 17342)
+-- TOC entry 4261 (class 2620 OID 17342)
 -- Name: buckets protect_buckets_delete; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6784,7 +6911,7 @@ CREATE TRIGGER protect_buckets_delete BEFORE DELETE ON storage.buckets FOR EACH 
 
 
 --
--- TOC entry 4229 (class 2620 OID 17343)
+-- TOC entry 4262 (class 2620 OID 17343)
 -- Name: objects protect_objects_delete; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6792,7 +6919,7 @@ CREATE TRIGGER protect_objects_delete BEFORE DELETE ON storage.objects FOR EACH 
 
 
 --
--- TOC entry 4230 (class 2620 OID 17213)
+-- TOC entry 4263 (class 2620 OID 17213)
 -- Name: objects update_objects_updated_at; Type: TRIGGER; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -6800,7 +6927,7 @@ CREATE TRIGGER update_objects_updated_at BEFORE UPDATE ON storage.objects FOR EA
 
 
 --
--- TOC entry 4179 (class 2606 OID 16688)
+-- TOC entry 4210 (class 2606 OID 16688)
 -- Name: identities identities_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6809,7 +6936,7 @@ ALTER TABLE ONLY auth.identities
 
 
 --
--- TOC entry 4184 (class 2606 OID 16777)
+-- TOC entry 4215 (class 2606 OID 16777)
 -- Name: mfa_amr_claims mfa_amr_claims_session_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6818,7 +6945,7 @@ ALTER TABLE ONLY auth.mfa_amr_claims
 
 
 --
--- TOC entry 4183 (class 2606 OID 16765)
+-- TOC entry 4214 (class 2606 OID 16765)
 -- Name: mfa_challenges mfa_challenges_auth_factor_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6827,7 +6954,7 @@ ALTER TABLE ONLY auth.mfa_challenges
 
 
 --
--- TOC entry 4182 (class 2606 OID 16752)
+-- TOC entry 4213 (class 2606 OID 16752)
 -- Name: mfa_factors mfa_factors_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6836,7 +6963,7 @@ ALTER TABLE ONLY auth.mfa_factors
 
 
 --
--- TOC entry 4190 (class 2606 OID 17017)
+-- TOC entry 4221 (class 2606 OID 17017)
 -- Name: oauth_authorizations oauth_authorizations_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6845,7 +6972,7 @@ ALTER TABLE ONLY auth.oauth_authorizations
 
 
 --
--- TOC entry 4191 (class 2606 OID 17022)
+-- TOC entry 4222 (class 2606 OID 17022)
 -- Name: oauth_authorizations oauth_authorizations_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6854,7 +6981,7 @@ ALTER TABLE ONLY auth.oauth_authorizations
 
 
 --
--- TOC entry 4192 (class 2606 OID 17046)
+-- TOC entry 4223 (class 2606 OID 17046)
 -- Name: oauth_consents oauth_consents_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6863,7 +6990,7 @@ ALTER TABLE ONLY auth.oauth_consents
 
 
 --
--- TOC entry 4193 (class 2606 OID 17041)
+-- TOC entry 4224 (class 2606 OID 17041)
 -- Name: oauth_consents oauth_consents_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6872,7 +6999,7 @@ ALTER TABLE ONLY auth.oauth_consents
 
 
 --
--- TOC entry 4189 (class 2606 OID 16943)
+-- TOC entry 4220 (class 2606 OID 16943)
 -- Name: one_time_tokens one_time_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6881,7 +7008,7 @@ ALTER TABLE ONLY auth.one_time_tokens
 
 
 --
--- TOC entry 4178 (class 2606 OID 16721)
+-- TOC entry 4209 (class 2606 OID 16721)
 -- Name: refresh_tokens refresh_tokens_session_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6890,7 +7017,7 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 
 --
--- TOC entry 4186 (class 2606 OID 16824)
+-- TOC entry 4217 (class 2606 OID 16824)
 -- Name: saml_providers saml_providers_sso_provider_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6899,7 +7026,7 @@ ALTER TABLE ONLY auth.saml_providers
 
 
 --
--- TOC entry 4187 (class 2606 OID 16897)
+-- TOC entry 4218 (class 2606 OID 16897)
 -- Name: saml_relay_states saml_relay_states_flow_state_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6908,7 +7035,7 @@ ALTER TABLE ONLY auth.saml_relay_states
 
 
 --
--- TOC entry 4188 (class 2606 OID 16838)
+-- TOC entry 4219 (class 2606 OID 16838)
 -- Name: saml_relay_states saml_relay_states_sso_provider_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6917,7 +7044,7 @@ ALTER TABLE ONLY auth.saml_relay_states
 
 
 --
--- TOC entry 4180 (class 2606 OID 17060)
+-- TOC entry 4211 (class 2606 OID 17060)
 -- Name: sessions sessions_oauth_client_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6926,7 +7053,7 @@ ALTER TABLE ONLY auth.sessions
 
 
 --
--- TOC entry 4181 (class 2606 OID 16716)
+-- TOC entry 4212 (class 2606 OID 16716)
 -- Name: sessions sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6935,7 +7062,7 @@ ALTER TABLE ONLY auth.sessions
 
 
 --
--- TOC entry 4185 (class 2606 OID 16805)
+-- TOC entry 4216 (class 2606 OID 16805)
 -- Name: sso_domains sso_domains_sso_provider_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -6944,7 +7071,25 @@ ALTER TABLE ONLY auth.sso_domains
 
 
 --
--- TOC entry 4222 (class 2606 OID 22469)
+-- TOC entry 4257 (class 2606 OID 27154)
+-- Name: webauthn_challenges webauthn_challenges_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.webauthn_challenges
+    ADD CONSTRAINT webauthn_challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4256 (class 2606 OID 27137)
+-- Name: webauthn_credentials webauthn_credentials_user_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: supabase_auth_admin
+--
+
+ALTER TABLE ONLY auth.webauthn_credentials
+    ADD CONSTRAINT webauthn_credentials_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4253 (class 2606 OID 22469)
 -- Name: coupon_votes coupon_votes_coupon_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6953,7 +7098,7 @@ ALTER TABLE ONLY public.coupon_votes
 
 
 --
--- TOC entry 4223 (class 2606 OID 22474)
+-- TOC entry 4254 (class 2606 OID 22474)
 -- Name: coupon_votes coupon_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6962,7 +7107,7 @@ ALTER TABLE ONLY public.coupon_votes
 
 
 --
--- TOC entry 4221 (class 2606 OID 22451)
+-- TOC entry 4252 (class 2606 OID 22451)
 -- Name: coupons coupons_platform_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6971,7 +7116,7 @@ ALTER TABLE ONLY public.coupons
 
 
 --
--- TOC entry 4207 (class 2606 OID 22153)
+-- TOC entry 4238 (class 2606 OID 22153)
 -- Name: models models_brand_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6980,7 +7125,7 @@ ALTER TABLE ONLY public.models
 
 
 --
--- TOC entry 4218 (class 2606 OID 22386)
+-- TOC entry 4249 (class 2606 OID 22386)
 -- Name: newsletter_products newsletter_products_newsletter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6989,7 +7134,7 @@ ALTER TABLE ONLY public.newsletter_products
 
 
 --
--- TOC entry 4219 (class 2606 OID 22391)
+-- TOC entry 4250 (class 2606 OID 22391)
 -- Name: newsletter_products newsletter_products_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6998,7 +7143,7 @@ ALTER TABLE ONLY public.newsletter_products
 
 
 --
--- TOC entry 4220 (class 2606 OID 22417)
+-- TOC entry 4251 (class 2606 OID 22417)
 -- Name: price_history price_history_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7007,7 +7152,7 @@ ALTER TABLE ONLY public.price_history
 
 
 --
--- TOC entry 4214 (class 2606 OID 22339)
+-- TOC entry 4245 (class 2606 OID 22339)
 -- Name: product_clicks product_clicks_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7016,7 +7161,7 @@ ALTER TABLE ONLY public.product_clicks
 
 
 --
--- TOC entry 4215 (class 2606 OID 22553)
+-- TOC entry 4246 (class 2606 OID 22553)
 -- Name: product_clicks product_clicks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7025,7 +7170,7 @@ ALTER TABLE ONLY public.product_clicks
 
 
 --
--- TOC entry 4212 (class 2606 OID 22268)
+-- TOC entry 4243 (class 2606 OID 22268)
 -- Name: product_likes product_likes_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7034,7 +7179,7 @@ ALTER TABLE ONLY public.product_likes
 
 
 --
--- TOC entry 4213 (class 2606 OID 22263)
+-- TOC entry 4244 (class 2606 OID 22263)
 -- Name: product_likes product_likes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7043,7 +7188,7 @@ ALTER TABLE ONLY public.product_likes
 
 
 --
--- TOC entry 4216 (class 2606 OID 22360)
+-- TOC entry 4247 (class 2606 OID 22360)
 -- Name: product_trust_votes product_trust_votes_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7052,7 +7197,7 @@ ALTER TABLE ONLY public.product_trust_votes
 
 
 --
--- TOC entry 4217 (class 2606 OID 22548)
+-- TOC entry 4248 (class 2606 OID 22548)
 -- Name: product_trust_votes product_trust_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7061,7 +7206,7 @@ ALTER TABLE ONLY public.product_trust_votes
 
 
 --
--- TOC entry 4200 (class 2606 OID 22277)
+-- TOC entry 4231 (class 2606 OID 22277)
 -- Name: products products_brand_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7070,7 +7215,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4201 (class 2606 OID 22320)
+-- TOC entry 4232 (class 2606 OID 22320)
 -- Name: products products_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7079,7 +7224,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4202 (class 2606 OID 22282)
+-- TOC entry 4233 (class 2606 OID 22282)
 -- Name: products products_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7088,7 +7233,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4203 (class 2606 OID 22287)
+-- TOC entry 4234 (class 2606 OID 22287)
 -- Name: products products_platform_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7097,7 +7242,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4204 (class 2606 OID 22292)
+-- TOC entry 4235 (class 2606 OID 22292)
 -- Name: products products_registered_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7106,7 +7251,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- TOC entry 4206 (class 2606 OID 17583)
+-- TOC entry 4237 (class 2606 OID 17583)
 -- Name: reports reports_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7115,7 +7260,7 @@ ALTER TABLE ONLY public.reports
 
 
 --
--- TOC entry 4205 (class 2606 OID 17568)
+-- TOC entry 4236 (class 2606 OID 17568)
 -- Name: reviews reviews_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7124,7 +7269,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- TOC entry 4224 (class 2606 OID 25981)
+-- TOC entry 4255 (class 2606 OID 25981)
 -- Name: shopee_product_mappings shopee_product_mappings_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7133,7 +7278,7 @@ ALTER TABLE ONLY public.shopee_product_mappings
 
 
 --
--- TOC entry 4208 (class 2606 OID 22215)
+-- TOC entry 4239 (class 2606 OID 22215)
 -- Name: special_page_products special_page_products_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7142,7 +7287,7 @@ ALTER TABLE ONLY public.special_page_products
 
 
 --
--- TOC entry 4209 (class 2606 OID 22210)
+-- TOC entry 4240 (class 2606 OID 22210)
 -- Name: special_page_products special_page_products_special_page_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7151,7 +7296,7 @@ ALTER TABLE ONLY public.special_page_products
 
 
 --
--- TOC entry 4199 (class 2606 OID 17525)
+-- TOC entry 4230 (class 2606 OID 17525)
 -- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7160,7 +7305,7 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
--- TOC entry 4210 (class 2606 OID 22248)
+-- TOC entry 4241 (class 2606 OID 22248)
 -- Name: wishlists wishlists_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7169,7 +7314,7 @@ ALTER TABLE ONLY public.wishlists
 
 
 --
--- TOC entry 4211 (class 2606 OID 22243)
+-- TOC entry 4242 (class 2606 OID 22243)
 -- Name: wishlists wishlists_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -7178,7 +7323,7 @@ ALTER TABLE ONLY public.wishlists
 
 
 --
--- TOC entry 4194 (class 2606 OID 17188)
+-- TOC entry 4225 (class 2606 OID 17188)
 -- Name: objects objects_bucketId_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -7187,7 +7332,7 @@ ALTER TABLE ONLY storage.objects
 
 
 --
--- TOC entry 4195 (class 2606 OID 17235)
+-- TOC entry 4226 (class 2606 OID 17235)
 -- Name: s3_multipart_uploads s3_multipart_uploads_bucket_id_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -7196,7 +7341,7 @@ ALTER TABLE ONLY storage.s3_multipart_uploads
 
 
 --
--- TOC entry 4196 (class 2606 OID 17255)
+-- TOC entry 4227 (class 2606 OID 17255)
 -- Name: s3_multipart_uploads_parts s3_multipart_uploads_parts_bucket_id_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -7205,7 +7350,7 @@ ALTER TABLE ONLY storage.s3_multipart_uploads_parts
 
 
 --
--- TOC entry 4197 (class 2606 OID 17250)
+-- TOC entry 4228 (class 2606 OID 17250)
 -- Name: s3_multipart_uploads_parts s3_multipart_uploads_parts_upload_id_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -7214,7 +7359,7 @@ ALTER TABLE ONLY storage.s3_multipart_uploads_parts
 
 
 --
--- TOC entry 4198 (class 2606 OID 17319)
+-- TOC entry 4229 (class 2606 OID 17319)
 -- Name: vector_indexes vector_indexes_bucket_id_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -7223,135 +7368,135 @@ ALTER TABLE ONLY storage.vector_indexes
 
 
 --
--- TOC entry 4390 (class 0 OID 16525)
--- Dependencies: 316
+-- TOC entry 4423 (class 0 OID 16525)
+-- Dependencies: 318
 -- Name: audit_log_entries; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.audit_log_entries ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4401 (class 0 OID 16883)
--- Dependencies: 330
+-- TOC entry 4434 (class 0 OID 16883)
+-- Dependencies: 332
 -- Name: flow_state; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.flow_state ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4392 (class 0 OID 16681)
--- Dependencies: 321
+-- TOC entry 4425 (class 0 OID 16681)
+-- Dependencies: 323
 -- Name: identities; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.identities ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4389 (class 0 OID 16518)
--- Dependencies: 315
+-- TOC entry 4422 (class 0 OID 16518)
+-- Dependencies: 317
 -- Name: instances; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.instances ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4396 (class 0 OID 16770)
--- Dependencies: 325
+-- TOC entry 4429 (class 0 OID 16770)
+-- Dependencies: 327
 -- Name: mfa_amr_claims; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.mfa_amr_claims ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4395 (class 0 OID 16758)
--- Dependencies: 324
+-- TOC entry 4428 (class 0 OID 16758)
+-- Dependencies: 326
 -- Name: mfa_challenges; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.mfa_challenges ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4394 (class 0 OID 16745)
--- Dependencies: 323
+-- TOC entry 4427 (class 0 OID 16745)
+-- Dependencies: 325
 -- Name: mfa_factors; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.mfa_factors ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4402 (class 0 OID 16933)
--- Dependencies: 331
+-- TOC entry 4435 (class 0 OID 16933)
+-- Dependencies: 333
 -- Name: one_time_tokens; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.one_time_tokens ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4388 (class 0 OID 16507)
--- Dependencies: 314
+-- TOC entry 4421 (class 0 OID 16507)
+-- Dependencies: 316
 -- Name: refresh_tokens; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.refresh_tokens ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4399 (class 0 OID 16812)
--- Dependencies: 328
+-- TOC entry 4432 (class 0 OID 16812)
+-- Dependencies: 330
 -- Name: saml_providers; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.saml_providers ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4400 (class 0 OID 16830)
--- Dependencies: 329
+-- TOC entry 4433 (class 0 OID 16830)
+-- Dependencies: 331
 -- Name: saml_relay_states; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.saml_relay_states ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4391 (class 0 OID 16533)
--- Dependencies: 317
+-- TOC entry 4424 (class 0 OID 16533)
+-- Dependencies: 319
 -- Name: schema_migrations; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.schema_migrations ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4393 (class 0 OID 16711)
--- Dependencies: 322
+-- TOC entry 4426 (class 0 OID 16711)
+-- Dependencies: 324
 -- Name: sessions; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.sessions ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4398 (class 0 OID 16797)
--- Dependencies: 327
+-- TOC entry 4431 (class 0 OID 16797)
+-- Dependencies: 329
 -- Name: sso_domains; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.sso_domains ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4397 (class 0 OID 16788)
--- Dependencies: 326
+-- TOC entry 4430 (class 0 OID 16788)
+-- Dependencies: 328
 -- Name: sso_providers; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.sso_providers ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4387 (class 0 OID 16495)
--- Dependencies: 312
+-- TOC entry 4420 (class 0 OID 16495)
+-- Dependencies: 314
 -- Name: users; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
 ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4458 (class 3256 OID 17621)
+-- TOC entry 4491 (class 3256 OID 17621)
 -- Name: banners Admin can delete banners; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7359,7 +7504,7 @@ CREATE POLICY "Admin can delete banners" ON public.banners FOR DELETE TO authent
 
 
 --
--- TOC entry 4451 (class 3256 OID 17617)
+-- TOC entry 4484 (class 3256 OID 17617)
 -- Name: products Admin can delete products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7367,7 +7512,7 @@ CREATE POLICY "Admin can delete products" ON public.products FOR DELETE TO authe
 
 
 --
--- TOC entry 4482 (class 3256 OID 22221)
+-- TOC entry 4515 (class 3256 OID 22221)
 -- Name: special_page_products Admin can manage special page products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7375,7 +7520,7 @@ CREATE POLICY "Admin can manage special page products" ON public.special_page_pr
 
 
 --
--- TOC entry 4480 (class 3256 OID 22201)
+-- TOC entry 4513 (class 3256 OID 22201)
 -- Name: special_pages Admin can manage special pages; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7383,7 +7528,7 @@ CREATE POLICY "Admin can manage special pages" ON public.special_pages TO authen
 
 
 --
--- TOC entry 4513 (class 3256 OID 26002)
+-- TOC entry 4546 (class 3256 OID 26002)
 -- Name: shopee_sync_logs Admin can manage sync logs; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7391,7 +7536,7 @@ CREATE POLICY "Admin can manage sync logs" ON public.shopee_sync_logs TO authent
 
 
 --
--- TOC entry 4484 (class 3256 OID 22233)
+-- TOC entry 4517 (class 3256 OID 22233)
 -- Name: whatsapp_groups Admin can manage whatsapp groups; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7399,7 +7544,7 @@ CREATE POLICY "Admin can manage whatsapp groups" ON public.whatsapp_groups TO au
 
 
 --
--- TOC entry 4464 (class 3256 OID 17627)
+-- TOC entry 4497 (class 3256 OID 17627)
 -- Name: reports Admin can update reports; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7407,7 +7552,7 @@ CREATE POLICY "Admin can update reports" ON public.reports FOR UPDATE USING ((pu
 
 
 --
--- TOC entry 4512 (class 3256 OID 26001)
+-- TOC entry 4545 (class 3256 OID 26001)
 -- Name: shopee_sync_logs Admin can view sync logs; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7415,7 +7560,7 @@ CREATE POLICY "Admin can view sync logs" ON public.shopee_sync_logs FOR SELECT T
 
 
 --
--- TOC entry 4462 (class 3256 OID 17625)
+-- TOC entry 4495 (class 3256 OID 17625)
 -- Name: reviews Admin/Editor can delete reviews; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7423,7 +7568,7 @@ CREATE POLICY "Admin/Editor can delete reviews" ON public.reviews FOR DELETE USI
 
 
 --
--- TOC entry 4453 (class 3256 OID 17619)
+-- TOC entry 4486 (class 3256 OID 17619)
 -- Name: banners Admin/Editor can insert banners; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7431,7 +7576,7 @@ CREATE POLICY "Admin/Editor can insert banners" ON public.banners FOR INSERT TO 
 
 
 --
--- TOC entry 4449 (class 3256 OID 17615)
+-- TOC entry 4482 (class 3256 OID 17615)
 -- Name: products Admin/Editor can insert products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7439,7 +7584,7 @@ CREATE POLICY "Admin/Editor can insert products" ON public.products FOR INSERT T
 
 
 --
--- TOC entry 4473 (class 3256 OID 22141)
+-- TOC entry 4506 (class 3256 OID 22141)
 -- Name: brands Admin/Editor can manage brands; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7447,7 +7592,7 @@ CREATE POLICY "Admin/Editor can manage brands" ON public.brands TO authenticated
 
 
 --
--- TOC entry 4478 (class 3256 OID 22187)
+-- TOC entry 4511 (class 3256 OID 22187)
 -- Name: categories Admin/Editor can manage categories; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7455,7 +7600,7 @@ CREATE POLICY "Admin/Editor can manage categories" ON public.categories TO authe
 
 
 --
--- TOC entry 4475 (class 3256 OID 22159)
+-- TOC entry 4508 (class 3256 OID 22159)
 -- Name: models Admin/Editor can manage models; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7463,7 +7608,7 @@ CREATE POLICY "Admin/Editor can manage models" ON public.models TO authenticated
 
 
 --
--- TOC entry 4476 (class 3256 OID 22172)
+-- TOC entry 4509 (class 3256 OID 22172)
 -- Name: platforms Admin/Editor can manage platforms; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7471,7 +7616,7 @@ CREATE POLICY "Admin/Editor can manage platforms" ON public.platforms TO authent
 
 
 --
--- TOC entry 4457 (class 3256 OID 17620)
+-- TOC entry 4490 (class 3256 OID 17620)
 -- Name: banners Admin/Editor can update banners; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7479,7 +7624,7 @@ CREATE POLICY "Admin/Editor can update banners" ON public.banners FOR UPDATE TO 
 
 
 --
--- TOC entry 4450 (class 3256 OID 17616)
+-- TOC entry 4483 (class 3256 OID 17616)
 -- Name: products Admin/Editor can update products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7487,7 +7632,7 @@ CREATE POLICY "Admin/Editor can update products" ON public.products FOR UPDATE T
 
 
 --
--- TOC entry 4461 (class 3256 OID 17624)
+-- TOC entry 4494 (class 3256 OID 17624)
 -- Name: reviews Admin/Editor can update reviews; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7495,7 +7640,7 @@ CREATE POLICY "Admin/Editor can update reviews" ON public.reviews FOR UPDATE USI
 
 
 --
--- TOC entry 4463 (class 3256 OID 17626)
+-- TOC entry 4496 (class 3256 OID 17626)
 -- Name: reports Admin/Editor can view reports; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7503,7 +7648,7 @@ CREATE POLICY "Admin/Editor can view reports" ON public.reports FOR SELECT USING
 
 
 --
--- TOC entry 4511 (class 3256 OID 26000)
+-- TOC entry 4544 (class 3256 OID 26000)
 -- Name: shopee_product_mappings Admin_Editor can manage shopee mappings; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7511,7 +7656,7 @@ CREATE POLICY "Admin_Editor can manage shopee mappings" ON public.shopee_product
 
 
 --
--- TOC entry 4504 (class 3256 OID 22537)
+-- TOC entry 4537 (class 3256 OID 22537)
 -- Name: coupons Admins can manage coupons; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7521,7 +7666,7 @@ CREATE POLICY "Admins can manage coupons" ON public.coupons TO authenticated USI
 
 
 --
--- TOC entry 4502 (class 3256 OID 22535)
+-- TOC entry 4535 (class 3256 OID 22535)
 -- Name: institutional_pages Admins can manage institutional pages; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7531,7 +7676,7 @@ CREATE POLICY "Admins can manage institutional pages" ON public.institutional_pa
 
 
 --
--- TOC entry 4492 (class 3256 OID 22401)
+-- TOC entry 4525 (class 3256 OID 22401)
 -- Name: newsletter_products Admins can manage newsletter products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7541,7 +7686,7 @@ CREATE POLICY "Admins can manage newsletter products" ON public.newsletter_produ
 
 
 --
--- TOC entry 4491 (class 3256 OID 22400)
+-- TOC entry 4524 (class 3256 OID 22400)
 -- Name: newsletters Admins can manage newsletters; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7551,7 +7696,7 @@ CREATE POLICY "Admins can manage newsletters" ON public.newsletters TO authentic
 
 
 --
--- TOC entry 4499 (class 3256 OID 22530)
+-- TOC entry 4532 (class 3256 OID 22530)
 -- Name: price_history Admins can manage price history; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7561,7 +7706,7 @@ CREATE POLICY "Admins can manage price history" ON public.price_history TO authe
 
 
 --
--- TOC entry 4444 (class 3256 OID 17610)
+-- TOC entry 4477 (class 3256 OID 17610)
 -- Name: user_roles Admins can manage roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7569,7 +7714,7 @@ CREATE POLICY "Admins can manage roles" ON public.user_roles USING (public.has_r
 
 
 --
--- TOC entry 4447 (class 3256 OID 17613)
+-- TOC entry 4480 (class 3256 OID 17613)
 -- Name: user_roles Admins can manage user roles (Delete); Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7577,7 +7722,7 @@ CREATE POLICY "Admins can manage user roles (Delete)" ON public.user_roles FOR D
 
 
 --
--- TOC entry 4445 (class 3256 OID 17611)
+-- TOC entry 4478 (class 3256 OID 17611)
 -- Name: user_roles Admins can manage user roles (Insert); Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7585,7 +7730,7 @@ CREATE POLICY "Admins can manage user roles (Insert)" ON public.user_roles FOR I
 
 
 --
--- TOC entry 4446 (class 3256 OID 17612)
+-- TOC entry 4479 (class 3256 OID 17612)
 -- Name: user_roles Admins can manage user roles (Update); Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7593,7 +7738,7 @@ CREATE POLICY "Admins can manage user roles (Update)" ON public.user_roles FOR U
 
 
 --
--- TOC entry 4442 (class 3256 OID 17608)
+-- TOC entry 4475 (class 3256 OID 17608)
 -- Name: profiles Admins can update any profile; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7601,7 +7746,7 @@ CREATE POLICY "Admins can update any profile" ON public.profiles FOR UPDATE USIN
 
 
 --
--- TOC entry 4441 (class 3256 OID 17607)
+-- TOC entry 4474 (class 3256 OID 17607)
 -- Name: profiles Admins can update profiles; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7609,7 +7754,7 @@ CREATE POLICY "Admins can update profiles" ON public.profiles FOR UPDATE USING (
 
 
 --
--- TOC entry 4508 (class 3256 OID 22563)
+-- TOC entry 4541 (class 3256 OID 22563)
 -- Name: coupons Admins can view all coupons; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7619,7 +7764,7 @@ CREATE POLICY "Admins can view all coupons" ON public.coupons FOR SELECT TO auth
 
 
 --
--- TOC entry 4501 (class 3256 OID 22534)
+-- TOC entry 4534 (class 3256 OID 22534)
 -- Name: institutional_pages Admins can view all institutional pages; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7629,7 +7774,7 @@ CREATE POLICY "Admins can view all institutional pages" ON public.institutional_
 
 
 --
--- TOC entry 4438 (class 3256 OID 17604)
+-- TOC entry 4471 (class 3256 OID 17604)
 -- Name: profiles Admins can view all profiles; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7637,7 +7782,7 @@ CREATE POLICY "Admins can view all profiles" ON public.profiles FOR SELECT USING
 
 
 --
--- TOC entry 4487 (class 3256 OID 22274)
+-- TOC entry 4520 (class 3256 OID 22274)
 -- Name: product_likes Anyone can count likes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7645,7 +7790,7 @@ CREATE POLICY "Anyone can count likes" ON public.product_likes FOR SELECT USING 
 
 
 --
--- TOC entry 4454 (class 3256 OID 17628)
+-- TOC entry 4487 (class 3256 OID 17628)
 -- Name: reports Anyone can create reports with email; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7653,7 +7798,7 @@ CREATE POLICY "Anyone can create reports with email" ON public.reports FOR INSER
 
 
 --
--- TOC entry 4505 (class 3256 OID 22538)
+-- TOC entry 4538 (class 3256 OID 22538)
 -- Name: coupon_votes Anyone can insert coupon votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7661,7 +7806,7 @@ CREATE POLICY "Anyone can insert coupon votes" ON public.coupon_votes FOR INSERT
 
 
 --
--- TOC entry 4493 (class 3256 OID 22525)
+-- TOC entry 4526 (class 3256 OID 22525)
 -- Name: product_clicks Anyone can insert product clicks; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7669,7 +7814,7 @@ CREATE POLICY "Anyone can insert product clicks" ON public.product_clicks FOR IN
 
 
 --
--- TOC entry 4495 (class 3256 OID 22527)
+-- TOC entry 4528 (class 3256 OID 22527)
 -- Name: product_trust_votes Anyone can insert trust votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7677,7 +7822,7 @@ CREATE POLICY "Anyone can insert trust votes" ON public.product_trust_votes FOR 
 
 
 --
--- TOC entry 4509 (class 3256 OID 22564)
+-- TOC entry 4542 (class 3256 OID 22564)
 -- Name: coupons Anyone can update coupon reports; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7685,7 +7830,7 @@ CREATE POLICY "Anyone can update coupon reports" ON public.coupons FOR UPDATE US
 
 
 --
--- TOC entry 4452 (class 3256 OID 17618)
+-- TOC entry 4485 (class 3256 OID 17618)
 -- Name: banners Anyone can view active banners; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7693,7 +7838,7 @@ CREATE POLICY "Anyone can view active banners" ON public.banners FOR SELECT USIN
 
 
 --
--- TOC entry 4503 (class 3256 OID 22536)
+-- TOC entry 4536 (class 3256 OID 22536)
 -- Name: coupons Anyone can view active coupons; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7701,7 +7846,7 @@ CREATE POLICY "Anyone can view active coupons" ON public.coupons FOR SELECT USIN
 
 
 --
--- TOC entry 4500 (class 3256 OID 22533)
+-- TOC entry 4533 (class 3256 OID 22533)
 -- Name: institutional_pages Anyone can view active institutional pages; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7709,7 +7854,7 @@ CREATE POLICY "Anyone can view active institutional pages" ON public.institution
 
 
 --
--- TOC entry 4448 (class 3256 OID 17614)
+-- TOC entry 4481 (class 3256 OID 17614)
 -- Name: products Anyone can view active products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7717,7 +7862,7 @@ CREATE POLICY "Anyone can view active products" ON public.products FOR SELECT US
 
 
 --
--- TOC entry 4479 (class 3256 OID 22200)
+-- TOC entry 4512 (class 3256 OID 22200)
 -- Name: special_pages Anyone can view active special pages; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7725,7 +7870,7 @@ CREATE POLICY "Anyone can view active special pages" ON public.special_pages FOR
 
 
 --
--- TOC entry 4483 (class 3256 OID 22232)
+-- TOC entry 4516 (class 3256 OID 22232)
 -- Name: whatsapp_groups Anyone can view active whatsapp groups; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7733,7 +7878,7 @@ CREATE POLICY "Anyone can view active whatsapp groups" ON public.whatsapp_groups
 
 
 --
--- TOC entry 4472 (class 3256 OID 22140)
+-- TOC entry 4505 (class 3256 OID 22140)
 -- Name: brands Anyone can view brands; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7741,7 +7886,7 @@ CREATE POLICY "Anyone can view brands" ON public.brands FOR SELECT USING (true);
 
 
 --
--- TOC entry 4477 (class 3256 OID 22186)
+-- TOC entry 4510 (class 3256 OID 22186)
 -- Name: categories Anyone can view categories; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7749,7 +7894,7 @@ CREATE POLICY "Anyone can view categories" ON public.categories FOR SELECT USING
 
 
 --
--- TOC entry 4506 (class 3256 OID 22539)
+-- TOC entry 4539 (class 3256 OID 22539)
 -- Name: coupon_votes Anyone can view coupon votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7757,7 +7902,7 @@ CREATE POLICY "Anyone can view coupon votes" ON public.coupon_votes FOR SELECT U
 
 
 --
--- TOC entry 4474 (class 3256 OID 22158)
+-- TOC entry 4507 (class 3256 OID 22158)
 -- Name: models Anyone can view models; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7765,7 +7910,7 @@ CREATE POLICY "Anyone can view models" ON public.models FOR SELECT USING (true);
 
 
 --
--- TOC entry 4465 (class 3256 OID 22171)
+-- TOC entry 4498 (class 3256 OID 22171)
 -- Name: platforms Anyone can view platforms; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7773,7 +7918,7 @@ CREATE POLICY "Anyone can view platforms" ON public.platforms FOR SELECT USING (
 
 
 --
--- TOC entry 4497 (class 3256 OID 22529)
+-- TOC entry 4530 (class 3256 OID 22529)
 -- Name: price_history Anyone can view price history; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7781,7 +7926,7 @@ CREATE POLICY "Anyone can view price history" ON public.price_history FOR SELECT
 
 
 --
--- TOC entry 4494 (class 3256 OID 22526)
+-- TOC entry 4527 (class 3256 OID 22526)
 -- Name: product_clicks Anyone can view product clicks; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7789,7 +7934,7 @@ CREATE POLICY "Anyone can view product clicks" ON public.product_clicks FOR SELE
 
 
 --
--- TOC entry 4459 (class 3256 OID 17622)
+-- TOC entry 4492 (class 3256 OID 17622)
 -- Name: reviews Anyone can view reviews; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7797,7 +7942,7 @@ CREATE POLICY "Anyone can view reviews" ON public.reviews FOR SELECT USING (true
 
 
 --
--- TOC entry 4510 (class 3256 OID 25999)
+-- TOC entry 4543 (class 3256 OID 25999)
 -- Name: shopee_product_mappings Anyone can view shopee mappings; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7805,7 +7950,7 @@ CREATE POLICY "Anyone can view shopee mappings" ON public.shopee_product_mapping
 
 
 --
--- TOC entry 4481 (class 3256 OID 22220)
+-- TOC entry 4514 (class 3256 OID 22220)
 -- Name: special_page_products Anyone can view special page products; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7813,7 +7958,7 @@ CREATE POLICY "Anyone can view special page products" ON public.special_page_pro
 
 
 --
--- TOC entry 4496 (class 3256 OID 22528)
+-- TOC entry 4529 (class 3256 OID 22528)
 -- Name: product_trust_votes Anyone can view trust votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7821,7 +7966,7 @@ CREATE POLICY "Anyone can view trust votes" ON public.product_trust_votes FOR SE
 
 
 --
--- TOC entry 4460 (class 3256 OID 17623)
+-- TOC entry 4493 (class 3256 OID 17623)
 -- Name: reviews Authenticated can insert reviews; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7829,7 +7974,7 @@ CREATE POLICY "Authenticated can insert reviews" ON public.reviews FOR INSERT WI
 
 
 --
--- TOC entry 4498 (class 3256 OID 22547)
+-- TOC entry 4531 (class 3256 OID 22547)
 -- Name: product_trust_votes Users can delete own trust votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7837,7 +7982,7 @@ CREATE POLICY "Users can delete own trust votes" ON public.product_trust_votes F
 
 
 --
--- TOC entry 4490 (class 3256 OID 22327)
+-- TOC entry 4523 (class 3256 OID 22327)
 -- Name: wishlists Users can delete their own wishlists; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7845,7 +7990,7 @@ CREATE POLICY "Users can delete their own wishlists" ON public.wishlists FOR DEL
 
 
 --
--- TOC entry 4439 (class 3256 OID 17605)
+-- TOC entry 4472 (class 3256 OID 17605)
 -- Name: profiles Users can insert own profile; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7853,7 +7998,7 @@ CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH 
 
 
 --
--- TOC entry 4489 (class 3256 OID 22326)
+-- TOC entry 4522 (class 3256 OID 22326)
 -- Name: wishlists Users can insert their own wishlists; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7861,7 +8006,7 @@ CREATE POLICY "Users can insert their own wishlists" ON public.wishlists FOR INS
 
 
 --
--- TOC entry 4486 (class 3256 OID 22273)
+-- TOC entry 4519 (class 3256 OID 22273)
 -- Name: product_likes Users can manage own likes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7869,7 +8014,7 @@ CREATE POLICY "Users can manage own likes" ON public.product_likes TO authentica
 
 
 --
--- TOC entry 4485 (class 3256 OID 22253)
+-- TOC entry 4518 (class 3256 OID 22253)
 -- Name: wishlists Users can manage own wishlist; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7877,7 +8022,7 @@ CREATE POLICY "Users can manage own wishlist" ON public.wishlists TO authenticat
 
 
 --
--- TOC entry 4440 (class 3256 OID 17606)
+-- TOC entry 4473 (class 3256 OID 17606)
 -- Name: profiles Users can update own profile; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7885,7 +8030,7 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 
 
 --
--- TOC entry 4507 (class 3256 OID 22546)
+-- TOC entry 4540 (class 3256 OID 22546)
 -- Name: product_trust_votes Users can update own trust votes; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7893,7 +8038,7 @@ CREATE POLICY "Users can update own trust votes" ON public.product_trust_votes F
 
 
 --
--- TOC entry 4437 (class 3256 OID 17603)
+-- TOC entry 4470 (class 3256 OID 17603)
 -- Name: profiles Users can view own profile; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7901,7 +8046,7 @@ CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (
 
 
 --
--- TOC entry 4443 (class 3256 OID 17609)
+-- TOC entry 4476 (class 3256 OID 17609)
 -- Name: user_roles Users can view own role; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7909,7 +8054,7 @@ CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING ((
 
 
 --
--- TOC entry 4488 (class 3256 OID 22325)
+-- TOC entry 4521 (class 3256 OID 22325)
 -- Name: wishlists Users can view their own wishlists; Type: POLICY; Schema: public; Owner: postgres
 --
 
@@ -7917,215 +8062,215 @@ CREATE POLICY "Users can view their own wishlists" ON public.wishlists FOR SELEC
 
 
 --
--- TOC entry 4415 (class 0 OID 17545)
--- Dependencies: 355
+-- TOC entry 4448 (class 0 OID 17545)
+-- Dependencies: 357
 -- Name: banners; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4418 (class 0 OID 22129)
--- Dependencies: 359
+-- TOC entry 4451 (class 0 OID 22129)
+-- Dependencies: 361
 -- Name: brands; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.brands ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4421 (class 0 OID 22173)
--- Dependencies: 362
+-- TOC entry 4454 (class 0 OID 22173)
+-- Dependencies: 364
 -- Name: categories; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4434 (class 0 OID 22458)
--- Dependencies: 375
+-- TOC entry 4467 (class 0 OID 22458)
+-- Dependencies: 377
 -- Name: coupon_votes; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.coupon_votes ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4433 (class 0 OID 22441)
--- Dependencies: 374
+-- TOC entry 4466 (class 0 OID 22441)
+-- Dependencies: 376
 -- Name: coupons; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4432 (class 0 OID 22426)
--- Dependencies: 373
+-- TOC entry 4465 (class 0 OID 22426)
+-- Dependencies: 375
 -- Name: institutional_pages; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.institutional_pages ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4419 (class 0 OID 22142)
--- Dependencies: 360
+-- TOC entry 4452 (class 0 OID 22142)
+-- Dependencies: 362
 -- Name: models; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.models ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4430 (class 0 OID 22381)
--- Dependencies: 371
+-- TOC entry 4463 (class 0 OID 22381)
+-- Dependencies: 373
 -- Name: newsletter_products; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.newsletter_products ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4429 (class 0 OID 22370)
--- Dependencies: 370
+-- TOC entry 4462 (class 0 OID 22370)
+-- Dependencies: 372
 -- Name: newsletters; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.newsletters ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4420 (class 0 OID 22160)
--- Dependencies: 361
+-- TOC entry 4453 (class 0 OID 22160)
+-- Dependencies: 363
 -- Name: platforms; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.platforms ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4431 (class 0 OID 22408)
--- Dependencies: 372
+-- TOC entry 4464 (class 0 OID 22408)
+-- Dependencies: 374
 -- Name: price_history; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.price_history ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4427 (class 0 OID 22328)
--- Dependencies: 368
+-- TOC entry 4460 (class 0 OID 22328)
+-- Dependencies: 370
 -- Name: product_clicks; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.product_clicks ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4426 (class 0 OID 22254)
--- Dependencies: 367
+-- TOC entry 4459 (class 0 OID 22254)
+-- Dependencies: 369
 -- Name: product_likes; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.product_likes ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4428 (class 0 OID 22349)
--- Dependencies: 369
+-- TOC entry 4461 (class 0 OID 22349)
+-- Dependencies: 371
 -- Name: product_trust_votes; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.product_trust_votes ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4414 (class 0 OID 17530)
--- Dependencies: 354
+-- TOC entry 4447 (class 0 OID 17530)
+-- Dependencies: 356
 -- Name: products; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4412 (class 0 OID 17503)
--- Dependencies: 352
+-- TOC entry 4445 (class 0 OID 17503)
+-- Dependencies: 354
 -- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4417 (class 0 OID 17573)
--- Dependencies: 357
+-- TOC entry 4450 (class 0 OID 17573)
+-- Dependencies: 359
 -- Name: reports; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4416 (class 0 OID 17557)
--- Dependencies: 356
+-- TOC entry 4449 (class 0 OID 17557)
+-- Dependencies: 358
 -- Name: reviews; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4435 (class 0 OID 25968)
--- Dependencies: 376
+-- TOC entry 4468 (class 0 OID 25968)
+-- Dependencies: 378
 -- Name: shopee_product_mappings; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.shopee_product_mappings ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4436 (class 0 OID 25986)
--- Dependencies: 377
+-- TOC entry 4469 (class 0 OID 25986)
+-- Dependencies: 379
 -- Name: shopee_sync_logs; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.shopee_sync_logs ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4423 (class 0 OID 22202)
--- Dependencies: 364
+-- TOC entry 4456 (class 0 OID 22202)
+-- Dependencies: 366
 -- Name: special_page_products; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.special_page_products ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4422 (class 0 OID 22188)
--- Dependencies: 363
+-- TOC entry 4455 (class 0 OID 22188)
+-- Dependencies: 365
 -- Name: special_pages; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.special_pages ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4413 (class 0 OID 17516)
--- Dependencies: 353
+-- TOC entry 4446 (class 0 OID 17516)
+-- Dependencies: 355
 -- Name: user_roles; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4424 (class 0 OID 22222)
--- Dependencies: 365
+-- TOC entry 4457 (class 0 OID 22222)
+-- Dependencies: 367
 -- Name: whatsapp_groups; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.whatsapp_groups ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4425 (class 0 OID 22234)
--- Dependencies: 366
+-- TOC entry 4458 (class 0 OID 22234)
+-- Dependencies: 368
 -- Name: wishlists; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4411 (class 0 OID 17475)
--- Dependencies: 351
+-- TOC entry 4444 (class 0 OID 17475)
+-- Dependencies: 353
 -- Name: messages; Type: ROW SECURITY; Schema: realtime; Owner: supabase_realtime_admin
 --
 
 ALTER TABLE realtime.messages ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4467 (class 3256 OID 17668)
+-- TOC entry 4500 (class 3256 OID 17668)
 -- Name: objects Auth Delete Banners; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8133,7 +8278,7 @@ CREATE POLICY "Auth Delete Banners" ON storage.objects FOR DELETE TO authenticat
 
 
 --
--- TOC entry 4471 (class 3256 OID 17672)
+-- TOC entry 4504 (class 3256 OID 17672)
 -- Name: objects Auth Delete Products; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8141,7 +8286,7 @@ CREATE POLICY "Auth Delete Products" ON storage.objects FOR DELETE TO authentica
 
 
 --
--- TOC entry 4456 (class 3256 OID 17666)
+-- TOC entry 4489 (class 3256 OID 17666)
 -- Name: objects Auth Insert Banners; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8149,7 +8294,7 @@ CREATE POLICY "Auth Insert Banners" ON storage.objects FOR INSERT TO authenticat
 
 
 --
--- TOC entry 4469 (class 3256 OID 17670)
+-- TOC entry 4502 (class 3256 OID 17670)
 -- Name: objects Auth Insert Products; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8157,7 +8302,7 @@ CREATE POLICY "Auth Insert Products" ON storage.objects FOR INSERT TO authentica
 
 
 --
--- TOC entry 4466 (class 3256 OID 17667)
+-- TOC entry 4499 (class 3256 OID 17667)
 -- Name: objects Auth Update Banners; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8165,7 +8310,7 @@ CREATE POLICY "Auth Update Banners" ON storage.objects FOR UPDATE TO authenticat
 
 
 --
--- TOC entry 4470 (class 3256 OID 17671)
+-- TOC entry 4503 (class 3256 OID 17671)
 -- Name: objects Auth Update Products; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8173,7 +8318,7 @@ CREATE POLICY "Auth Update Products" ON storage.objects FOR UPDATE TO authentica
 
 
 --
--- TOC entry 4455 (class 3256 OID 17665)
+-- TOC entry 4488 (class 3256 OID 17665)
 -- Name: objects Public Access Banners; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8181,7 +8326,7 @@ CREATE POLICY "Public Access Banners" ON storage.objects FOR SELECT USING ((buck
 
 
 --
--- TOC entry 4468 (class 3256 OID 17669)
+-- TOC entry 4501 (class 3256 OID 17669)
 -- Name: objects Public Access Products; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -8189,71 +8334,71 @@ CREATE POLICY "Public Access Products" ON storage.objects FOR SELECT USING ((buc
 
 
 --
--- TOC entry 4404 (class 0 OID 17167)
--- Dependencies: 342
+-- TOC entry 4437 (class 0 OID 17167)
+-- Dependencies: 344
 -- Name: buckets; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.buckets ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4408 (class 0 OID 17286)
--- Dependencies: 346
+-- TOC entry 4441 (class 0 OID 17286)
+-- Dependencies: 348
 -- Name: buckets_analytics; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.buckets_analytics ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4409 (class 0 OID 17299)
--- Dependencies: 347
+-- TOC entry 4442 (class 0 OID 17299)
+-- Dependencies: 349
 -- Name: buckets_vectors; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.buckets_vectors ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4403 (class 0 OID 17159)
--- Dependencies: 341
+-- TOC entry 4436 (class 0 OID 17159)
+-- Dependencies: 343
 -- Name: migrations; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.migrations ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4405 (class 0 OID 17177)
--- Dependencies: 343
+-- TOC entry 4438 (class 0 OID 17177)
+-- Dependencies: 345
 -- Name: objects; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4406 (class 0 OID 17226)
--- Dependencies: 344
+-- TOC entry 4439 (class 0 OID 17226)
+-- Dependencies: 346
 -- Name: s3_multipart_uploads; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.s3_multipart_uploads ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4407 (class 0 OID 17240)
--- Dependencies: 345
+-- TOC entry 4440 (class 0 OID 17240)
+-- Dependencies: 347
 -- Name: s3_multipart_uploads_parts; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.s3_multipart_uploads_parts ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4410 (class 0 OID 17309)
--- Dependencies: 348
+-- TOC entry 4443 (class 0 OID 17309)
+-- Dependencies: 350
 -- Name: vector_indexes; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
 ALTER TABLE storage.vector_indexes ENABLE ROW LEVEL SECURITY;
 
 --
--- TOC entry 4514 (class 6104 OID 16426)
+-- TOC entry 4547 (class 6104 OID 16426)
 -- Name: supabase_realtime; Type: PUBLICATION; Schema: -; Owner: postgres
 --
 
@@ -8263,7 +8408,7 @@ CREATE PUBLICATION supabase_realtime WITH (publish = 'insert, update, delete, tr
 ALTER PUBLICATION supabase_realtime OWNER TO postgres;
 
 --
--- TOC entry 4578 (class 0 OID 0)
+-- TOC entry 4613 (class 0 OID 0)
 -- Dependencies: 37
 -- Name: SCHEMA auth; Type: ACL; Schema: -; Owner: supabase_admin
 --
@@ -8277,7 +8422,7 @@ GRANT USAGE ON SCHEMA auth TO postgres;
 
 
 --
--- TOC entry 4579 (class 0 OID 0)
+-- TOC entry 4614 (class 0 OID 0)
 -- Dependencies: 23
 -- Name: SCHEMA extensions; Type: ACL; Schema: -; Owner: postgres
 --
@@ -8289,7 +8434,7 @@ GRANT ALL ON SCHEMA extensions TO dashboard_user;
 
 
 --
--- TOC entry 4580 (class 0 OID 0)
+-- TOC entry 4615 (class 0 OID 0)
 -- Dependencies: 38
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
 --
@@ -8301,7 +8446,7 @@ GRANT USAGE ON SCHEMA public TO service_role;
 
 
 --
--- TOC entry 4581 (class 0 OID 0)
+-- TOC entry 4616 (class 0 OID 0)
 -- Dependencies: 14
 -- Name: SCHEMA realtime; Type: ACL; Schema: -; Owner: supabase_admin
 --
@@ -8314,7 +8459,7 @@ GRANT ALL ON SCHEMA realtime TO supabase_realtime_admin;
 
 
 --
--- TOC entry 4582 (class 0 OID 0)
+-- TOC entry 4617 (class 0 OID 0)
 -- Dependencies: 46
 -- Name: SCHEMA storage; Type: ACL; Schema: -; Owner: supabase_admin
 --
@@ -8340,7 +8485,7 @@ RESET SESSION AUTHORIZATION;
 
 
 --
--- TOC entry 4583 (class 0 OID 0)
+-- TOC entry 4618 (class 0 OID 0)
 -- Dependencies: 32
 -- Name: SCHEMA vault; Type: ACL; Schema: -; Owner: supabase_admin
 --
@@ -8350,8 +8495,8 @@ GRANT USAGE ON SCHEMA vault TO service_role;
 
 
 --
--- TOC entry 4590 (class 0 OID 0)
--- Dependencies: 442
+-- TOC entry 4625 (class 0 OID 0)
+-- Dependencies: 446
 -- Name: FUNCTION email(); Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -8359,8 +8504,8 @@ GRANT ALL ON FUNCTION auth.email() TO dashboard_user;
 
 
 --
--- TOC entry 4591 (class 0 OID 0)
--- Dependencies: 461
+-- TOC entry 4626 (class 0 OID 0)
+-- Dependencies: 465
 -- Name: FUNCTION jwt(); Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -8369,8 +8514,8 @@ GRANT ALL ON FUNCTION auth.jwt() TO dashboard_user;
 
 
 --
--- TOC entry 4593 (class 0 OID 0)
--- Dependencies: 441
+-- TOC entry 4628 (class 0 OID 0)
+-- Dependencies: 445
 -- Name: FUNCTION role(); Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -8378,8 +8523,8 @@ GRANT ALL ON FUNCTION auth.role() TO dashboard_user;
 
 
 --
--- TOC entry 4595 (class 0 OID 0)
--- Dependencies: 440
+-- TOC entry 4630 (class 0 OID 0)
+-- Dependencies: 444
 -- Name: FUNCTION uid(); Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -8387,8 +8532,8 @@ GRANT ALL ON FUNCTION auth.uid() TO dashboard_user;
 
 
 --
--- TOC entry 4596 (class 0 OID 0)
--- Dependencies: 436
+-- TOC entry 4631 (class 0 OID 0)
+-- Dependencies: 440
 -- Name: FUNCTION armor(bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8398,8 +8543,8 @@ GRANT ALL ON FUNCTION extensions.armor(bytea) TO dashboard_user;
 
 
 --
--- TOC entry 4597 (class 0 OID 0)
--- Dependencies: 437
+-- TOC entry 4632 (class 0 OID 0)
+-- Dependencies: 441
 -- Name: FUNCTION armor(bytea, text[], text[]); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8409,8 +8554,8 @@ GRANT ALL ON FUNCTION extensions.armor(bytea, text[], text[]) TO dashboard_user;
 
 
 --
--- TOC entry 4598 (class 0 OID 0)
--- Dependencies: 408
+-- TOC entry 4633 (class 0 OID 0)
+-- Dependencies: 412
 -- Name: FUNCTION crypt(text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8420,8 +8565,8 @@ GRANT ALL ON FUNCTION extensions.crypt(text, text) TO dashboard_user;
 
 
 --
--- TOC entry 4599 (class 0 OID 0)
--- Dependencies: 438
+-- TOC entry 4634 (class 0 OID 0)
+-- Dependencies: 442
 -- Name: FUNCTION dearmor(text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8431,8 +8576,8 @@ GRANT ALL ON FUNCTION extensions.dearmor(text) TO dashboard_user;
 
 
 --
--- TOC entry 4600 (class 0 OID 0)
--- Dependencies: 412
+-- TOC entry 4635 (class 0 OID 0)
+-- Dependencies: 416
 -- Name: FUNCTION decrypt(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8442,8 +8587,8 @@ GRANT ALL ON FUNCTION extensions.decrypt(bytea, bytea, text) TO dashboard_user;
 
 
 --
--- TOC entry 4601 (class 0 OID 0)
--- Dependencies: 414
+-- TOC entry 4636 (class 0 OID 0)
+-- Dependencies: 418
 -- Name: FUNCTION decrypt_iv(bytea, bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8453,8 +8598,8 @@ GRANT ALL ON FUNCTION extensions.decrypt_iv(bytea, bytea, bytea, text) TO dashbo
 
 
 --
--- TOC entry 4602 (class 0 OID 0)
--- Dependencies: 405
+-- TOC entry 4637 (class 0 OID 0)
+-- Dependencies: 409
 -- Name: FUNCTION digest(bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8464,8 +8609,8 @@ GRANT ALL ON FUNCTION extensions.digest(bytea, text) TO dashboard_user;
 
 
 --
--- TOC entry 4603 (class 0 OID 0)
--- Dependencies: 404
+-- TOC entry 4638 (class 0 OID 0)
+-- Dependencies: 408
 -- Name: FUNCTION digest(text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8475,8 +8620,8 @@ GRANT ALL ON FUNCTION extensions.digest(text, text) TO dashboard_user;
 
 
 --
--- TOC entry 4604 (class 0 OID 0)
--- Dependencies: 411
+-- TOC entry 4639 (class 0 OID 0)
+-- Dependencies: 415
 -- Name: FUNCTION encrypt(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8486,8 +8631,8 @@ GRANT ALL ON FUNCTION extensions.encrypt(bytea, bytea, text) TO dashboard_user;
 
 
 --
--- TOC entry 4605 (class 0 OID 0)
--- Dependencies: 413
+-- TOC entry 4640 (class 0 OID 0)
+-- Dependencies: 417
 -- Name: FUNCTION encrypt_iv(bytea, bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8497,8 +8642,8 @@ GRANT ALL ON FUNCTION extensions.encrypt_iv(bytea, bytea, bytea, text) TO dashbo
 
 
 --
--- TOC entry 4606 (class 0 OID 0)
--- Dependencies: 415
+-- TOC entry 4641 (class 0 OID 0)
+-- Dependencies: 419
 -- Name: FUNCTION gen_random_bytes(integer); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8508,8 +8653,8 @@ GRANT ALL ON FUNCTION extensions.gen_random_bytes(integer) TO dashboard_user;
 
 
 --
--- TOC entry 4607 (class 0 OID 0)
--- Dependencies: 416
+-- TOC entry 4642 (class 0 OID 0)
+-- Dependencies: 420
 -- Name: FUNCTION gen_random_uuid(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8519,8 +8664,8 @@ GRANT ALL ON FUNCTION extensions.gen_random_uuid() TO dashboard_user;
 
 
 --
--- TOC entry 4608 (class 0 OID 0)
--- Dependencies: 409
+-- TOC entry 4643 (class 0 OID 0)
+-- Dependencies: 413
 -- Name: FUNCTION gen_salt(text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8530,8 +8675,8 @@ GRANT ALL ON FUNCTION extensions.gen_salt(text) TO dashboard_user;
 
 
 --
--- TOC entry 4609 (class 0 OID 0)
--- Dependencies: 410
+-- TOC entry 4644 (class 0 OID 0)
+-- Dependencies: 414
 -- Name: FUNCTION gen_salt(text, integer); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8541,8 +8686,8 @@ GRANT ALL ON FUNCTION extensions.gen_salt(text, integer) TO dashboard_user;
 
 
 --
--- TOC entry 4611 (class 0 OID 0)
--- Dependencies: 443
+-- TOC entry 4646 (class 0 OID 0)
+-- Dependencies: 447
 -- Name: FUNCTION grant_pg_cron_access(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8552,8 +8697,8 @@ GRANT ALL ON FUNCTION extensions.grant_pg_cron_access() TO dashboard_user;
 
 
 --
--- TOC entry 4613 (class 0 OID 0)
--- Dependencies: 447
+-- TOC entry 4648 (class 0 OID 0)
+-- Dependencies: 451
 -- Name: FUNCTION grant_pg_graphql_access(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8561,8 +8706,8 @@ GRANT ALL ON FUNCTION extensions.grant_pg_graphql_access() TO postgres WITH GRAN
 
 
 --
--- TOC entry 4615 (class 0 OID 0)
--- Dependencies: 444
+-- TOC entry 4650 (class 0 OID 0)
+-- Dependencies: 448
 -- Name: FUNCTION grant_pg_net_access(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8572,8 +8717,8 @@ GRANT ALL ON FUNCTION extensions.grant_pg_net_access() TO dashboard_user;
 
 
 --
--- TOC entry 4616 (class 0 OID 0)
--- Dependencies: 407
+-- TOC entry 4651 (class 0 OID 0)
+-- Dependencies: 411
 -- Name: FUNCTION hmac(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8583,8 +8728,8 @@ GRANT ALL ON FUNCTION extensions.hmac(bytea, bytea, text) TO dashboard_user;
 
 
 --
--- TOC entry 4617 (class 0 OID 0)
--- Dependencies: 406
+-- TOC entry 4652 (class 0 OID 0)
+-- Dependencies: 410
 -- Name: FUNCTION hmac(text, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8594,8 +8739,8 @@ GRANT ALL ON FUNCTION extensions.hmac(text, text, text) TO dashboard_user;
 
 
 --
--- TOC entry 4618 (class 0 OID 0)
--- Dependencies: 392
+-- TOC entry 4653 (class 0 OID 0)
+-- Dependencies: 396
 -- Name: FUNCTION pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8605,8 +8750,8 @@ GRANT ALL ON FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid
 
 
 --
--- TOC entry 4619 (class 0 OID 0)
--- Dependencies: 391
+-- TOC entry 4654 (class 0 OID 0)
+-- Dependencies: 395
 -- Name: FUNCTION pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8616,8 +8761,8 @@ GRANT ALL ON FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT
 
 
 --
--- TOC entry 4620 (class 0 OID 0)
--- Dependencies: 393
+-- TOC entry 4655 (class 0 OID 0)
+-- Dependencies: 397
 -- Name: FUNCTION pg_stat_statements_reset(userid oid, dbid oid, queryid bigint, minmax_only boolean); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8627,8 +8772,8 @@ GRANT ALL ON FUNCTION extensions.pg_stat_statements_reset(userid oid, dbid oid, 
 
 
 --
--- TOC entry 4621 (class 0 OID 0)
--- Dependencies: 439
+-- TOC entry 4656 (class 0 OID 0)
+-- Dependencies: 443
 -- Name: FUNCTION pgp_armor_headers(text, OUT key text, OUT value text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8638,8 +8783,8 @@ GRANT ALL ON FUNCTION extensions.pgp_armor_headers(text, OUT key text, OUT value
 
 
 --
--- TOC entry 4622 (class 0 OID 0)
--- Dependencies: 435
+-- TOC entry 4657 (class 0 OID 0)
+-- Dependencies: 439
 -- Name: FUNCTION pgp_key_id(bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8649,8 +8794,8 @@ GRANT ALL ON FUNCTION extensions.pgp_key_id(bytea) TO dashboard_user;
 
 
 --
--- TOC entry 4623 (class 0 OID 0)
--- Dependencies: 429
+-- TOC entry 4658 (class 0 OID 0)
+-- Dependencies: 433
 -- Name: FUNCTION pgp_pub_decrypt(bytea, bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8660,8 +8805,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt(bytea, bytea) TO dashboard_user
 
 
 --
--- TOC entry 4624 (class 0 OID 0)
--- Dependencies: 431
+-- TOC entry 4659 (class 0 OID 0)
+-- Dependencies: 435
 -- Name: FUNCTION pgp_pub_decrypt(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8671,8 +8816,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text) TO dashboar
 
 
 --
--- TOC entry 4625 (class 0 OID 0)
--- Dependencies: 433
+-- TOC entry 4660 (class 0 OID 0)
+-- Dependencies: 437
 -- Name: FUNCTION pgp_pub_decrypt(bytea, bytea, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8682,8 +8827,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text) TO da
 
 
 --
--- TOC entry 4626 (class 0 OID 0)
--- Dependencies: 430
+-- TOC entry 4661 (class 0 OID 0)
+-- Dependencies: 434
 -- Name: FUNCTION pgp_pub_decrypt_bytea(bytea, bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8693,8 +8838,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea) TO dashboar
 
 
 --
--- TOC entry 4627 (class 0 OID 0)
--- Dependencies: 432
+-- TOC entry 4662 (class 0 OID 0)
+-- Dependencies: 436
 -- Name: FUNCTION pgp_pub_decrypt_bytea(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8704,8 +8849,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text) TO da
 
 
 --
--- TOC entry 4628 (class 0 OID 0)
--- Dependencies: 434
+-- TOC entry 4663 (class 0 OID 0)
+-- Dependencies: 438
 -- Name: FUNCTION pgp_pub_decrypt_bytea(bytea, bytea, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8715,8 +8860,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)
 
 
 --
--- TOC entry 4629 (class 0 OID 0)
--- Dependencies: 425
+-- TOC entry 4664 (class 0 OID 0)
+-- Dependencies: 429
 -- Name: FUNCTION pgp_pub_encrypt(text, bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8726,8 +8871,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_encrypt(text, bytea) TO dashboard_user;
 
 
 --
--- TOC entry 4630 (class 0 OID 0)
--- Dependencies: 427
+-- TOC entry 4665 (class 0 OID 0)
+-- Dependencies: 431
 -- Name: FUNCTION pgp_pub_encrypt(text, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8737,8 +8882,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_encrypt(text, bytea, text) TO dashboard
 
 
 --
--- TOC entry 4631 (class 0 OID 0)
--- Dependencies: 426
+-- TOC entry 4666 (class 0 OID 0)
+-- Dependencies: 430
 -- Name: FUNCTION pgp_pub_encrypt_bytea(bytea, bytea); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8748,8 +8893,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea) TO dashboar
 
 
 --
--- TOC entry 4632 (class 0 OID 0)
--- Dependencies: 428
+-- TOC entry 4667 (class 0 OID 0)
+-- Dependencies: 432
 -- Name: FUNCTION pgp_pub_encrypt_bytea(bytea, bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8759,8 +8904,8 @@ GRANT ALL ON FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text) TO da
 
 
 --
--- TOC entry 4633 (class 0 OID 0)
--- Dependencies: 421
+-- TOC entry 4668 (class 0 OID 0)
+-- Dependencies: 425
 -- Name: FUNCTION pgp_sym_decrypt(bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8770,8 +8915,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_decrypt(bytea, text) TO dashboard_user;
 
 
 --
--- TOC entry 4634 (class 0 OID 0)
--- Dependencies: 423
+-- TOC entry 4669 (class 0 OID 0)
+-- Dependencies: 427
 -- Name: FUNCTION pgp_sym_decrypt(bytea, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8781,8 +8926,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_decrypt(bytea, text, text) TO dashboard
 
 
 --
--- TOC entry 4635 (class 0 OID 0)
--- Dependencies: 422
+-- TOC entry 4670 (class 0 OID 0)
+-- Dependencies: 426
 -- Name: FUNCTION pgp_sym_decrypt_bytea(bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8792,8 +8937,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text) TO dashboard
 
 
 --
--- TOC entry 4636 (class 0 OID 0)
--- Dependencies: 424
+-- TOC entry 4671 (class 0 OID 0)
+-- Dependencies: 428
 -- Name: FUNCTION pgp_sym_decrypt_bytea(bytea, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8803,8 +8948,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text) TO das
 
 
 --
--- TOC entry 4637 (class 0 OID 0)
--- Dependencies: 417
+-- TOC entry 4672 (class 0 OID 0)
+-- Dependencies: 421
 -- Name: FUNCTION pgp_sym_encrypt(text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8814,8 +8959,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_encrypt(text, text) TO dashboard_user;
 
 
 --
--- TOC entry 4638 (class 0 OID 0)
--- Dependencies: 419
+-- TOC entry 4673 (class 0 OID 0)
+-- Dependencies: 423
 -- Name: FUNCTION pgp_sym_encrypt(text, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8825,8 +8970,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_encrypt(text, text, text) TO dashboard_
 
 
 --
--- TOC entry 4639 (class 0 OID 0)
--- Dependencies: 418
+-- TOC entry 4674 (class 0 OID 0)
+-- Dependencies: 422
 -- Name: FUNCTION pgp_sym_encrypt_bytea(bytea, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8836,8 +8981,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text) TO dashboard
 
 
 --
--- TOC entry 4640 (class 0 OID 0)
--- Dependencies: 420
+-- TOC entry 4675 (class 0 OID 0)
+-- Dependencies: 424
 -- Name: FUNCTION pgp_sym_encrypt_bytea(bytea, text, text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8847,8 +8992,8 @@ GRANT ALL ON FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text) TO das
 
 
 --
--- TOC entry 4641 (class 0 OID 0)
--- Dependencies: 445
+-- TOC entry 4676 (class 0 OID 0)
+-- Dependencies: 449
 -- Name: FUNCTION pgrst_ddl_watch(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8856,8 +9001,8 @@ GRANT ALL ON FUNCTION extensions.pgrst_ddl_watch() TO postgres WITH GRANT OPTION
 
 
 --
--- TOC entry 4642 (class 0 OID 0)
--- Dependencies: 446
+-- TOC entry 4677 (class 0 OID 0)
+-- Dependencies: 450
 -- Name: FUNCTION pgrst_drop_watch(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8865,8 +9010,8 @@ GRANT ALL ON FUNCTION extensions.pgrst_drop_watch() TO postgres WITH GRANT OPTIO
 
 
 --
--- TOC entry 4644 (class 0 OID 0)
--- Dependencies: 448
+-- TOC entry 4679 (class 0 OID 0)
+-- Dependencies: 452
 -- Name: FUNCTION set_graphql_placeholder(); Type: ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -8874,8 +9019,8 @@ GRANT ALL ON FUNCTION extensions.set_graphql_placeholder() TO postgres WITH GRAN
 
 
 --
--- TOC entry 4645 (class 0 OID 0)
--- Dependencies: 399
+-- TOC entry 4680 (class 0 OID 0)
+-- Dependencies: 403
 -- Name: FUNCTION uuid_generate_v1(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8885,8 +9030,8 @@ GRANT ALL ON FUNCTION extensions.uuid_generate_v1() TO dashboard_user;
 
 
 --
--- TOC entry 4646 (class 0 OID 0)
--- Dependencies: 400
+-- TOC entry 4681 (class 0 OID 0)
+-- Dependencies: 404
 -- Name: FUNCTION uuid_generate_v1mc(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8896,8 +9041,8 @@ GRANT ALL ON FUNCTION extensions.uuid_generate_v1mc() TO dashboard_user;
 
 
 --
--- TOC entry 4647 (class 0 OID 0)
--- Dependencies: 401
+-- TOC entry 4682 (class 0 OID 0)
+-- Dependencies: 405
 -- Name: FUNCTION uuid_generate_v3(namespace uuid, name text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8907,8 +9052,8 @@ GRANT ALL ON FUNCTION extensions.uuid_generate_v3(namespace uuid, name text) TO 
 
 
 --
--- TOC entry 4648 (class 0 OID 0)
--- Dependencies: 402
+-- TOC entry 4683 (class 0 OID 0)
+-- Dependencies: 406
 -- Name: FUNCTION uuid_generate_v4(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8918,8 +9063,8 @@ GRANT ALL ON FUNCTION extensions.uuid_generate_v4() TO dashboard_user;
 
 
 --
--- TOC entry 4649 (class 0 OID 0)
--- Dependencies: 403
+-- TOC entry 4684 (class 0 OID 0)
+-- Dependencies: 407
 -- Name: FUNCTION uuid_generate_v5(namespace uuid, name text); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8929,8 +9074,8 @@ GRANT ALL ON FUNCTION extensions.uuid_generate_v5(namespace uuid, name text) TO 
 
 
 --
--- TOC entry 4650 (class 0 OID 0)
--- Dependencies: 394
+-- TOC entry 4685 (class 0 OID 0)
+-- Dependencies: 398
 -- Name: FUNCTION uuid_nil(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8940,8 +9085,8 @@ GRANT ALL ON FUNCTION extensions.uuid_nil() TO dashboard_user;
 
 
 --
--- TOC entry 4651 (class 0 OID 0)
--- Dependencies: 395
+-- TOC entry 4686 (class 0 OID 0)
+-- Dependencies: 399
 -- Name: FUNCTION uuid_ns_dns(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8951,8 +9096,8 @@ GRANT ALL ON FUNCTION extensions.uuid_ns_dns() TO dashboard_user;
 
 
 --
--- TOC entry 4652 (class 0 OID 0)
--- Dependencies: 397
+-- TOC entry 4687 (class 0 OID 0)
+-- Dependencies: 401
 -- Name: FUNCTION uuid_ns_oid(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8962,8 +9107,8 @@ GRANT ALL ON FUNCTION extensions.uuid_ns_oid() TO dashboard_user;
 
 
 --
--- TOC entry 4653 (class 0 OID 0)
--- Dependencies: 396
+-- TOC entry 4688 (class 0 OID 0)
+-- Dependencies: 400
 -- Name: FUNCTION uuid_ns_url(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8973,8 +9118,8 @@ GRANT ALL ON FUNCTION extensions.uuid_ns_url() TO dashboard_user;
 
 
 --
--- TOC entry 4654 (class 0 OID 0)
--- Dependencies: 398
+-- TOC entry 4689 (class 0 OID 0)
+-- Dependencies: 402
 -- Name: FUNCTION uuid_ns_x500(); Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -8984,8 +9129,8 @@ GRANT ALL ON FUNCTION extensions.uuid_ns_x500() TO dashboard_user;
 
 
 --
--- TOC entry 4655 (class 0 OID 0)
--- Dependencies: 460
+-- TOC entry 4690 (class 0 OID 0)
+-- Dependencies: 464
 -- Name: FUNCTION graphql("operationName" text, query text, variables jsonb, extensions jsonb); Type: ACL; Schema: graphql_public; Owner: supabase_admin
 --
 
@@ -8996,8 +9141,8 @@ GRANT ALL ON FUNCTION graphql_public.graphql("operationName" text, query text, v
 
 
 --
--- TOC entry 4656 (class 0 OID 0)
--- Dependencies: 378
+-- TOC entry 4691 (class 0 OID 0)
+-- Dependencies: 382
 -- Name: FUNCTION pg_reload_conf(); Type: ACL; Schema: pg_catalog; Owner: supabase_admin
 --
 
@@ -9005,8 +9150,8 @@ GRANT ALL ON FUNCTION pg_catalog.pg_reload_conf() TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4657 (class 0 OID 0)
--- Dependencies: 390
+-- TOC entry 4692 (class 0 OID 0)
+-- Dependencies: 394
 -- Name: FUNCTION get_auth(p_usename text); Type: ACL; Schema: pgbouncer; Owner: supabase_admin
 --
 
@@ -9015,8 +9160,8 @@ GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO pgbouncer;
 
 
 --
--- TOC entry 4658 (class 0 OID 0)
--- Dependencies: 492
+-- TOC entry 4693 (class 0 OID 0)
+-- Dependencies: 496
 -- Name: FUNCTION admin_delete_user(target_user_id uuid); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9026,8 +9171,8 @@ GRANT ALL ON FUNCTION public.admin_delete_user(target_user_id uuid) TO service_r
 
 
 --
--- TOC entry 4659 (class 0 OID 0)
--- Dependencies: 494
+-- TOC entry 4694 (class 0 OID 0)
+-- Dependencies: 498
 -- Name: FUNCTION admin_update_user_email(target_user_id uuid, new_email text); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9037,8 +9182,8 @@ GRANT ALL ON FUNCTION public.admin_update_user_email(target_user_id uuid, new_em
 
 
 --
--- TOC entry 4660 (class 0 OID 0)
--- Dependencies: 493
+-- TOC entry 4695 (class 0 OID 0)
+-- Dependencies: 497
 -- Name: FUNCTION admin_update_user_role(target_user_id uuid, new_role public.app_role); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9048,8 +9193,8 @@ GRANT ALL ON FUNCTION public.admin_update_user_role(target_user_id uuid, new_rol
 
 
 --
--- TOC entry 4661 (class 0 OID 0)
--- Dependencies: 495
+-- TOC entry 4696 (class 0 OID 0)
+-- Dependencies: 499
 -- Name: FUNCTION calc_discount_percentage(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9059,8 +9204,8 @@ GRANT ALL ON FUNCTION public.calc_discount_percentage() TO service_role;
 
 
 --
--- TOC entry 4662 (class 0 OID 0)
--- Dependencies: 490
+-- TOC entry 4697 (class 0 OID 0)
+-- Dependencies: 494
 -- Name: FUNCTION handle_new_user(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9070,8 +9215,8 @@ GRANT ALL ON FUNCTION public.handle_new_user() TO service_role;
 
 
 --
--- TOC entry 4663 (class 0 OID 0)
--- Dependencies: 491
+-- TOC entry 4698 (class 0 OID 0)
+-- Dependencies: 495
 -- Name: FUNCTION has_role(_user_id uuid, _role public.app_role); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9081,8 +9226,8 @@ GRANT ALL ON FUNCTION public.has_role(_user_id uuid, _role public.app_role) TO s
 
 
 --
--- TOC entry 4664 (class 0 OID 0)
--- Dependencies: 497
+-- TOC entry 4699 (class 0 OID 0)
+-- Dependencies: 501
 -- Name: FUNCTION increment_product_clicks(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9092,8 +9237,8 @@ GRANT ALL ON FUNCTION public.increment_product_clicks() TO service_role;
 
 
 --
--- TOC entry 4665 (class 0 OID 0)
--- Dependencies: 496
+-- TOC entry 4700 (class 0 OID 0)
+-- Dependencies: 500
 -- Name: FUNCTION log_price_change(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9103,8 +9248,8 @@ GRANT ALL ON FUNCTION public.log_price_change() TO service_role;
 
 
 --
--- TOC entry 4666 (class 0 OID 0)
--- Dependencies: 498
+-- TOC entry 4701 (class 0 OID 0)
+-- Dependencies: 502
 -- Name: FUNCTION update_coupons_updated_at(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9114,8 +9259,8 @@ GRANT ALL ON FUNCTION public.update_coupons_updated_at() TO service_role;
 
 
 --
--- TOC entry 4667 (class 0 OID 0)
--- Dependencies: 489
+-- TOC entry 4702 (class 0 OID 0)
+-- Dependencies: 493
 -- Name: FUNCTION update_updated_at_column(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9125,8 +9270,8 @@ GRANT ALL ON FUNCTION public.update_updated_at_column() TO service_role;
 
 
 --
--- TOC entry 4668 (class 0 OID 0)
--- Dependencies: 482
+-- TOC entry 4703 (class 0 OID 0)
+-- Dependencies: 486
 -- Name: FUNCTION apply_rls(wal jsonb, max_record_bytes integer); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9139,8 +9284,8 @@ GRANT ALL ON FUNCTION realtime.apply_rls(wal jsonb, max_record_bytes integer) TO
 
 
 --
--- TOC entry 4669 (class 0 OID 0)
--- Dependencies: 488
+-- TOC entry 4704 (class 0 OID 0)
+-- Dependencies: 492
 -- Name: FUNCTION broadcast_changes(topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9149,8 +9294,8 @@ GRANT ALL ON FUNCTION realtime.broadcast_changes(topic_name text, event_name tex
 
 
 --
--- TOC entry 4670 (class 0 OID 0)
--- Dependencies: 484
+-- TOC entry 4705 (class 0 OID 0)
+-- Dependencies: 488
 -- Name: FUNCTION build_prepared_statement_sql(prepared_statement_name text, entity regclass, columns realtime.wal_column[]); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9163,8 +9308,8 @@ GRANT ALL ON FUNCTION realtime.build_prepared_statement_sql(prepared_statement_n
 
 
 --
--- TOC entry 4671 (class 0 OID 0)
--- Dependencies: 480
+-- TOC entry 4706 (class 0 OID 0)
+-- Dependencies: 484
 -- Name: FUNCTION "cast"(val text, type_ regtype); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9177,8 +9322,8 @@ GRANT ALL ON FUNCTION realtime."cast"(val text, type_ regtype) TO supabase_realt
 
 
 --
--- TOC entry 4672 (class 0 OID 0)
--- Dependencies: 464
+-- TOC entry 4707 (class 0 OID 0)
+-- Dependencies: 468
 -- Name: FUNCTION check_equality_op(op realtime.equality_op, type_ regtype, val_1 text, val_2 text); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9191,8 +9336,8 @@ GRANT ALL ON FUNCTION realtime.check_equality_op(op realtime.equality_op, type_ 
 
 
 --
--- TOC entry 4673 (class 0 OID 0)
--- Dependencies: 483
+-- TOC entry 4708 (class 0 OID 0)
+-- Dependencies: 487
 -- Name: FUNCTION is_visible_through_filters(columns realtime.wal_column[], filters realtime.user_defined_filter[]); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9205,8 +9350,8 @@ GRANT ALL ON FUNCTION realtime.is_visible_through_filters(columns realtime.wal_c
 
 
 --
--- TOC entry 4674 (class 0 OID 0)
--- Dependencies: 485
+-- TOC entry 4709 (class 0 OID 0)
+-- Dependencies: 489
 -- Name: FUNCTION list_changes(publication name, slot_name name, max_changes integer, max_record_bytes integer); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9219,8 +9364,8 @@ GRANT ALL ON FUNCTION realtime.list_changes(publication name, slot_name name, ma
 
 
 --
--- TOC entry 4675 (class 0 OID 0)
--- Dependencies: 463
+-- TOC entry 4710 (class 0 OID 0)
+-- Dependencies: 467
 -- Name: FUNCTION quote_wal2json(entity regclass); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9233,8 +9378,8 @@ GRANT ALL ON FUNCTION realtime.quote_wal2json(entity regclass) TO supabase_realt
 
 
 --
--- TOC entry 4676 (class 0 OID 0)
--- Dependencies: 487
+-- TOC entry 4711 (class 0 OID 0)
+-- Dependencies: 491
 -- Name: FUNCTION send(payload jsonb, event text, topic text, private boolean); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9243,8 +9388,8 @@ GRANT ALL ON FUNCTION realtime.send(payload jsonb, event text, topic text, priva
 
 
 --
--- TOC entry 4677 (class 0 OID 0)
--- Dependencies: 462
+-- TOC entry 4712 (class 0 OID 0)
+-- Dependencies: 466
 -- Name: FUNCTION subscription_check_filters(); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9257,8 +9402,8 @@ GRANT ALL ON FUNCTION realtime.subscription_check_filters() TO supabase_realtime
 
 
 --
--- TOC entry 4678 (class 0 OID 0)
--- Dependencies: 481
+-- TOC entry 4713 (class 0 OID 0)
+-- Dependencies: 485
 -- Name: FUNCTION to_regrole(role_name text); Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9271,8 +9416,8 @@ GRANT ALL ON FUNCTION realtime.to_regrole(role_name text) TO supabase_realtime_a
 
 
 --
--- TOC entry 4679 (class 0 OID 0)
--- Dependencies: 486
+-- TOC entry 4714 (class 0 OID 0)
+-- Dependencies: 490
 -- Name: FUNCTION topic(); Type: ACL; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -9281,8 +9426,8 @@ GRANT ALL ON FUNCTION realtime.topic() TO dashboard_user;
 
 
 --
--- TOC entry 4680 (class 0 OID 0)
--- Dependencies: 450
+-- TOC entry 4715 (class 0 OID 0)
+-- Dependencies: 454
 -- Name: FUNCTION _crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea, nonce bytea); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
@@ -9291,8 +9436,8 @@ GRANT ALL ON FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional b
 
 
 --
--- TOC entry 4681 (class 0 OID 0)
--- Dependencies: 452
+-- TOC entry 4716 (class 0 OID 0)
+-- Dependencies: 456
 -- Name: FUNCTION create_secret(new_secret text, new_name text, new_description text, new_key_id uuid); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
@@ -9301,8 +9446,8 @@ GRANT ALL ON FUNCTION vault.create_secret(new_secret text, new_name text, new_de
 
 
 --
--- TOC entry 4682 (class 0 OID 0)
--- Dependencies: 453
+-- TOC entry 4717 (class 0 OID 0)
+-- Dependencies: 457
 -- Name: FUNCTION update_secret(secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
@@ -9311,8 +9456,8 @@ GRANT ALL ON FUNCTION vault.update_secret(secret_id uuid, new_secret text, new_n
 
 
 --
--- TOC entry 4684 (class 0 OID 0)
--- Dependencies: 316
+-- TOC entry 4719 (class 0 OID 0)
+-- Dependencies: 318
 -- Name: TABLE audit_log_entries; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9322,8 +9467,8 @@ GRANT SELECT ON TABLE auth.audit_log_entries TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4685 (class 0 OID 0)
--- Dependencies: 336
+-- TOC entry 4720 (class 0 OID 0)
+-- Dependencies: 338
 -- Name: TABLE custom_oauth_providers; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9332,8 +9477,8 @@ GRANT ALL ON TABLE auth.custom_oauth_providers TO dashboard_user;
 
 
 --
--- TOC entry 4687 (class 0 OID 0)
--- Dependencies: 330
+-- TOC entry 4722 (class 0 OID 0)
+-- Dependencies: 332
 -- Name: TABLE flow_state; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9343,8 +9488,8 @@ GRANT ALL ON TABLE auth.flow_state TO dashboard_user;
 
 
 --
--- TOC entry 4690 (class 0 OID 0)
--- Dependencies: 321
+-- TOC entry 4725 (class 0 OID 0)
+-- Dependencies: 323
 -- Name: TABLE identities; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9354,8 +9499,8 @@ GRANT ALL ON TABLE auth.identities TO dashboard_user;
 
 
 --
--- TOC entry 4692 (class 0 OID 0)
--- Dependencies: 315
+-- TOC entry 4727 (class 0 OID 0)
+-- Dependencies: 317
 -- Name: TABLE instances; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9365,8 +9510,8 @@ GRANT SELECT ON TABLE auth.instances TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4694 (class 0 OID 0)
--- Dependencies: 325
+-- TOC entry 4729 (class 0 OID 0)
+-- Dependencies: 327
 -- Name: TABLE mfa_amr_claims; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9376,8 +9521,8 @@ GRANT ALL ON TABLE auth.mfa_amr_claims TO dashboard_user;
 
 
 --
--- TOC entry 4696 (class 0 OID 0)
--- Dependencies: 324
+-- TOC entry 4731 (class 0 OID 0)
+-- Dependencies: 326
 -- Name: TABLE mfa_challenges; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9387,8 +9532,8 @@ GRANT ALL ON TABLE auth.mfa_challenges TO dashboard_user;
 
 
 --
--- TOC entry 4699 (class 0 OID 0)
--- Dependencies: 323
+-- TOC entry 4734 (class 0 OID 0)
+-- Dependencies: 325
 -- Name: TABLE mfa_factors; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9398,8 +9543,8 @@ GRANT ALL ON TABLE auth.mfa_factors TO dashboard_user;
 
 
 --
--- TOC entry 4700 (class 0 OID 0)
--- Dependencies: 333
+-- TOC entry 4735 (class 0 OID 0)
+-- Dependencies: 335
 -- Name: TABLE oauth_authorizations; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9408,8 +9553,8 @@ GRANT ALL ON TABLE auth.oauth_authorizations TO dashboard_user;
 
 
 --
--- TOC entry 4702 (class 0 OID 0)
--- Dependencies: 335
+-- TOC entry 4737 (class 0 OID 0)
+-- Dependencies: 337
 -- Name: TABLE oauth_client_states; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9418,8 +9563,8 @@ GRANT ALL ON TABLE auth.oauth_client_states TO dashboard_user;
 
 
 --
--- TOC entry 4703 (class 0 OID 0)
--- Dependencies: 332
+-- TOC entry 4738 (class 0 OID 0)
+-- Dependencies: 334
 -- Name: TABLE oauth_clients; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9428,8 +9573,8 @@ GRANT ALL ON TABLE auth.oauth_clients TO dashboard_user;
 
 
 --
--- TOC entry 4704 (class 0 OID 0)
--- Dependencies: 334
+-- TOC entry 4739 (class 0 OID 0)
+-- Dependencies: 336
 -- Name: TABLE oauth_consents; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9438,8 +9583,8 @@ GRANT ALL ON TABLE auth.oauth_consents TO dashboard_user;
 
 
 --
--- TOC entry 4705 (class 0 OID 0)
--- Dependencies: 331
+-- TOC entry 4740 (class 0 OID 0)
+-- Dependencies: 333
 -- Name: TABLE one_time_tokens; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9449,8 +9594,8 @@ GRANT ALL ON TABLE auth.one_time_tokens TO dashboard_user;
 
 
 --
--- TOC entry 4707 (class 0 OID 0)
--- Dependencies: 314
+-- TOC entry 4742 (class 0 OID 0)
+-- Dependencies: 316
 -- Name: TABLE refresh_tokens; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9460,8 +9605,8 @@ GRANT SELECT ON TABLE auth.refresh_tokens TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4709 (class 0 OID 0)
--- Dependencies: 313
+-- TOC entry 4744 (class 0 OID 0)
+-- Dependencies: 315
 -- Name: SEQUENCE refresh_tokens_id_seq; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9470,8 +9615,8 @@ GRANT ALL ON SEQUENCE auth.refresh_tokens_id_seq TO postgres;
 
 
 --
--- TOC entry 4711 (class 0 OID 0)
--- Dependencies: 328
+-- TOC entry 4746 (class 0 OID 0)
+-- Dependencies: 330
 -- Name: TABLE saml_providers; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9481,8 +9626,8 @@ GRANT ALL ON TABLE auth.saml_providers TO dashboard_user;
 
 
 --
--- TOC entry 4713 (class 0 OID 0)
--- Dependencies: 329
+-- TOC entry 4748 (class 0 OID 0)
+-- Dependencies: 331
 -- Name: TABLE saml_relay_states; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9492,8 +9637,8 @@ GRANT ALL ON TABLE auth.saml_relay_states TO dashboard_user;
 
 
 --
--- TOC entry 4715 (class 0 OID 0)
--- Dependencies: 317
+-- TOC entry 4750 (class 0 OID 0)
+-- Dependencies: 319
 -- Name: TABLE schema_migrations; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9501,8 +9646,8 @@ GRANT SELECT ON TABLE auth.schema_migrations TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4720 (class 0 OID 0)
--- Dependencies: 322
+-- TOC entry 4755 (class 0 OID 0)
+-- Dependencies: 324
 -- Name: TABLE sessions; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9512,8 +9657,8 @@ GRANT ALL ON TABLE auth.sessions TO dashboard_user;
 
 
 --
--- TOC entry 4722 (class 0 OID 0)
--- Dependencies: 327
+-- TOC entry 4757 (class 0 OID 0)
+-- Dependencies: 329
 -- Name: TABLE sso_domains; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9523,8 +9668,8 @@ GRANT ALL ON TABLE auth.sso_domains TO dashboard_user;
 
 
 --
--- TOC entry 4725 (class 0 OID 0)
--- Dependencies: 326
+-- TOC entry 4760 (class 0 OID 0)
+-- Dependencies: 328
 -- Name: TABLE sso_providers; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9534,8 +9679,8 @@ GRANT ALL ON TABLE auth.sso_providers TO dashboard_user;
 
 
 --
--- TOC entry 4728 (class 0 OID 0)
--- Dependencies: 312
+-- TOC entry 4763 (class 0 OID 0)
+-- Dependencies: 314
 -- Name: TABLE users; Type: ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -9545,8 +9690,28 @@ GRANT SELECT ON TABLE auth.users TO postgres WITH GRANT OPTION;
 
 
 --
--- TOC entry 4729 (class 0 OID 0)
--- Dependencies: 311
+-- TOC entry 4764 (class 0 OID 0)
+-- Dependencies: 381
+-- Name: TABLE webauthn_challenges; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT ALL ON TABLE auth.webauthn_challenges TO postgres;
+GRANT ALL ON TABLE auth.webauthn_challenges TO dashboard_user;
+
+
+--
+-- TOC entry 4765 (class 0 OID 0)
+-- Dependencies: 380
+-- Name: TABLE webauthn_credentials; Type: ACL; Schema: auth; Owner: supabase_auth_admin
+--
+
+GRANT ALL ON TABLE auth.webauthn_credentials TO postgres;
+GRANT ALL ON TABLE auth.webauthn_credentials TO dashboard_user;
+
+
+--
+-- TOC entry 4766 (class 0 OID 0)
+-- Dependencies: 313
 -- Name: TABLE pg_stat_statements; Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -9556,8 +9721,8 @@ GRANT ALL ON TABLE extensions.pg_stat_statements TO dashboard_user;
 
 
 --
--- TOC entry 4730 (class 0 OID 0)
--- Dependencies: 310
+-- TOC entry 4767 (class 0 OID 0)
+-- Dependencies: 312
 -- Name: TABLE pg_stat_statements_info; Type: ACL; Schema: extensions; Owner: postgres
 --
 
@@ -9567,8 +9732,8 @@ GRANT ALL ON TABLE extensions.pg_stat_statements_info TO dashboard_user;
 
 
 --
--- TOC entry 4731 (class 0 OID 0)
--- Dependencies: 352
+-- TOC entry 4768 (class 0 OID 0)
+-- Dependencies: 354
 -- Name: TABLE profiles; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9578,8 +9743,8 @@ GRANT ALL ON TABLE public.profiles TO service_role;
 
 
 --
--- TOC entry 4732 (class 0 OID 0)
--- Dependencies: 353
+-- TOC entry 4769 (class 0 OID 0)
+-- Dependencies: 355
 -- Name: TABLE user_roles; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9589,8 +9754,8 @@ GRANT ALL ON TABLE public.user_roles TO service_role;
 
 
 --
--- TOC entry 4733 (class 0 OID 0)
--- Dependencies: 358
+-- TOC entry 4770 (class 0 OID 0)
+-- Dependencies: 360
 -- Name: TABLE admin_users_view; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9600,8 +9765,8 @@ GRANT ALL ON TABLE public.admin_users_view TO service_role;
 
 
 --
--- TOC entry 4734 (class 0 OID 0)
--- Dependencies: 355
+-- TOC entry 4771 (class 0 OID 0)
+-- Dependencies: 357
 -- Name: TABLE banners; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9611,8 +9776,8 @@ GRANT ALL ON TABLE public.banners TO service_role;
 
 
 --
--- TOC entry 4735 (class 0 OID 0)
--- Dependencies: 359
+-- TOC entry 4772 (class 0 OID 0)
+-- Dependencies: 361
 -- Name: TABLE brands; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9622,8 +9787,8 @@ GRANT ALL ON TABLE public.brands TO service_role;
 
 
 --
--- TOC entry 4736 (class 0 OID 0)
--- Dependencies: 362
+-- TOC entry 4773 (class 0 OID 0)
+-- Dependencies: 364
 -- Name: TABLE categories; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9633,8 +9798,8 @@ GRANT ALL ON TABLE public.categories TO service_role;
 
 
 --
--- TOC entry 4737 (class 0 OID 0)
--- Dependencies: 375
+-- TOC entry 4774 (class 0 OID 0)
+-- Dependencies: 377
 -- Name: TABLE coupon_votes; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9644,8 +9809,8 @@ GRANT ALL ON TABLE public.coupon_votes TO service_role;
 
 
 --
--- TOC entry 4738 (class 0 OID 0)
--- Dependencies: 374
+-- TOC entry 4775 (class 0 OID 0)
+-- Dependencies: 376
 -- Name: TABLE coupons; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9655,8 +9820,8 @@ GRANT ALL ON TABLE public.coupons TO service_role;
 
 
 --
--- TOC entry 4739 (class 0 OID 0)
--- Dependencies: 373
+-- TOC entry 4776 (class 0 OID 0)
+-- Dependencies: 375
 -- Name: TABLE institutional_pages; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9666,8 +9831,8 @@ GRANT ALL ON TABLE public.institutional_pages TO service_role;
 
 
 --
--- TOC entry 4740 (class 0 OID 0)
--- Dependencies: 360
+-- TOC entry 4777 (class 0 OID 0)
+-- Dependencies: 362
 -- Name: TABLE models; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9677,8 +9842,8 @@ GRANT ALL ON TABLE public.models TO service_role;
 
 
 --
--- TOC entry 4741 (class 0 OID 0)
--- Dependencies: 371
+-- TOC entry 4778 (class 0 OID 0)
+-- Dependencies: 373
 -- Name: TABLE newsletter_products; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9688,8 +9853,8 @@ GRANT ALL ON TABLE public.newsletter_products TO service_role;
 
 
 --
--- TOC entry 4742 (class 0 OID 0)
--- Dependencies: 370
+-- TOC entry 4779 (class 0 OID 0)
+-- Dependencies: 372
 -- Name: TABLE newsletters; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9699,8 +9864,8 @@ GRANT ALL ON TABLE public.newsletters TO service_role;
 
 
 --
--- TOC entry 4743 (class 0 OID 0)
--- Dependencies: 361
+-- TOC entry 4780 (class 0 OID 0)
+-- Dependencies: 363
 -- Name: TABLE platforms; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9710,8 +9875,8 @@ GRANT ALL ON TABLE public.platforms TO service_role;
 
 
 --
--- TOC entry 4744 (class 0 OID 0)
--- Dependencies: 372
+-- TOC entry 4781 (class 0 OID 0)
+-- Dependencies: 374
 -- Name: TABLE price_history; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9721,8 +9886,8 @@ GRANT ALL ON TABLE public.price_history TO service_role;
 
 
 --
--- TOC entry 4745 (class 0 OID 0)
--- Dependencies: 368
+-- TOC entry 4782 (class 0 OID 0)
+-- Dependencies: 370
 -- Name: TABLE product_clicks; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9732,8 +9897,8 @@ GRANT ALL ON TABLE public.product_clicks TO service_role;
 
 
 --
--- TOC entry 4746 (class 0 OID 0)
--- Dependencies: 367
+-- TOC entry 4783 (class 0 OID 0)
+-- Dependencies: 369
 -- Name: TABLE product_likes; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9743,8 +9908,8 @@ GRANT ALL ON TABLE public.product_likes TO service_role;
 
 
 --
--- TOC entry 4747 (class 0 OID 0)
--- Dependencies: 369
+-- TOC entry 4784 (class 0 OID 0)
+-- Dependencies: 371
 -- Name: TABLE product_trust_votes; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9754,8 +9919,8 @@ GRANT ALL ON TABLE public.product_trust_votes TO service_role;
 
 
 --
--- TOC entry 4749 (class 0 OID 0)
--- Dependencies: 354
+-- TOC entry 4786 (class 0 OID 0)
+-- Dependencies: 356
 -- Name: TABLE products; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9765,8 +9930,8 @@ GRANT ALL ON TABLE public.products TO service_role;
 
 
 --
--- TOC entry 4750 (class 0 OID 0)
--- Dependencies: 357
+-- TOC entry 4787 (class 0 OID 0)
+-- Dependencies: 359
 -- Name: TABLE reports; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9776,8 +9941,8 @@ GRANT ALL ON TABLE public.reports TO service_role;
 
 
 --
--- TOC entry 4751 (class 0 OID 0)
--- Dependencies: 356
+-- TOC entry 4788 (class 0 OID 0)
+-- Dependencies: 358
 -- Name: TABLE reviews; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9787,8 +9952,8 @@ GRANT ALL ON TABLE public.reviews TO service_role;
 
 
 --
--- TOC entry 4752 (class 0 OID 0)
--- Dependencies: 376
+-- TOC entry 4789 (class 0 OID 0)
+-- Dependencies: 378
 -- Name: TABLE shopee_product_mappings; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9798,8 +9963,8 @@ GRANT ALL ON TABLE public.shopee_product_mappings TO service_role;
 
 
 --
--- TOC entry 4753 (class 0 OID 0)
--- Dependencies: 377
+-- TOC entry 4790 (class 0 OID 0)
+-- Dependencies: 379
 -- Name: TABLE shopee_sync_logs; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9809,8 +9974,8 @@ GRANT ALL ON TABLE public.shopee_sync_logs TO service_role;
 
 
 --
--- TOC entry 4754 (class 0 OID 0)
--- Dependencies: 364
+-- TOC entry 4791 (class 0 OID 0)
+-- Dependencies: 366
 -- Name: TABLE special_page_products; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9820,8 +9985,8 @@ GRANT ALL ON TABLE public.special_page_products TO service_role;
 
 
 --
--- TOC entry 4755 (class 0 OID 0)
--- Dependencies: 363
+-- TOC entry 4792 (class 0 OID 0)
+-- Dependencies: 365
 -- Name: TABLE special_pages; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9831,8 +9996,8 @@ GRANT ALL ON TABLE public.special_pages TO service_role;
 
 
 --
--- TOC entry 4756 (class 0 OID 0)
--- Dependencies: 365
+-- TOC entry 4793 (class 0 OID 0)
+-- Dependencies: 367
 -- Name: TABLE whatsapp_groups; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9842,8 +10007,8 @@ GRANT ALL ON TABLE public.whatsapp_groups TO service_role;
 
 
 --
--- TOC entry 4757 (class 0 OID 0)
--- Dependencies: 366
+-- TOC entry 4794 (class 0 OID 0)
+-- Dependencies: 368
 -- Name: TABLE wishlists; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9853,8 +10018,8 @@ GRANT ALL ON TABLE public.wishlists TO service_role;
 
 
 --
--- TOC entry 4758 (class 0 OID 0)
--- Dependencies: 351
+-- TOC entry 4795 (class 0 OID 0)
+-- Dependencies: 353
 -- Name: TABLE messages; Type: ACL; Schema: realtime; Owner: supabase_realtime_admin
 --
 
@@ -9866,8 +10031,8 @@ GRANT SELECT,INSERT,UPDATE ON TABLE realtime.messages TO service_role;
 
 
 --
--- TOC entry 4759 (class 0 OID 0)
--- Dependencies: 337
+-- TOC entry 4796 (class 0 OID 0)
+-- Dependencies: 339
 -- Name: TABLE schema_migrations; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9880,8 +10045,8 @@ GRANT ALL ON TABLE realtime.schema_migrations TO supabase_realtime_admin;
 
 
 --
--- TOC entry 4760 (class 0 OID 0)
--- Dependencies: 340
+-- TOC entry 4797 (class 0 OID 0)
+-- Dependencies: 342
 -- Name: TABLE subscription; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9894,8 +10059,8 @@ GRANT ALL ON TABLE realtime.subscription TO supabase_realtime_admin;
 
 
 --
--- TOC entry 4761 (class 0 OID 0)
--- Dependencies: 339
+-- TOC entry 4798 (class 0 OID 0)
+-- Dependencies: 341
 -- Name: SEQUENCE subscription_id_seq; Type: ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -9908,8 +10073,8 @@ GRANT ALL ON SEQUENCE realtime.subscription_id_seq TO supabase_realtime_admin;
 
 
 --
--- TOC entry 4763 (class 0 OID 0)
--- Dependencies: 342
+-- TOC entry 4800 (class 0 OID 0)
+-- Dependencies: 344
 -- Name: TABLE buckets; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -9934,8 +10099,8 @@ RESET SESSION AUTHORIZATION;
 
 
 --
--- TOC entry 4764 (class 0 OID 0)
--- Dependencies: 346
+-- TOC entry 4801 (class 0 OID 0)
+-- Dependencies: 348
 -- Name: TABLE buckets_analytics; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -9945,8 +10110,8 @@ GRANT ALL ON TABLE storage.buckets_analytics TO anon;
 
 
 --
--- TOC entry 4765 (class 0 OID 0)
--- Dependencies: 347
+-- TOC entry 4802 (class 0 OID 0)
+-- Dependencies: 349
 -- Name: TABLE buckets_vectors; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -9956,8 +10121,8 @@ GRANT SELECT ON TABLE storage.buckets_vectors TO anon;
 
 
 --
--- TOC entry 4767 (class 0 OID 0)
--- Dependencies: 343
+-- TOC entry 4804 (class 0 OID 0)
+-- Dependencies: 345
 -- Name: TABLE objects; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -9982,8 +10147,8 @@ RESET SESSION AUTHORIZATION;
 
 
 --
--- TOC entry 4768 (class 0 OID 0)
--- Dependencies: 344
+-- TOC entry 4805 (class 0 OID 0)
+-- Dependencies: 346
 -- Name: TABLE s3_multipart_uploads; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -9993,8 +10158,8 @@ GRANT SELECT ON TABLE storage.s3_multipart_uploads TO anon;
 
 
 --
--- TOC entry 4769 (class 0 OID 0)
--- Dependencies: 345
+-- TOC entry 4806 (class 0 OID 0)
+-- Dependencies: 347
 -- Name: TABLE s3_multipart_uploads_parts; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -10004,8 +10169,8 @@ GRANT SELECT ON TABLE storage.s3_multipart_uploads_parts TO anon;
 
 
 --
--- TOC entry 4770 (class 0 OID 0)
--- Dependencies: 348
+-- TOC entry 4807 (class 0 OID 0)
+-- Dependencies: 350
 -- Name: TABLE vector_indexes; Type: ACL; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -10015,8 +10180,8 @@ GRANT SELECT ON TABLE storage.vector_indexes TO anon;
 
 
 --
--- TOC entry 4771 (class 0 OID 0)
--- Dependencies: 318
+-- TOC entry 4808 (class 0 OID 0)
+-- Dependencies: 320
 -- Name: TABLE secrets; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
@@ -10025,8 +10190,8 @@ GRANT SELECT,DELETE ON TABLE vault.secrets TO service_role;
 
 
 --
--- TOC entry 4772 (class 0 OID 0)
--- Dependencies: 319
+-- TOC entry 4809 (class 0 OID 0)
+-- Dependencies: 321
 -- Name: TABLE decrypted_secrets; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
@@ -10035,7 +10200,7 @@ GRANT SELECT,DELETE ON TABLE vault.decrypted_secrets TO service_role;
 
 
 --
--- TOC entry 2550 (class 826 OID 16553)
+-- TOC entry 2560 (class 826 OID 16553)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -10044,7 +10209,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_auth_admin IN SCHEMA auth GRANT ALL O
 
 
 --
--- TOC entry 2551 (class 826 OID 16554)
+-- TOC entry 2561 (class 826 OID 16554)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -10053,7 +10218,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_auth_admin IN SCHEMA auth GRANT ALL O
 
 
 --
--- TOC entry 2549 (class 826 OID 16552)
+-- TOC entry 2559 (class 826 OID 16552)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: auth; Owner: supabase_auth_admin
 --
 
@@ -10062,7 +10227,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_auth_admin IN SCHEMA auth GRANT ALL O
 
 
 --
--- TOC entry 2560 (class 826 OID 16632)
+-- TOC entry 2570 (class 826 OID 16632)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -10070,7 +10235,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA extensions GRANT ALL 
 
 
 --
--- TOC entry 2559 (class 826 OID 16631)
+-- TOC entry 2569 (class 826 OID 16631)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -10078,7 +10243,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA extensions GRANT ALL 
 
 
 --
--- TOC entry 2558 (class 826 OID 16630)
+-- TOC entry 2568 (class 826 OID 16630)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: extensions; Owner: supabase_admin
 --
 
@@ -10086,7 +10251,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA extensions GRANT ALL 
 
 
 --
--- TOC entry 2563 (class 826 OID 16587)
+-- TOC entry 2573 (class 826 OID 16587)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: graphql; Owner: supabase_admin
 --
 
@@ -10097,7 +10262,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON 
 
 
 --
--- TOC entry 2562 (class 826 OID 16586)
+-- TOC entry 2572 (class 826 OID 16586)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: graphql; Owner: supabase_admin
 --
 
@@ -10108,7 +10273,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON 
 
 
 --
--- TOC entry 2561 (class 826 OID 16585)
+-- TOC entry 2571 (class 826 OID 16585)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: graphql; Owner: supabase_admin
 --
 
@@ -10119,7 +10284,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql GRANT ALL ON 
 
 
 --
--- TOC entry 2555 (class 826 OID 16567)
+-- TOC entry 2565 (class 826 OID 16567)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: graphql_public; Owner: supabase_admin
 --
 
@@ -10130,7 +10295,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql_public GRANT 
 
 
 --
--- TOC entry 2557 (class 826 OID 16566)
+-- TOC entry 2567 (class 826 OID 16566)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: graphql_public; Owner: supabase_admin
 --
 
@@ -10141,7 +10306,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql_public GRANT 
 
 
 --
--- TOC entry 2556 (class 826 OID 16565)
+-- TOC entry 2566 (class 826 OID 16565)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: graphql_public; Owner: supabase_admin
 --
 
@@ -10152,7 +10317,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA graphql_public GRANT 
 
 
 --
--- TOC entry 2542 (class 826 OID 16490)
+-- TOC entry 2552 (class 826 OID 16490)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
 
@@ -10163,7 +10328,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENC
 
 
 --
--- TOC entry 2543 (class 826 OID 16491)
+-- TOC entry 2553 (class 826 OID 16491)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
 
@@ -10174,7 +10339,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON S
 
 
 --
--- TOC entry 2541 (class 826 OID 16489)
+-- TOC entry 2551 (class 826 OID 16489)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
 
@@ -10185,7 +10350,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIO
 
 
 --
--- TOC entry 2545 (class 826 OID 16493)
+-- TOC entry 2555 (class 826 OID 16493)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
 
@@ -10196,7 +10361,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON F
 
 
 --
--- TOC entry 2540 (class 826 OID 16488)
+-- TOC entry 2550 (class 826 OID 16488)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
 
@@ -10207,7 +10372,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES 
 
 
 --
--- TOC entry 2544 (class 826 OID 16492)
+-- TOC entry 2554 (class 826 OID 16492)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
 
@@ -10218,7 +10383,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON T
 
 
 --
--- TOC entry 2553 (class 826 OID 16557)
+-- TOC entry 2563 (class 826 OID 16557)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -10227,7 +10392,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA realtime GRANT ALL ON
 
 
 --
--- TOC entry 2554 (class 826 OID 16558)
+-- TOC entry 2564 (class 826 OID 16558)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -10236,7 +10401,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA realtime GRANT ALL ON
 
 
 --
--- TOC entry 2552 (class 826 OID 16556)
+-- TOC entry 2562 (class 826 OID 16556)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: realtime; Owner: supabase_admin
 --
 
@@ -10245,7 +10410,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA realtime GRANT ALL ON
 
 
 --
--- TOC entry 2548 (class 826 OID 16546)
+-- TOC entry 2558 (class 826 OID 16546)
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: storage; Owner: postgres
 --
 
@@ -10256,7 +10421,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA storage GRANT ALL ON SEQUEN
 
 
 --
--- TOC entry 2547 (class 826 OID 16545)
+-- TOC entry 2557 (class 826 OID 16545)
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: storage; Owner: postgres
 --
 
@@ -10267,7 +10432,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA storage GRANT ALL ON FUNCTI
 
 
 --
--- TOC entry 2546 (class 826 OID 16544)
+-- TOC entry 2556 (class 826 OID 16544)
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: storage; Owner: postgres
 --
 
@@ -10278,7 +10443,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA storage GRANT ALL ON TABLES
 
 
 --
--- TOC entry 3731 (class 3466 OID 16571)
+-- TOC entry 3741 (class 3466 OID 16571)
 -- Name: issue_graphql_placeholder; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10290,7 +10455,7 @@ CREATE EVENT TRIGGER issue_graphql_placeholder ON sql_drop
 ALTER EVENT TRIGGER issue_graphql_placeholder OWNER TO supabase_admin;
 
 --
--- TOC entry 3736 (class 3466 OID 16650)
+-- TOC entry 3746 (class 3466 OID 16650)
 -- Name: issue_pg_cron_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10302,7 +10467,7 @@ CREATE EVENT TRIGGER issue_pg_cron_access ON ddl_command_end
 ALTER EVENT TRIGGER issue_pg_cron_access OWNER TO supabase_admin;
 
 --
--- TOC entry 3730 (class 3466 OID 16569)
+-- TOC entry 3740 (class 3466 OID 16569)
 -- Name: issue_pg_graphql_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10314,7 +10479,7 @@ CREATE EVENT TRIGGER issue_pg_graphql_access ON ddl_command_end
 ALTER EVENT TRIGGER issue_pg_graphql_access OWNER TO supabase_admin;
 
 --
--- TOC entry 3737 (class 3466 OID 16653)
+-- TOC entry 3747 (class 3466 OID 16653)
 -- Name: issue_pg_net_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10326,7 +10491,7 @@ CREATE EVENT TRIGGER issue_pg_net_access ON ddl_command_end
 ALTER EVENT TRIGGER issue_pg_net_access OWNER TO supabase_admin;
 
 --
--- TOC entry 3732 (class 3466 OID 16572)
+-- TOC entry 3742 (class 3466 OID 16572)
 -- Name: pgrst_ddl_watch; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10337,7 +10502,7 @@ CREATE EVENT TRIGGER pgrst_ddl_watch ON ddl_command_end
 ALTER EVENT TRIGGER pgrst_ddl_watch OWNER TO supabase_admin;
 
 --
--- TOC entry 3733 (class 3466 OID 16573)
+-- TOC entry 3743 (class 3466 OID 16573)
 -- Name: pgrst_drop_watch; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
@@ -10347,15 +10512,15 @@ CREATE EVENT TRIGGER pgrst_drop_watch ON sql_drop
 
 ALTER EVENT TRIGGER pgrst_drop_watch OWNER TO supabase_admin;
 
--- Completed on 2026-03-20 00:40:11
+-- Completed on 2026-03-20 21:56:09
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PeVkd0TqB6LXIpZvIS0UOFtgaOPUbJIfmEP2v8AeljES59m1p1dPq66lJIcOz26
+\unrestrict dw9SfXsqm0OUzaGwYfljPxlTFuOLxC2FMi6JhHC06WtcrCsdGwZsWecSe3DBrJa
 
--- Completed on 2026-03-20 00:40:11
+-- Completed on 2026-03-20 21:56:09
 
 --
 -- PostgreSQL database cluster dump complete
