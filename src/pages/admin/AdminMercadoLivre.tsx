@@ -107,7 +107,7 @@ const AdminMercadoLivre = () => {
 
   const handleOAuthCallback = async (code: string) => {
     try {
-      const redirectUri = `${window.location.origin}/admin/mercadolivre`;
+      const redirectUri = "https://ofertashop.com.br/admin/mercadolivre";
       const { data, error } = await supabase.functions.invoke("ml-oauth-callback", {
         body: { code, userId: user?.id, redirect_uri: redirectUri },
       });
@@ -123,7 +123,7 @@ const AdminMercadoLivre = () => {
 
   const handleStartOAuth = () => {
     const appId = import.meta.env.VITE_ML_APP_ID;
-    const redirectUri = import.meta.env.VITE_ML_REDIRECT_URI || `${window.location.origin}/admin/mercadolivre`;
+    const redirectUri = "https://ofertashop.com.br/admin/mercadolivre";
     
     if (!appId) {
       toast.error("ML_APP_ID não configurado. Adicione VITE_ML_APP_ID nas variáveis de ambiente.");
