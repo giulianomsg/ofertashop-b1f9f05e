@@ -83,7 +83,7 @@ const AdminMercadoLivre = () => {
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        
+
         setOauthConnected(!!data && !error);
       } catch {
         setOauthConnected(false);
@@ -113,7 +113,7 @@ const AdminMercadoLivre = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
+
       toast.success("Mercado Livre conectado com sucesso!");
       setOauthConnected(true);
     } catch (err: any) {
@@ -124,7 +124,7 @@ const AdminMercadoLivre = () => {
   const handleStartOAuth = () => {
     const appId = import.meta.env.VITE_ML_APP_ID;
     const redirectUri = import.meta.env.VITE_ML_REDIRECT_URI || (window.location.origin + "/admin/mercadolivre");
-    
+
     if (!appId) {
       toast.error("ML_APP_ID não configurado. Adicione VITE_ML_APP_ID nas variáveis de ambiente.");
       return;
@@ -134,6 +134,7 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
+  // NÚCLEO DA SOLUÇÃO: A busca agora é feita diretamente pelo Front-end
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -141,21 +142,66 @@ const AdminMercadoLivre = () => {
     }
     setSearching(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ml-search-products", {
-        body: { keyword: keyword.trim(), offset, limit: 20 },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      // 1. Fetch direto da API Pública do ML (Bypass de IP WAF e restrição OAuth)
+      const mlRes = await fetch(`https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(keyword.trim())}&offset=${offset}&limit=20`);
+      const searchData = await mlRes.json();
 
-      setResults(data.results || []);
-      setPaging(data.paging || null);
+      if (!mlRes.ok) {
+        throw new Error(searchData.message || "Erro na API do Mercado Livre");
+      }
+
+      const items = searchData.results || [];
+
+      // 2. Mapeia os resultados brutos para o formato MLItem
+      const mappedResults: MLItem[] = items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        original_price: item.original_price,
+        currency_id: item.currency_id,
+        thumbnail: item.thumbnail?.replace("http://", "https://"),
+        permalink: item.permalink,
+        condition: item.condition,
+        sold_quantity: item.sold_quantity || 0,
+        available_quantity: item.available_quantity || 1,
+        seller: { id: item.seller?.id, nickname: item.seller?.nickname || "Vendedor ML" },
+        category_id: item.category_id,
+        shipping_free: item.shipping?.free_shipping || false,
+      }));
+
+      // 3. Consulta rápida ao Supabase apenas para saber o que já foi importado
+      const mlIds = mappedResults.map((r) => r.id);
+      let importedSet = new Set<string>();
+
+      if (mlIds.length > 0) {
+        const { data: existingMappings, error: dbError } = await supabase
+          .from("ml_product_mappings")
+          .select("ml_item_id")
+          .in("ml_item_id", mlIds);
+
+        if (!dbError && existingMappings) {
+          importedSet = new Set(existingMappings.map(m => m.ml_item_id));
+        }
+      }
+
+      // 4. Consolida e renderiza
+      const finalResults = mappedResults.map((r) => ({
+        ...r,
+        already_imported: importedSet.has(r.id),
+      }));
+
+      setResults(finalResults);
+      setPaging(searchData.paging || null);
       setCurrentOffset(offset);
 
-      const alreadyImported = new Set<string>(
-        (data.results || []).filter((r: MLItem) => r.already_imported).map((r: MLItem) => r.id)
-      );
-      setImported(alreadyImported);
+      setImported(prev => {
+        const newSet = new Set(prev);
+        importedSet.forEach(id => newSet.add(id));
+        return newSet;
+      });
+
     } catch (err: any) {
+      console.error(err);
       toast.error("Erro na busca: " + (err.message || "Falha"));
     } finally {
       setSearching(false);
@@ -167,6 +213,8 @@ const AdminMercadoLivre = () => {
 
     setImporting((prev) => new Set(prev).add(item.id));
     try {
+      // A importação continua usando a Edge Function (que usa o Token)
+      // pois buscar um item específico pelo ID é permitido
       const { data, error } = await supabase.functions.invoke("ml-import-product", {
         body: { item, userId: user?.id },
       });
@@ -228,7 +276,6 @@ const AdminMercadoLivre = () => {
     }
   };
 
-  // OAuth not connected state
   if (checkingAuth) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -400,11 +447,10 @@ const AdminMercadoLivre = () => {
                       <button
                         onClick={() => handleImport(item)}
                         disabled={isImporting || isImported}
-                        className={`flex-1 h-9 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                          isImported
+                        className={`flex-1 h-9 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${isImported
                             ? "bg-green-500/10 text-green-600 cursor-default"
                             : "bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
-                        }`}
+                          }`}
                       >
                         {isImported ? (
                           <><Check className="w-3.5 h-3.5" /> Importado</>
@@ -472,13 +518,12 @@ const AdminMercadoLivre = () => {
                     <td className="p-3 capitalize text-foreground">{log.sync_type?.replace("_", " ")}</td>
                     <td className="p-3 text-center">
                       <span
-                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
-                          log.status === "success"
+                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${log.status === "success"
                             ? "bg-green-500/10 text-green-600"
                             : log.status === "error"
-                            ? "bg-destructive/10 text-destructive"
-                            : "bg-yellow-500/10 text-yellow-600"
-                        }`}
+                              ? "bg-destructive/10 text-destructive"
+                              : "bg-yellow-500/10 text-yellow-600"
+                          }`}
                       >
                         {log.status === "success" ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
                         {log.status}
