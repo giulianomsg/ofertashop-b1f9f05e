@@ -111,11 +111,11 @@ Deno.serve(async (req) => {
 
     // 3. Mapear para a estrutura esperada pelo Front-end do OfertaShop
     const results = detailedProducts
-      .filter((p: any) => p !== null && p.buy_box_winner) // Remove produtos esgotados sem oferta ativa
+      .filter((p: any) => p !== null && p.buy_box_winner && p.buy_box_winner.item_id) // Remove produtos sem oferta/item específico ativo
       .map((p: any) => {
         const buyBox = p.buy_box_winner;
         return {
-          id: buyBox.item_id || p.id, // Fundamental: Extraímos o ID do Anúncio (MLB...) e não do Produto
+          id: buyBox.item_id, // Extraímos o ID estrito do Anúncio (MLB...)
           title: p.name || p.title || "Produto",
           price: buyBox.price || 0,
           original_price: buyBox.original_price || null,

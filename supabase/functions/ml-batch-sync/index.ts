@@ -98,6 +98,18 @@ Deno.serve(async (req) => {
         for (const itemWrapper of items) {
           processed++;
           const item = itemWrapper.body;
+
+          if (itemWrapper.code === 404) {
+            // Item was completely deleted or removed from Mercado Livre
+            const mapping = batch.find((m: any) => m.ml_item_id === (item?.id || itemWrapper.body?.id || itemWrapper.body?.message?.match(/MLB\d+/)?.[0]));
+            if (mapping) {
+              await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id);
+              await sb.from("ml_product_mappings").update({ ml_status: "not_found", last_synced_at: new Date().toISOString() }).eq("id", mapping.id);
+              deactivated++;
+            }
+            continue;
+          }
+
           if (itemWrapper.code !== 200 || !item) {
             errors.push(`Item ${itemWrapper.code}: ${JSON.stringify(itemWrapper)}`);
             continue;
