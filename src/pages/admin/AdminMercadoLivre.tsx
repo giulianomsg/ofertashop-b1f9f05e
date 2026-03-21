@@ -122,7 +122,7 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
-  // 🚀 A MÁGICA ACONTECE AQUI: Web Scraping de Alta Resiliência
+  // 🚀 A MÁGICA ACONTECE AQUI: Fetch Direto na API Pública (Bypass Limpo)
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -131,119 +131,43 @@ const AdminMercadoLivre = () => {
     setSearching(true);
 
     try {
-      // 1. Forçamos a busca via Query genérica (evita falhas de redirecionamento 301 do ML)
-      const targetUrl = offset > 0
-        ? `https://lista.mercadolivre.com.br/${encodeURIComponent(keyword.trim())}&Desde=${offset + 1}`
-        : `https://lista.mercadolivre.com.br/${encodeURIComponent(keyword.trim())}`;
+      // Chamamos a API oficial diretamente pelo seu navegador.
+      // NÃO enviamos o header de Authorization para evitar o Erro 403 de escopo.
+      // Como o seu IP é residencial/comercial, o WAF do Mercado Livre não deve bloquear (diferente do Supabase).
+      const targetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(keyword.trim())}&offset=${offset}&limit=20`;
 
-      let htmlContent = "";
+      const mlRes = await fetch(targetUrl);
 
-      try {
-        // Usamos o AllOrigins em modo RAW para evitar corrupção de caracteres no JSON
-        const res1 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
-        if (!res1.ok) throw new Error("AllOrigins proxy falhou.");
-        htmlContent = await res1.text();
-      } catch (err1) {
-        console.warn("Proxy 1 falhou. Tentando secundário...", err1);
-        try {
-          const res2 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
-          if (!res2.ok) throw new Error("CodeTabs proxy falhou.");
-          htmlContent = await res2.text();
-        } catch (err2) {
-          throw new Error("A conexão com os servidores de extração falhou.");
-        }
+      if (!mlRes.ok) {
+        const errorData = await mlRes.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erro HTTP ${mlRes.status} ao consultar API.`);
       }
 
-      // DIAGNÓSTICO: Isso vai imprimir as primeiras linhas do HTML no painel do desenvolvedor
-      console.log("🔥 HTML RETORNADO PELO PROXY (Primeiros 1000 chars):", htmlContent.substring(0, 1000));
+      const searchData = await mlRes.json();
+      const items = searchData.results || [];
 
-      if (!htmlContent || htmlContent.trim() === "") {
-        throw new Error("A página retornou completamente vazia.");
+      if (items.length === 0) {
+        toast.warning("Nenhum produto encontrado para este termo.");
       }
 
-      // Validação anti-bot estendida
-      const htmlLower = htmlContent.toLowerCase();
-      if (htmlLower.includes('datadome') || htmlLower.includes('captcha') || htmlLower.includes('verify you are human')) {
-        throw new Error("O Mercado Livre detectou o proxy e bloqueou com Captcha. Aguarde uns minutos ou mude o termo.");
-      }
+      // Mapeamento do JSON perfeitamente estruturado da API
+      const mappedResults: MLItem[] = items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price || 0,
+        original_price: item.original_price,
+        currency_id: item.currency_id || "BRL",
+        thumbnail: item.thumbnail?.replace("http://", "https://") || "",
+        permalink: item.permalink || "",
+        condition: item.condition || "new",
+        sold_quantity: item.sold_quantity || 0,
+        available_quantity: item.available_quantity || 1,
+        seller: { id: item.seller?.id || 0, nickname: item.seller?.nickname || "Vendedor ML" },
+        category_id: item.category_id || "",
+        shipping_free: item.shipping?.free_shipping || false,
+      }));
 
-      // 2. Parser DOM
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, "text/html");
-
-      // 3. Captura agressiva (cobre o layout Novo, Antigo, Desktop e Mobile do ML)
-      const items = doc.querySelectorAll('.ui-search-layout__item, .poly-card, .andes-card');
-      const mappedResults: MLItem[] = [];
-
-      items.forEach((item) => {
-        // Título (busca em H2 e classes antigas)
-        const titleEl = item.querySelector('h2, .ui-search-item__title, .poly-component__title');
-        const title = titleEl?.textContent?.trim() || '';
-
-        // Link e ID
-        const linkEl = item.querySelector('a');
-        let link = linkEl?.getAttribute('href') || '';
-        link = link.split('?')[0];
-        link = link.split('#')[0]; // Remove âncoras
-
-        const idMatch = link.match(/MLB-?(\d+)/);
-        const id = idMatch ? `MLB${idMatch[1]}` : '';
-
-        // Preço (varre as frações e foge dos cortados)
-        let priceVal = 0;
-        const priceElements = item.querySelectorAll('.andes-money-amount__fraction, .price-tag-fraction');
-        for (let i = 0; i < priceElements.length; i++) {
-          const el = priceElements[i];
-          // Ignora se estiver dentro de tag 's' (riscado) ou contiver classe de preço original
-          if (!el.closest('s') && !el.parentElement?.className.includes('original-price')) {
-            priceVal = parseInt(el.textContent?.replace(/\./g, '') || '0', 10);
-            break;
-          }
-        }
-
-        // Imagem (Tenta pegar a lazy-load em alta, depois as resoluções de fallback)
-        const imgEl = item.querySelector('img');
-        let thumbnail = imgEl?.getAttribute('data-src') || imgEl?.getAttribute('src') || '';
-        if (thumbnail.includes('data:image')) {
-          // ML às vezes oculta o SRC real no srcset para lazy load extremo
-          thumbnail = imgEl?.getAttribute('srcset')?.split(' ')[0] || thumbnail;
-        }
-        thumbnail = thumbnail.replace('I.jpg', 'F.jpg').replace('W.jpg', 'F.jpg'); // Força alta resolução
-
-        // Frete Grátis
-        const textContent = item.textContent?.toLowerCase() || '';
-        const shipping_free = textContent.includes('frete grátis') || textContent.includes('envio grátis');
-
-        if (id && title && priceVal > 0) {
-          if (!mappedResults.some(r => r.id === id)) {
-            mappedResults.push({
-              id,
-              title,
-              price: priceVal,
-              original_price: null,
-              currency_id: 'BRL',
-              thumbnail,
-              permalink: link,
-              condition: 'new',
-              sold_quantity: 0,
-              available_quantity: 99,
-              seller: { id: 0, nickname: 'Vendedor ML' },
-              category_id: '',
-              shipping_free
-            });
-          }
-        }
-      });
-
-      if (mappedResults.length === 0) {
-        // Se ainda não achar nada, avisamos e pedimos para checar o console
-        console.log("⚠️ NENHUM ITEM MAPEADO. HTML completo:", htmlContent);
-        toast.warning("Nenhum produto válido extraído. Abra o console (F12) para inspecionar o erro.");
-      } else {
-        toast.success(`${mappedResults.length} produtos extraídos com sucesso!`);
-      }
-
-      // 4. Verificação no Supabase
+      // Verificação no Supabase para saber quais já foram importados
       const mlIds = mappedResults.map((r) => r.id);
       let importedSet = new Set<string>();
 
@@ -264,6 +188,7 @@ const AdminMercadoLivre = () => {
       }));
 
       setResults(offset === 0 ? finalResults : [...results, ...finalResults]);
+      setPaging(searchData.paging || null);
       setCurrentOffset(offset);
 
       setImported(prev => {
@@ -273,8 +198,8 @@ const AdminMercadoLivre = () => {
       });
 
     } catch (err: any) {
-      console.error("Erro no Web Scraping:", err);
-      toast.error(err.message || "Erro na extração dos dados");
+      console.error("Erro na busca direta:", err);
+      toast.error(err.message || "A busca falhou. Verifique o console.");
     } finally {
       setSearching(false);
     }
