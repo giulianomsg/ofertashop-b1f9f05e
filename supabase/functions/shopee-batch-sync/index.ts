@@ -148,10 +148,13 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const newPrice = Number(shopeeItem.priceMin) / 100000;
-        const newOriginal = Number(shopeeItem.priceMax) > Number(shopeeItem.priceMin)
-          ? Number(shopeeItem.priceMax) / 100000
-          : null;
+        // Calculate prices natively handling micro-units mapping just like shopee-import-product
+        const rawPriceMin = Number(shopeeItem.priceMin) || Number(shopeeItem.price) || 0;
+        const rawPriceMax = Number(shopeeItem.priceMax) || rawPriceMin;
+
+        const newPrice = rawPriceMin > 100000 ? rawPriceMin / 100000 : rawPriceMin;
+        const maxPrice = rawPriceMax > 100000 ? rawPriceMax / 100000 : rawPriceMax;
+        const newOriginal = maxPrice > newPrice ? maxPrice : null;
 
         const updates: Record<string, any> = {};
         if (newPrice > 0 && Math.abs(newPrice - Number(product?.price || 0)) > 0.01) {
@@ -159,6 +162,9 @@ Deno.serve(async (req) => {
         }
         if (newOriginal !== null && newOriginal !== Number(product?.original_price || 0)) {
           updates.original_price = newOriginal;
+        } else if (newOriginal === null && product?.original_price) {
+          // If the original price shouldn't exist anymore, we nullify it
+          updates.original_price = null;
         }
         
         const newSales = Number(shopeeItem.sales) || 0;
@@ -174,17 +180,20 @@ Deno.serve(async (req) => {
         }
 
         if (Object.keys(updates).length > 0) {
-          await sb.from("products").update(updates).eq("id", mapping.product_id);
-          totalUpdated++;
-          
-          if (status === "reactivated" || updates.price !== undefined) {
-             details.push({ 
-               id: mapping.product_id, 
-               title: (product as any)?.title || "Produto Desconhecido", 
-               status, 
-               oldPrice: product?.price, 
-               newPrice: updates.price !== undefined ? updates.price : product?.price 
-             });
+          const { error: prodErr } = await sb.from("products").update(updates).eq("id", mapping.product_id);
+          if (!prodErr) {
+            totalUpdated++;
+            if (status === "reactivated" || updates.price !== undefined) {
+               details.push({ 
+                 id: mapping.product_id, 
+                 title: (product as any)?.title || "Produto Desconhecido", 
+                 status, 
+                 oldPrice: product?.price, 
+                 newPrice: updates.price !== undefined ? updates.price : product?.price 
+               });
+            }
+          } else {
+             console.error(`Shopee Sync DB Update error product ${mapping.product_id}:`, prodErr);
           }
         }
 
