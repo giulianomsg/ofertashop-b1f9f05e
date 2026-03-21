@@ -106,10 +106,6 @@ Deno.serve(async (req) => {
             price
             priceMin
             priceMax
-            productName
-            imageUrl
-            offerLink
-            shopeeShortLink
             commissionRate
             sales
           }
