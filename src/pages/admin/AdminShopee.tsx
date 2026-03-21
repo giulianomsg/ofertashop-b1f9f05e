@@ -22,6 +22,16 @@ interface ShopeeOffer {
   shopName: string;
   offerLink: string;
   already_imported?: boolean;
+  appExistRate?: number;
+  appNewRate?: number;
+  webExistRate?: number;
+  webNewRate?: number;
+  periodStartTime?: number;
+  periodEndTime?: number;
+  priceDiscountRate?: number;
+  shopType?: number;
+  sellerCommissionRate?: number;
+  shopeeCommissionRate?: number;
 }
 
 const AdminShopee = () => {
@@ -379,6 +389,16 @@ const AdminShopee = () => {
                               {formatCommission(offer)} comissão
                             </span>
                           )}
+                          {offer.shopeeCommissionRate ? (
+                            <span className="text-xs bg-secondary px-1.5 py-0.5 rounded" title="Taxa base Shopee">
+                              Taxa Shopee: {Number(offer.shopeeCommissionRate).toFixed(1)}%
+                            </span>
+                          ) : null}
+                          {offer.appNewRate ? (
+                            <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded" title="Taxa extra para usuários novos pelo App">
+                              + App Novo: {Number(offer.appNewRate).toFixed(1)}%
+                            </span>
+                          ) : null}
                           {offer.ratingStar > 0 && (
                             <span className="text-xs text-muted-foreground">⭐ {Number(offer.ratingStar).toFixed(1)}</span>
                           )}
@@ -386,6 +406,11 @@ const AdminShopee = () => {
                             <span className="text-xs text-muted-foreground">{offer.sales} vendas</span>
                           )}
                         </div>
+                        {offer.periodEndTime ? (
+                          <p className="text-[10px] text-muted-foreground opacity-70 mt-1.5">
+                            Oferta válida até {new Date(offer.periodEndTime * 1000).toLocaleDateString('pt-BR')}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="px-4 pb-4 flex gap-2">

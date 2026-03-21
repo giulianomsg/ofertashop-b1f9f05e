@@ -174,6 +174,22 @@ Deno.serve(async (req) => {
 
     if (productErr) throw productErr;
 
+    const shopee_extra_data = {
+      appExistRate: offer.appExistRate,
+      appNewRate: offer.appNewRate,
+      webExistRate: offer.webExistRate,
+      webNewRate: offer.webNewRate,
+      commission: offer.commission,
+      productCatIds: offer.productCatIds,
+      priceDiscountRate: offer.priceDiscountRate,
+      shopType: offer.shopType,
+      sellerCommissionRate: offer.sellerCommissionRate,
+      shopeeCommissionRate: offer.shopeeCommissionRate
+    };
+
+    const validFrom = offer.periodStartTime ? new Date(offer.periodStartTime * 1000).toISOString() : null;
+    const validTo = offer.periodEndTime ? new Date(offer.periodEndTime * 1000).toISOString() : null;
+
     // Create mapping
     const { error: mappingErr } = await sb
       .from("shopee_product_mappings")
@@ -187,6 +203,9 @@ Deno.serve(async (req) => {
         shopee_product_url: offer.productLink || null,
         shopee_short_link: shortLink || null,
         sync_status: "active",
+        offer_valid_from: validFrom,
+        offer_valid_to: validTo,
+        shopee_extra_data: shopee_extra_data
       });
 
     if (mappingErr) console.error("Mapping insert error:", mappingErr);

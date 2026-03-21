@@ -108,6 +108,19 @@ Deno.serve(async (req) => {
             priceMax
             commissionRate
             sales
+            appExistRate
+            appNewRate
+            webExistRate
+            webNewRate
+            commission
+            periodStartTime
+            periodEndTime
+            productCatIds
+            ratingStar
+            priceDiscountRate
+            shopType
+            sellerCommissionRate
+            shopeeCommissionRate
           }
         }
       `).join("\n");
@@ -206,6 +219,13 @@ Deno.serve(async (req) => {
           willUpdatePrice: Math.abs(finalPrice - currentPrice) > 0.01,
         });
 
+        // Update rating in products
+        const currentRating = Number(product?.rating || 0);
+        const newRating = Number(shopeeItem.ratingStar || 0);
+        if (newRating > 0 && newRating !== currentRating) {
+          updates.rating = newRating;
+        }
+
         let status = "updated";
         if (!product?.is_active) {
           updates.is_active = true;
@@ -232,9 +252,29 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Construct extra_data JSONB payload mapping all Shopee metrics
+        const shopee_extra_data = {
+          appExistRate: shopeeItem.appExistRate,
+          appNewRate: shopeeItem.appNewRate,
+          webExistRate: shopeeItem.webExistRate,
+          webNewRate: shopeeItem.webNewRate,
+          commission: shopeeItem.commission,
+          productCatIds: shopeeItem.productCatIds,
+          priceDiscountRate: shopeeItem.priceDiscountRate,
+          shopType: shopeeItem.shopType,
+          sellerCommissionRate: shopeeItem.sellerCommissionRate,
+          shopeeCommissionRate: shopeeItem.shopeeCommissionRate
+        };
+
+        const validFrom = shopeeItem.periodStartTime ? new Date(shopeeItem.periodStartTime * 1000).toISOString() : null;
+        const validTo = shopeeItem.periodEndTime ? new Date(shopeeItem.periodEndTime * 1000).toISOString() : null;
+
         await sb.from("shopee_product_mappings").update({
           last_synced_at: new Date().toISOString(),
           shopee_commission_rate: Number(shopeeItem.commissionRate) || mapping.shopee_commission_rate,
+          offer_valid_from: validFrom,
+          offer_valid_to: validTo,
+          shopee_extra_data: shopee_extra_data
         }).eq("id", mapping.id);
       }
     }

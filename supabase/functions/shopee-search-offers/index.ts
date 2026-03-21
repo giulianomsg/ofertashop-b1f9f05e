@@ -87,6 +87,15 @@ Deno.serve(async (req) => {
             offerLink
             periodStartTime
             periodEndTime
+            appExistRate
+            appNewRate
+            webExistRate
+            webNewRate
+            productCatIds
+            priceDiscountRate
+            shopType
+            sellerCommissionRate
+            shopeeCommissionRate
           }
           pageInfo {
             page
