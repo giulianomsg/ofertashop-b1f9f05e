@@ -122,72 +122,81 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
-  // 🚀 A MÁGICA ACONTECE AQUI: Web Scraping DOM via Proxy CORS
+  // 🚀 A MÁGICA ACONTECE AQUI: Web Scraping DOM via Proxies Redundantes
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
       return;
     }
     setSearching(true);
+
     try {
-      // 1. Formata a URL como um navegador humano faria (a paginação do ML pula de 50 em 50)
+      // 1. Formata a URL oficial de busca humana do ML
       const formattedKeyword = encodeURIComponent(keyword.trim().replace(/\s+/g, '-'));
       const targetUrl = offset > 0
         ? `https://lista.mercadolivre.com.br/${formattedKeyword}_Desde_${offset + 1}_NoIndex_True`
         : `https://lista.mercadolivre.com.br/${formattedKeyword}`;
 
-      // Envolvemos a URL no Proxy para evitar bloqueio de CORS do navegador
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+      let htmlContent = "";
 
-      const proxyRes = await fetch(proxyUrl);
-      if (!proxyRes.ok) throw new Error("Falha ao contatar o servidor de extração.");
+      // 2. Mecanismo de Fallback (Redundância de Proxies para burlar AdBlockers e CORS)
+      try {
+        // Tentativa primária: corsproxy.io (Padrão ouro, raramente bloqueado)
+        const res1 = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+        if (!res1.ok) throw new Error("Proxy 1 falhou");
+        htmlContent = await res1.text();
+      } catch (err1) {
+        console.warn("Proxy primário bloqueado ou falhou. Tentando rota secundária...");
+        try {
+          // Tentativa secundária: allorigins em modo RAW (Retorna o HTML direto)
+          const res2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+          if (!res2.ok) throw new Error("Proxy 2 falhou");
+          htmlContent = await res2.text();
+        } catch (err2) {
+          throw new Error("Sua rede, navegador ou AdBlocker bloqueou a extração. Desative o AdBlock e tente novamente.");
+        }
+      }
 
-      const proxyData = await proxyRes.json();
-      if (!proxyData.contents) throw new Error("A página do Mercado Livre retornou vazia.");
+      if (!htmlContent || htmlContent.trim() === "") {
+        throw new Error("A página do Mercado Livre retornou vazia.");
+      }
 
-      // 2. Transforma o texto HTML bruto em elementos pesquisáveis pelo JavaScript
+      // 3. Transforma o texto HTML bruto em elementos pesquisáveis
       const parser = new DOMParser();
-      const doc = parser.parseFromString(proxyData.contents, "text/html");
+      const doc = parser.parseFromString(htmlContent, "text/html");
 
-      // 3. Captura os cards de produtos. O ML usa 'ui-search-layout__item' ou 'poly-card'
+      // 4. Captura os cards de produtos
       const items = doc.querySelectorAll('.ui-search-layout__item, .poly-card');
       const mappedResults: MLItem[] = [];
 
       items.forEach((item) => {
-        // Título
         const title = item.querySelector('h2')?.textContent?.trim() || '';
 
-        // Link e extração do ID
         const linkEl = item.querySelector('a');
         let link = linkEl?.getAttribute('href') || '';
-        link = link.split('?')[0]; // Remove rastreamento da URL
+        link = link.split('?')[0];
 
         const idMatch = link.match(/MLB-?(\d+)/);
         const id = idMatch ? `MLB${idMatch[1]}` : '';
 
-        // Preço (Pula preços com linha cortada <s> que são o preço original sem desconto)
         let priceVal = 0;
         const priceElements = item.querySelectorAll('.andes-money-amount__fraction, .price-tag-fraction');
         for (let i = 0; i < priceElements.length; i++) {
           const el = priceElements[i];
-          if (!el.closest('s')) { // Se não estiver dentro de uma tag <s> (strike-through)
+          if (!el.closest('s')) {
             priceVal = parseInt(el.textContent?.replace(/\./g, '') || '0', 10);
             break;
           }
         }
 
-        // Imagem (Lida com o lazy-load do ML)
         const imgEl = item.querySelector('img');
         let thumbnail = imgEl?.getAttribute('data-src') || imgEl?.getAttribute('src') || '';
-        // Converte imagens miniatura de carregamento para resolução um pouco melhor
         thumbnail = thumbnail.replace('I.jpg', 'F.jpg').replace('W.jpg', 'F.jpg');
 
-        // Frete Grátis
         const textContent = item.textContent?.toLowerCase() || '';
         const shipping_free = textContent.includes('frete grátis') || textContent.includes('envio grátis');
 
         if (id && title && priceVal > 0) {
-          // Previne duplicados que o ML injeta em carrosséis patrocinados no meio da busca
           if (!mappedResults.some(r => r.id === id)) {
             mappedResults.push({
               id,
@@ -197,7 +206,7 @@ const AdminMercadoLivre = () => {
               currency_id: 'BRL',
               thumbnail,
               permalink: link,
-              condition: 'new', // Na busca geral assumimos novo, a importação oficial corrigirá isso
+              condition: 'new',
               sold_quantity: 0,
               available_quantity: 99,
               seller: { id: 0, nickname: 'Vendedor ML' },
@@ -209,10 +218,10 @@ const AdminMercadoLivre = () => {
       });
 
       if (mappedResults.length === 0) {
-        toast.warning("Nenhum produto com preço válido encontrado nesta página.");
+        toast.warning("Nenhum produto com preço válido encontrado. O Mercado Livre pode ter exigido um CAPTCHA.");
       }
 
-      // 4. Verifica no Supabase quais desses já foram importados
+      // 5. Verifica no Supabase quais já foram importados
       const mlIds = mappedResults.map((r) => r.id);
       let importedSet = new Set<string>();
 
@@ -232,7 +241,6 @@ const AdminMercadoLivre = () => {
         already_imported: importedSet.has(r.id),
       }));
 
-      // Mantém os resultados anteriores se for paginação, ou substitui se for busca nova
       setResults(offset === 0 ? finalResults : [...results, ...finalResults]);
       setCurrentOffset(offset);
 
@@ -244,7 +252,7 @@ const AdminMercadoLivre = () => {
 
     } catch (err: any) {
       console.error(err);
-      toast.error("Erro na busca: " + (err.message || "Falha"));
+      toast.error(err.message || "Erro na busca");
     } finally {
       setSearching(false);
     }
