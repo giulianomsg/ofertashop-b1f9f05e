@@ -123,14 +123,23 @@ Deno.serve(async (req) => {
       `;
 
       let shopeeItems: any[] = [];
+      let rawData: any = null;
       try {
-        const data = await shopeeGraphQL(query);
-        shopeeItems = Object.values(data || {}).flatMap((offer: any) => offer?.nodes || []);
+        rawData = await shopeeGraphQL(query);
+        shopeeItems = Object.values(rawData || {}).flatMap((offer: any) => offer?.nodes || []);
         console.log(`Shopee GraphQL Response for batch ${i / BATCH_SIZE}:`, JSON.stringify(shopeeItems, null, 2));
-      } catch (e) {
+      } catch (e: any) {
         console.warn(`Batch ${i / BATCH_SIZE} query failed:`, e);
+        debug_info.push({ error_type: "query_failed", message: e.message, query });
         continue;
       }
+
+      debug_info.push({
+        event: "api_fetched",
+        rawData: rawData,
+        shopeeItemsLength: shopeeItems.length,
+        queryStr: query
+      });
 
       if (shopeeItems.length === 0) {
         console.warn(`Batch ${i / BATCH_SIZE} returned empty shopeeItems, skipping to prevent false deactivation.`);
