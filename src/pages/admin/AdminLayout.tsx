@@ -17,6 +17,7 @@ const menuItems = [
   { icon: FileText, label: "Páginas Institucionais", path: "/admin/paginas-institucionais" },
   { icon: Tag, label: "Cupons", path: "/admin/cupons" },
   { icon: ShoppingCart, label: "Shopee Affiliate", path: "/admin/shopee" },
+  { icon: ShoppingCart, label: "Mercado Livre", path: "/admin/mercadolivre" },
   { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp" },
   { icon: Mail, label: "Newsletters", path: "/admin/newsletters" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
