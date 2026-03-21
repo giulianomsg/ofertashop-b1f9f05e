@@ -71,15 +71,16 @@ const AdminShopee = () => {
     },
   });
 
-  const handleSearch = async (page = 1) => {
+  const handleSearch = async (page = 1, overrideSort?: number) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
       return;
     }
     setSearching(true);
+    const currentSort = overrideSort !== undefined ? overrideSort : sortType;
     try {
       const { data, error } = await supabase.functions.invoke("shopee-search-offers", {
-        body: { keyword: keyword.trim(), page, limit: 20, sortType },
+        body: { keyword: keyword.trim(), page, limit: 20, sortType: currentSort },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -295,7 +296,11 @@ const AdminShopee = () => {
           </div>
           <select
             value={sortType}
-            onChange={(e) => setSortType(Number(e.target.value))}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              setSortType(val);
+              if (keyword.trim()) handleSearch(1, val);
+            }}
             className="h-10 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none bg-background cursor-pointer hover:bg-secondary transition-colors font-medium border"
           >
             <option value={1}>Relevância</option>

@@ -47,7 +47,7 @@ const ProductDetail = () => {
   const visitorToken = useVisitorSession();
 
   const productAny = product as any;
-  const { data: priceHistory = [] } = usePriceHistory(productAny?.brand_id, productAny?.model_id);
+  const { data: priceHistory = [] } = usePriceHistory(id || "", productAny?.brand_id, productAny?.model_id);
   const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id);
 
   const [trustVotes, setTrustVotes] = useState({ sim: 0, nao: 0 });

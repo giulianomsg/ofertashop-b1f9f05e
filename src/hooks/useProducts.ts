@@ -278,25 +278,31 @@ export const useDeleteReview = () => {
   });
 };
 
-export const usePriceHistory = (brandId?: string | null, modelId?: string | null) => {
+export const usePriceHistory = (productId: string, brandId?: string | null, modelId?: string | null) => {
   return useQuery({
-    queryKey: ["price_history", brandId, modelId],
+    queryKey: ["price_history", productId, brandId, modelId],
     queryFn: async () => {
-      if (!brandId || !modelId) return [];
-      const { data, error } = await supabase
+      if (!productId) return [];
+      
+      let query = supabase
         .from("price_history" as any)
         .select(`
-          id, price, created_at,
+          id, price, created_at, product_id,
           products!inner(brand_id, model_id, store, platform_id, title)
-        `)
-        .eq("products.brand_id", brandId)
-        .eq("products.model_id", modelId)
-        .order("created_at", { ascending: true });
+        `);
+        
+      if (brandId && modelId) {
+        query = query.eq("products.brand_id", brandId).eq("products.model_id", modelId);
+      } else {
+        query = query.eq("product_id", productId);
+      }
+      
+      const { data, error } = await query.order("created_at", { ascending: true });
         
       if (error) throw error;
       return data;
     },
-    enabled: !!brandId && !!modelId,
+    enabled: !!productId,
   });
 };
 
