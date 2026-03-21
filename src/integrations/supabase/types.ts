@@ -240,6 +240,149 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_product_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          ml_available_quantity: number | null
+          ml_category_id: string | null
+          ml_condition: string | null
+          ml_current_price: number | null
+          ml_item_id: string
+          ml_original_price: number | null
+          ml_permalink: string | null
+          ml_rating_average: number | null
+          ml_rating_count: number | null
+          ml_seller_id: string | null
+          ml_sold_quantity: number | null
+          ml_status: string | null
+          ml_thumbnail: string | null
+          product_id: string
+          sync_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          ml_available_quantity?: number | null
+          ml_category_id?: string | null
+          ml_condition?: string | null
+          ml_current_price?: number | null
+          ml_item_id: string
+          ml_original_price?: number | null
+          ml_permalink?: string | null
+          ml_rating_average?: number | null
+          ml_rating_count?: number | null
+          ml_seller_id?: string | null
+          ml_sold_quantity?: number | null
+          ml_status?: string | null
+          ml_thumbnail?: string | null
+          product_id: string
+          sync_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          ml_available_quantity?: number | null
+          ml_category_id?: string | null
+          ml_condition?: string | null
+          ml_current_price?: number | null
+          ml_item_id?: string
+          ml_original_price?: number | null
+          ml_permalink?: string | null
+          ml_rating_average?: number | null
+          ml_rating_count?: number | null
+          ml_seller_id?: string | null
+          ml_sold_quantity?: number | null
+          ml_status?: string | null
+          ml_thumbnail?: string | null
+          product_id?: string
+          sync_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_product_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_sync_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          items_deactivated: number | null
+          items_processed: number | null
+          items_updated: number | null
+          status: string
+          sync_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_deactivated?: number | null
+          items_processed?: number | null
+          items_updated?: number | null
+          status?: string
+          sync_type: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          items_deactivated?: number | null
+          items_processed?: number | null
+          items_updated?: number | null
+          status?: string
+          sync_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      ml_tokens: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          ml_user_id: string | null
+          refresh_token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ml_user_id?: string | null
+          refresh_token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ml_user_id?: string | null
+          refresh_token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           brand_id: string
