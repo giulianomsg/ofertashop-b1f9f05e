@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     // Get all active ML mappings
     const { data: mappings, error: mapErr } = await sb
       .from("ml_product_mappings")
-      .select("*, products(*)")
+      .select("*, products(id, title, price, original_price, is_active, sales_count)")
       .eq("sync_status", "active");
 
     if (mapErr) throw mapErr;
@@ -189,6 +189,7 @@ Deno.serve(async (req) => {
       updated,
       deactivated,
       errors: errors.length,
+      error_details: errors
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
