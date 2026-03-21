@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
         store: offer.shopName || "Shopee",
         affiliate_url: shortLink || offer.productLink || "",
         image_url: offer.imageUrl || null,
-        category: "geral",
+        category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
         is_active: true,
         rating: Number(offer.ratingStar) || 0,

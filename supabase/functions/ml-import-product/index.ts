@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
         image_url: imageUrl || null,
         gallery_urls: galleryUrls.length > 0 ? galleryUrls : null,
         description: description || null,
-        category: "geral",
+        category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
         is_active: detail.status === "active",
         rating: item.ratingStar || detail.reviews?.rating_average || 0,
