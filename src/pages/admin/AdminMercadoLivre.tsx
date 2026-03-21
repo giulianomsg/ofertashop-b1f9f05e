@@ -122,7 +122,7 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
-  // 🚀 A MÁGICA ACONTECE AQUI: Web Scraping DOM via Proxies Redundantes
+  // 🚀 A MÁGICA ACONTECE AQUI: Web Scraping DOM via Proxies 100% Gratuitos
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -139,64 +139,83 @@ const AdminMercadoLivre = () => {
 
       let htmlContent = "";
 
-      // 2. Mecanismo de Fallback (Redundância de Proxies para burlar AdBlockers e CORS)
+      // 2. Mecanismo de Fallback com Proxies Abertos (Sem restrição de localhost)
       try {
-        // Tentativa primária: corsproxy.io (Padrão ouro, raramente bloqueado)
-        const res1 = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
-        if (!res1.ok) throw new Error("Proxy 1 falhou");
-        htmlContent = await res1.text();
+        // Tentativa primária: AllOrigins (via wrapper JSON que contorna CORS perfeitamente)
+        const res1 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+        if (!res1.ok) throw new Error("AllOrigins proxy falhou na conexão de rede.");
+
+        const data = await res1.json();
+        htmlContent = data.contents || "";
+
+        // Verifica se o proxy bateu no muro do Captcha/Datadome do Mercado Livre
+        if (htmlContent.includes('g-recaptcha') || htmlContent.includes('Verifique que você não é um robô') || htmlContent.includes('Access Denied')) {
+          throw new Error("Mercado Livre exigiu Captcha no AllOrigins.");
+        }
       } catch (err1) {
-        console.warn("Proxy primário bloqueado ou falhou. Tentando rota secundária...");
+        console.warn("Proxy 1 falhou ou foi bloqueado. Tentando rota secundária...", err1);
         try {
-          // Tentativa secundária: allorigins em modo RAW (Retorna o HTML direto)
-          const res2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
-          if (!res2.ok) throw new Error("Proxy 2 falhou");
+          // Tentativa secundária: CodeTabs (Proxy bruto irrestrito)
+          const res2 = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
+          if (!res2.ok) throw new Error("CodeTabs proxy falhou na conexão de rede.");
+
           htmlContent = await res2.text();
+
+          if (!htmlContent || htmlContent.includes('g-recaptcha') || htmlContent.includes('Verifique que você não é um robô') || htmlContent.includes('Access Denied')) {
+            throw new Error("Mercado Livre exigiu Captcha no CodeTabs.");
+          }
         } catch (err2) {
-          throw new Error("Sua rede, navegador ou AdBlocker bloqueou a extração. Desative o AdBlock e tente novamente.");
+          throw new Error("A extração foi bloqueada pelo sistema anti-robô do Mercado Livre no momento. Tente uma palavra-chave diferente ou aguarde alguns minutos.");
         }
       }
 
       if (!htmlContent || htmlContent.trim() === "") {
-        throw new Error("A página do Mercado Livre retornou vazia.");
+        throw new Error("A página retornou vazia pelos serviços de extração.");
       }
 
-      // 3. Transforma o texto HTML bruto em elementos pesquisáveis
+      // 3. Transforma o texto HTML bruto em elementos pesquisáveis pelo JavaScript
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, "text/html");
 
-      // 4. Captura os cards de produtos
+      // 4. Captura os cards de produtos. O ML usa 'ui-search-layout__item' ou 'poly-card'
       const items = doc.querySelectorAll('.ui-search-layout__item, .poly-card');
       const mappedResults: MLItem[] = [];
 
       items.forEach((item) => {
+        // Título
         const title = item.querySelector('h2')?.textContent?.trim() || '';
 
+        // Link e extração do ID
         const linkEl = item.querySelector('a');
         let link = linkEl?.getAttribute('href') || '';
-        link = link.split('?')[0];
+        link = link.split('?')[0]; // Remove rastreamento da URL
 
         const idMatch = link.match(/MLB-?(\d+)/);
         const id = idMatch ? `MLB${idMatch[1]}` : '';
 
+        // Preço (Pula preços com linha cortada <s> que são o preço original sem desconto)
         let priceVal = 0;
         const priceElements = item.querySelectorAll('.andes-money-amount__fraction, .price-tag-fraction');
         for (let i = 0; i < priceElements.length; i++) {
           const el = priceElements[i];
-          if (!el.closest('s')) {
+          if (!el.closest('s')) { // Se não estiver dentro de uma tag <s> (strike-through)
             priceVal = parseInt(el.textContent?.replace(/\./g, '') || '0', 10);
             break;
           }
         }
 
+        // Imagem (Lida com o lazy-load do ML)
         const imgEl = item.querySelector('img');
         let thumbnail = imgEl?.getAttribute('data-src') || imgEl?.getAttribute('src') || '';
+        // Converte imagens miniatura de carregamento para resolução um pouco melhor
         thumbnail = thumbnail.replace('I.jpg', 'F.jpg').replace('W.jpg', 'F.jpg');
 
+        // Frete Grátis
         const textContent = item.textContent?.toLowerCase() || '';
         const shipping_free = textContent.includes('frete grátis') || textContent.includes('envio grátis');
 
         if (id && title && priceVal > 0) {
+          // Previne duplicados que o ML injeta em carrosséis patrocinados no meio da busca
           if (!mappedResults.some(r => r.id === id)) {
             mappedResults.push({
               id,
@@ -206,7 +225,7 @@ const AdminMercadoLivre = () => {
               currency_id: 'BRL',
               thumbnail,
               permalink: link,
-              condition: 'new',
+              condition: 'new', // Na busca geral assumimos novo, a importação oficial corrigirá
               sold_quantity: 0,
               available_quantity: 99,
               seller: { id: 0, nickname: 'Vendedor ML' },
@@ -218,10 +237,10 @@ const AdminMercadoLivre = () => {
       });
 
       if (mappedResults.length === 0) {
-        toast.warning("Nenhum produto com preço válido encontrado. O Mercado Livre pode ter exigido um CAPTCHA.");
+        toast.warning("Nenhum produto com preço válido encontrado. Tente refinar a busca.");
       }
 
-      // 5. Verifica no Supabase quais já foram importados
+      // 5. Verifica no Supabase quais desses já foram importados
       const mlIds = mappedResults.map((r) => r.id);
       let importedSet = new Set<string>();
 
@@ -241,6 +260,7 @@ const AdminMercadoLivre = () => {
         already_imported: importedSet.has(r.id),
       }));
 
+      // Mantém os resultados anteriores se for paginação, ou substitui se for busca nova
       setResults(offset === 0 ? finalResults : [...results, ...finalResults]);
       setCurrentOffset(offset);
 
@@ -257,7 +277,6 @@ const AdminMercadoLivre = () => {
       setSearching(false);
     }
   };
-
   const handleImport = async (item: MLItem) => {
     if (importing.has(item.id) || imported.has(item.id)) return;
 
