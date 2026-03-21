@@ -122,7 +122,7 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
-  // 🚀 A MÁGICA ACONTECE AQUI: Fetch Direto na API Pública (Bypass Limpo)
+  // 🚀 Busca Orquestrada pela Edge Function (Via ScrapingBee)
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -131,75 +131,32 @@ const AdminMercadoLivre = () => {
     setSearching(true);
 
     try {
-      // Chamamos a API oficial diretamente pelo seu navegador.
-      // NÃO enviamos o header de Authorization para evitar o Erro 403 de escopo.
-      // Como o seu IP é residencial/comercial, o WAF do Mercado Livre não deve bloquear (diferente do Supabase).
-      const targetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(keyword.trim())}&offset=${offset}&limit=20`;
-
-      const mlRes = await fetch(targetUrl);
-
-      if (!mlRes.ok) {
-        const errorData = await mlRes.json().catch(() => ({}));
-        throw new Error(errorData.message || `Erro HTTP ${mlRes.status} ao consultar API.`);
-      }
-
-      const searchData = await mlRes.json();
-      const items = searchData.results || [];
-
-      if (items.length === 0) {
-        toast.warning("Nenhum produto encontrado para este termo.");
-      }
-
-      // Mapeamento do JSON perfeitamente estruturado da API
-      const mappedResults: MLItem[] = items.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price || 0,
-        original_price: item.original_price,
-        currency_id: item.currency_id || "BRL",
-        thumbnail: item.thumbnail?.replace("http://", "https://") || "",
-        permalink: item.permalink || "",
-        condition: item.condition || "new",
-        sold_quantity: item.sold_quantity || 0,
-        available_quantity: item.available_quantity || 1,
-        seller: { id: item.seller?.id || 0, nickname: item.seller?.nickname || "Vendedor ML" },
-        category_id: item.category_id || "",
-        shipping_free: item.shipping?.free_shipping || false,
-      }));
-
-      // Verificação no Supabase para saber quais já foram importados
-      const mlIds = mappedResults.map((r) => r.id);
-      let importedSet = new Set<string>();
-
-      if (mlIds.length > 0) {
-        const { data: existingMappings } = await supabase
-          .from("ml_product_mappings")
-          .select("ml_item_id")
-          .in("ml_item_id", mlIds);
-
-        if (existingMappings) {
-          importedSet = new Set(existingMappings.map(m => m.ml_item_id));
-        }
-      }
-
-      const finalResults = mappedResults.map((r) => ({
-        ...r,
-        already_imported: importedSet.has(r.id),
-      }));
-
-      setResults(offset === 0 ? finalResults : [...results, ...finalResults]);
-      setPaging(searchData.paging || null);
-      setCurrentOffset(offset);
-
-      setImported(prev => {
-        const newSet = new Set(prev);
-        importedSet.forEach(id => newSet.add(id));
-        return newSet;
+      const { data, error } = await supabase.functions.invoke("ml-search-products", {
+        body: { keyword: keyword.trim(), offset },
       });
 
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const items = data.results || [];
+
+      if (items.length === 0) {
+        toast.warning("Nenhum produto encontrado.");
+      }
+
+      setResults(offset === 0 ? items : [...results, ...items]);
+      setCurrentOffset(offset);
+
+      // Atualiza o estado visual de itens já importados
+      const newlyImported = new Set<string>(imported);
+      items.forEach((item: MLItem) => {
+        if (item.already_imported) newlyImported.add(item.id);
+      });
+      setImported(newlyImported);
+
     } catch (err: any) {
-      console.error("Erro na busca direta:", err);
-      toast.error(err.message || "A busca falhou. Verifique o console.");
+      console.error("Erro na busca via Edge Function:", err);
+      toast.error(err.message || "A extração falhou. Verifique os logs da Edge Function.");
     } finally {
       setSearching(false);
     }
