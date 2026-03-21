@@ -344,9 +344,9 @@ const AdminProducts = () => {
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
                   <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
                   <td className="p-4 text-center hidden md:table-cell">
-                    {product.commission_rate ? (
+                    {product.badge ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-accent/10 text-accent font-medium text-xs">
-                        {parseFloat(Number(product.commission_rate).toFixed(2))}%
+                        {product.badge}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
