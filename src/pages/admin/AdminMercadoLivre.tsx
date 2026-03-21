@@ -107,7 +107,7 @@ const AdminMercadoLivre = () => {
 
   const handleOAuthCallback = async (code: string) => {
     try {
-      const redirectUri = `${window.location.origin}/admin/mercadolivre`;
+      const redirectUri = "https://ofertashop.com.br/admin/mercadolivre";
       const { data, error } = await supabase.functions.invoke("ml-oauth-callback", {
         body: { code, userId: user?.id, redirect_uri: redirectUri },
       });
