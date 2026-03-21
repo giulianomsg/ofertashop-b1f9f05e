@@ -90,6 +90,11 @@ Deno.serve(async (req) => {
         });
         const items = await res.json();
 
+        if (!Array.isArray(items)) {
+          errors.push(`API Error: ${JSON.stringify(items)}`);
+          continue;
+        }
+
         for (const itemWrapper of items) {
           processed++;
           const item = itemWrapper.body;
@@ -101,18 +106,21 @@ Deno.serve(async (req) => {
           const mapping = batch.find((m: any) => m.ml_item_id === item.id);
           if (!mapping) continue;
 
+          const product = mapping.products;
           const productUpdates: any = {};
           const mappingUpdates: any = { last_synced_at: new Date().toISOString() };
 
           // Price changes
-          if (item.price && item.price !== mapping.ml_current_price) {
+          if (item.price && Math.abs(item.price - Number(product?.price || 0)) > 0.01) {
             productUpdates.price = item.price;
             mappingUpdates.ml_current_price = item.price;
           }
           if (item.original_price !== undefined) {
             const op = item.original_price && item.original_price > (item.price || 0) ? item.original_price : null;
-            productUpdates.original_price = op;
-            mappingUpdates.ml_original_price = op;
+            if (op !== Number(product?.original_price || 0)) {
+              productUpdates.original_price = op;
+              mappingUpdates.ml_original_price = op;
+            }
           }
 
           // Status
@@ -131,7 +139,7 @@ Deno.serve(async (req) => {
           if (item.available_quantity !== undefined) mappingUpdates.ml_available_quantity = item.available_quantity;
 
           // Title
-          if (item.title && item.title !== mapping.products?.title) {
+          if (item.title && item.title !== product?.title) {
             productUpdates.title = item.title;
           }
 
@@ -143,8 +151,13 @@ Deno.serve(async (req) => {
 
           // Apply updates
           if (Object.keys(productUpdates).length > 0) {
-            await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
-            updated++;
+            // Update product safely
+            const { error: prodErr } = await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
+            if (!prodErr) {
+              updated++;
+            } else {
+              errors.push(`Product Update Error for ${item.id}: ${prodErr.message}`);
+            }
           }
           await sb.from("ml_product_mappings").update(mappingUpdates).eq("id", mapping.id);
         }

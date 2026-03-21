@@ -161,6 +161,12 @@ Deno.serve(async (req) => {
     const price = detail.price || item.price || 0;
     const originalPrice = detail.original_price || item.original_price || null;
 
+    // Attributes / Features
+    const features = (detail.attributes || []).map((attr: any) => ({
+      name: attr.name,
+      value: attr.value_name
+    })).filter((f: any) => f.value);
+
     // Insert product
     const { data: product, error: productErr } = await sb
       .from("products")
@@ -168,7 +174,7 @@ Deno.serve(async (req) => {
         title: detail.title || item.title || "Produto Mercado Livre",
         price: price > 0 ? price : 0.01,
         original_price: originalPrice && originalPrice > price ? originalPrice : null,
-        store: detail.seller_address?.city?.name || item.seller?.nickname || "Mercado Livre",
+        store: item.sellerName || detail.seller?.nickname || detail.seller_address?.city?.name || "Mercado Livre",
         affiliate_url: detail.permalink || item.permalink || "",
         image_url: imageUrl || null,
         gallery_urls: galleryUrls.length > 0 ? galleryUrls : null,
@@ -176,9 +182,11 @@ Deno.serve(async (req) => {
         category: "geral",
         platform_id: resolvedPlatformId,
         is_active: detail.status === "active",
-        rating: 0,
+        rating: item.ratingStar || detail.reviews?.rating_average || 0,
         registered_by: userId || null,
         sales_count: detail.sold_quantity || item.sold_quantity || 0,
+        available_quantity: detail.available_quantity || item.available_quantity || null,
+        features: features.length > 0 ? features : null,
         badge: detail.condition === "new" ? "Novo" : detail.condition === "used" ? "Usado" : null,
       })
       .select()

@@ -146,6 +146,10 @@ Deno.serve(async (req) => {
     const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;
     const originalPrice = maxPrice > price ? maxPrice : null;
 
+    // Compute commission percentage properly
+    const rate = Number(offer.commissionRate) || 0;
+    const commissionPct = rate < 1 && rate > 0 ? rate * 100 : rate;
+
     // Insert product
     const { data: product, error: productErr } = await sb
       .from("products")
@@ -162,11 +166,8 @@ Deno.serve(async (req) => {
         rating: Number(offer.ratingStar) || 0,
         registered_by: userId || null,
         sales_count: Number(offer.sales) || 0,
-        badge: (() => {
-          const rate = Number(offer.commissionRate) || 0;
-          const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
-          return pct > 0 ? `${pct.toFixed(1)}% comissão` : null;
-        })(),
+        commission_rate: commissionPct > 0 ? Number(commissionPct.toFixed(2)) : null,
+        badge: null,
       })
       .select()
       .single();

@@ -645,15 +645,18 @@ export type Database = {
         }
         Insert: {
           affiliate_url: string
+          available_quantity?: number | null
           badge?: string | null
           brand_id?: string | null
           category?: string
           clicks?: number
+          commission_rate?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           discount?: number | null
           discount_percentage?: number | null
+          features?: Json | null
           gallery_urls?: string[] | null
           id?: string
           image_url?: string | null
@@ -665,6 +668,7 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
+          sales_count?: number | null
           store: string
           title: string
           updated_at?: string

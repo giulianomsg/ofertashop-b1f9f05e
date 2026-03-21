@@ -45,6 +45,7 @@ const emptyForm = {
   image_url: "",
   original_price: "",
   discount: "",
+  commission_rate: "",
   badge: "",
   gallery_urls: [] as string[],
   brand_id: "",
@@ -158,6 +159,7 @@ const AdminProducts = () => {
       image_url: product.image_url || "",
       original_price: product.original_price ? String(product.original_price).replace(".", ",") : "",
       discount: product.discount ? String(product.discount) : "",
+      commission_rate: (product as any).commission_rate ? String((product as any).commission_rate) : "",
       badge: product.badge || "",
       gallery_urls: product.gallery_urls || [],
       brand_id: (product as any).brand_id || "",
@@ -263,6 +265,7 @@ const AdminProducts = () => {
       image_url: form.image_url || null,
       original_price: form.original_price ? parseFloat(form.original_price.replace(",", ".")) : null,
       discount: form.discount ? parseInt(form.discount) : null,
+      commission_rate: form.commission_rate ? parseFloat(form.commission_rate.replace(",", ".")) : null,
       badge: form.badge || null,
       gallery_urls: form.gallery_urls,
       brand_id: form.brand_id || null,
@@ -344,9 +347,9 @@ const AdminProducts = () => {
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
                   <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
                   <td className="p-4 text-center hidden md:table-cell">
-                    {product.badge ? (
+                    {(product as any).commission_rate ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-accent/10 text-accent font-medium text-xs">
-                        {product.badge}
+                        {Number((product as any).commission_rate).toFixed(1)}%
                       </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -463,10 +466,14 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Desconto (%) — auto</label>
                   <input value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Calculado auto" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Comissão (%)</label>
+                  <input value={form.commission_rate} onChange={(e) => setForm({ ...form, commission_rate: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Ex: 11.5" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">Badge</label>
