@@ -16,14 +16,6 @@ async function sha256Hex(message: string): Promise<string> {
   return bufferToHex(hash);
 }
 
-function parseShopeePrice(val: any): number {
-  if (!val) return 0;
-  const strVal = String(val);
-  const numVal = parseFloat(strVal);
-  if (strVal.includes('.')) return numVal; // Já é decimal
-  if (numVal >= 1000) return numVal / 100000; // Micro-unidades
-  return numVal; 
-}
 
 async function shopeeGraphQL<T = any>(query: string, variables: Record<string, any> = {}): Promise<T> {
   const appId = Deno.env.get("SHOPEE_APP_ID");
@@ -162,21 +154,27 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Lê o 'price' PRIMEIRO, igual ao shopee-import-product
-        const parsedPrice = parseShopeePrice(shopeeItem.price) || parseShopeePrice(shopeeItem.priceMin) || 0;
-        const maxPrice = parseShopeePrice(shopeeItem.priceMax) || parsedPrice;
-        const newOriginal = maxPrice > parsedPrice ? maxPrice : null;
+        // Calculate prices exactly like shopee-import-product
+        const rawPrice = parseFloat(shopeeItem.price) || parseFloat(shopeeItem.priceMin) || 0;
+        const rawMax = parseFloat(shopeeItem.priceMax) || rawPrice;
+        const price = rawPrice > 100000 ? rawPrice / 100000 : rawPrice;
+        const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;
+        const originalPrice = maxPrice > price ? maxPrice : null;
 
         const updates: Record<string, any> = {};
+        
+        // Update price
         const currentPrice = parseFloat(product?.price || 0);
-        if (parsedPrice > 0 && Math.abs(parsedPrice - currentPrice) > 0.01) {
-          updates.price = parsedPrice;
+        const finalPrice = price > 0 ? price : 0.01;
+        if (Math.abs(finalPrice - currentPrice) > 0.01) {
+          updates.price = finalPrice;
         }
 
+        // Update original_price
         const currentOriginalPrice = parseFloat(product?.original_price || 0);
-        if (newOriginal !== null && newOriginal !== currentOriginalPrice) {
-          updates.original_price = newOriginal;
-        } else if (newOriginal === null && product?.original_price != null) {
+        if (originalPrice !== null && originalPrice !== currentOriginalPrice) {
+          updates.original_price = originalPrice;
+        } else if (originalPrice === null && product?.original_price != null) {
           // If the original price shouldn't exist anymore, we nullify it
           updates.original_price = null;
         }
