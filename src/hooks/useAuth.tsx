@@ -21,31 +21,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
 
+  const [roleLoading, setRoleLoading] = useState(true);
+
   const fetchRole = async (userId: string) => {
-    // Busca Role
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
+    setRoleLoading(true);
+    try {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    // Busca status da conta (profile)
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("is_active")
-      .eq("user_id", userId)
-      .maybeSingle();
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("is_active")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (profileData && profileData.is_active === false) {
-      await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-      setUserRole(null);
-      return;
-      // Não prossegue caso suspenso.
+      if (profileData && profileData.is_active === false) {
+        await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+        setUserRole(null);
+        return;
+      }
+
+      setUserRole(roleData?.role ?? null);
+    } finally {
+      setRoleLoading(false);
     }
-
-    setUserRole(roleData?.role ?? null);
   };
 
   useEffect(() => {
