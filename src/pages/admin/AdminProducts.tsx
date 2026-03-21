@@ -302,7 +302,17 @@ const AdminProducts = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir este produto?")) return;
-    try { await deleteProduct.mutateAsync(id); toast.success("Produto excluído."); }
+    try { 
+      await deleteProduct.mutateAsync(id); 
+      
+      // Limpar cache de busca para que os produtos não apareçam mais como 'Importados'
+      sessionStorage.removeItem("ml_results");
+      sessionStorage.removeItem("ml_imported");
+      sessionStorage.removeItem("shopee_results");
+      sessionStorage.removeItem("shopee_imported");
+
+      toast.success("Produto excluído."); 
+    }
     catch { toast.error("Erro ao excluir."); }
   };
 
