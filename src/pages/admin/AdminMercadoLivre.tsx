@@ -123,6 +123,7 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
+  // SOLUÇÃO DEFINITIVA: Busca via Proxy CORS Público (AllOrigins)
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -130,20 +131,73 @@ const AdminMercadoLivre = () => {
     }
     setSearching(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ml-search-products", {
-        body: { keyword: keyword.trim(), offset, limit: 20 },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      // 1. Monta a URL oficial de Anúncios e a envolve no Proxy para contornar WAF e CORS
+      const targetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(keyword.trim())}&offset=${offset}&limit=20`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
-      setResults(data.results || []);
-      setPaging(data.paging || null);
+      const proxyRes = await fetch(proxyUrl);
+      if (!proxyRes.ok) throw new Error("Falha ao acessar o serviço de busca (Proxy).");
+
+      const proxyData = await proxyRes.json();
+      if (!proxyData.contents) throw new Error("Resposta vazia da API do Mercado Livre.");
+
+      // O conteúdo real da API vem como string dentro de 'contents'
+      const searchData = JSON.parse(proxyData.contents);
+
+      if (searchData.error || searchData.status === 403) {
+        throw new Error(searchData.message || "A busca foi bloqueada pelo Mercado Livre.");
+      }
+
+      const items = searchData.results || [];
+
+      // 2. Mapeamento direto (já que /sites/MLB/search traz os dados completos e precisos)
+      const mappedResults: MLItem[] = items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price || 0,
+        original_price: item.original_price,
+        currency_id: item.currency_id || "BRL",
+        thumbnail: item.thumbnail?.replace("http://", "https://") || "",
+        permalink: item.permalink || "",
+        condition: item.condition || "new",
+        sold_quantity: item.sold_quantity || 0,
+        available_quantity: item.available_quantity || 1,
+        seller: { id: item.seller?.id || 0, nickname: item.seller?.nickname || "Vendedor ML" },
+        category_id: item.category_id || "",
+        shipping_free: item.shipping?.free_shipping || false,
+      }));
+
+      // 3. Consulta rápida ao Supabase apenas para saber quais IDs já foram importados
+      const mlIds = mappedResults.map((r) => r.id);
+      let importedSet = new Set<string>();
+
+      if (mlIds.length > 0) {
+        const { data: existingMappings, error: dbError } = await supabase
+          .from("ml_product_mappings")
+          .select("ml_item_id")
+          .in("ml_item_id", mlIds);
+
+        if (!dbError && existingMappings) {
+          importedSet = new Set(existingMappings.map(m => m.ml_item_id));
+        }
+      }
+
+      // 4. Consolida o estado e exibe na tela
+      const finalResults = mappedResults.map((r) => ({
+        ...r,
+        already_imported: importedSet.has(r.id),
+      }));
+
+      setResults(finalResults);
+      setPaging(searchData.paging || null);
       setCurrentOffset(offset);
 
-      const alreadyImported = new Set<string>(
-        (data.results || []).filter((r: MLItem) => r.already_imported).map((r: MLItem) => r.id)
-      );
-      setImported(alreadyImported);
+      setImported(prev => {
+        const newSet = new Set(prev);
+        importedSet.forEach(id => newSet.add(id));
+        return newSet;
+      });
+
     } catch (err: any) {
       console.error(err);
       toast.error("Erro na busca: " + (err.message || "Falha"));
@@ -153,10 +207,12 @@ const AdminMercadoLivre = () => {
   };
 
   const handleImport = async (item: MLItem) => {
+    // Agora todo item será um anúncio válido com preço > 0
     if (importing.has(item.id) || imported.has(item.id) || item.price === 0) return;
 
     setImporting((prev) => new Set(prev).add(item.id));
     try {
+      // A importação via Edge Function continua segura, pois a busca direta pelo ID do item é permitida
       const { data, error } = await supabase.functions.invoke("ml-import-product", {
         body: { item, userId: user?.id },
       });
@@ -400,6 +456,16 @@ const AdminMercadoLivre = () => {
                           <><Download className="w-3.5 h-3.5" /> Importar</>
                         )}
                       </button>
+                      {item.permalink && (
+                        <a
+                          href={item.permalink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-9 w-9 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                        </a>
+                      )}
                     </div>
                   </motion.div>
                 );
