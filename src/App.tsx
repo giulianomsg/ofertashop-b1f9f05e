@@ -27,6 +27,7 @@ import AdminNewsletters from "./pages/admin/AdminNewsletters";
 import AdminInstitutionalPages from "./pages/admin/AdminInstitutionalPages";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminShopee from "./pages/admin/AdminShopee";
+import AdminMercadoLivre from "./pages/admin/AdminMercadoLivre";
 import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
