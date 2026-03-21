@@ -133,8 +133,8 @@ const AdminMercadoLivre = () => {
     try {
       // 1. Forçamos a busca via Query genérica (evita falhas de redirecionamento 301 do ML)
       const targetUrl = offset > 0
-        ? `https://lista.mercadolivre.com.br/jm/search?as_word=${encodeURIComponent(keyword.trim())}&Desde=${offset + 1}`
-        : `https://lista.mercadolivre.com.br/jm/search?as_word=${encodeURIComponent(keyword.trim())}`;
+        ? `https://lista.mercadolivre.com.br/${encodeURIComponent(keyword.trim())}&Desde=${offset + 1}`
+        : `https://lista.mercadolivre.com.br/${encodeURIComponent(keyword.trim())}`;
 
       let htmlContent = "";
 
