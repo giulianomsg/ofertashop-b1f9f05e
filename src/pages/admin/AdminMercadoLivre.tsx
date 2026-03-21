@@ -27,25 +27,19 @@ const AdminMercadoLivre = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  // OAuth state
   const [oauthConnected, setOauthConnected] = useState<boolean | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Search state
   const [keyword, setKeyword] = useState("");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<MLItem[]>([]);
   const [paging, setPaging] = useState<any>(null);
   const [currentOffset, setCurrentOffset] = useState(0);
 
-  // Import state
   const [importing, setImporting] = useState<Set<string>>(new Set());
   const [imported, setImported] = useState<Set<string>>(new Set());
-
-  // Sync state
   const [syncing, setSyncing] = useState(false);
 
-  // Sync logs
   const { data: syncLogs = [] } = useQuery({
     queryKey: ["ml_sync_logs"],
     queryFn: async () => {
@@ -59,7 +53,6 @@ const AdminMercadoLivre = () => {
     },
   });
 
-  // Mapped products count
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["ml_mappings_count"],
     queryFn: async () => {
@@ -72,7 +65,6 @@ const AdminMercadoLivre = () => {
     },
   });
 
-  // Check if OAuth is connected
   useEffect(() => {
     const checkAuth = async () => {
       setCheckingAuth(true);
@@ -83,7 +75,6 @@ const AdminMercadoLivre = () => {
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-
         setOauthConnected(!!data && !error);
       } catch {
         setOauthConnected(false);
@@ -94,13 +85,11 @@ const AdminMercadoLivre = () => {
     checkAuth();
   }, []);
 
-  // Handle OAuth callback code from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     if (code) {
       handleOAuthCallback(code);
-      // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -134,7 +123,6 @@ const AdminMercadoLivre = () => {
     window.location.href = authUrl;
   };
 
-  // NÚCLEO DA SOLUÇÃO: A busca agora é feita diretamente pelo Front-end
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
@@ -142,64 +130,20 @@ const AdminMercadoLivre = () => {
     }
     setSearching(true);
     try {
-      // 1. Fetch direto da API Pública do ML (Bypass de IP WAF e restrição OAuth)
-      const mlRes = await fetch(`https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(keyword.trim())}&offset=${offset}&limit=20`);
-      const searchData = await mlRes.json();
+      const { data, error } = await supabase.functions.invoke("ml-search-products", {
+        body: { keyword: keyword.trim(), offset, limit: 20 },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      if (!mlRes.ok) {
-        throw new Error(searchData.message || "Erro na API do Mercado Livre");
-      }
-
-      const items = searchData.results || [];
-
-      // 2. Mapeia os resultados brutos para o formato MLItem
-      const mappedResults: MLItem[] = items.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        original_price: item.original_price,
-        currency_id: item.currency_id,
-        thumbnail: item.thumbnail?.replace("http://", "https://"),
-        permalink: item.permalink,
-        condition: item.condition,
-        sold_quantity: item.sold_quantity || 0,
-        available_quantity: item.available_quantity || 1,
-        seller: { id: item.seller?.id, nickname: item.seller?.nickname || "Vendedor ML" },
-        category_id: item.category_id,
-        shipping_free: item.shipping?.free_shipping || false,
-      }));
-
-      // 3. Consulta rápida ao Supabase apenas para saber o que já foi importado
-      const mlIds = mappedResults.map((r) => r.id);
-      let importedSet = new Set<string>();
-
-      if (mlIds.length > 0) {
-        const { data: existingMappings, error: dbError } = await supabase
-          .from("ml_product_mappings")
-          .select("ml_item_id")
-          .in("ml_item_id", mlIds);
-
-        if (!dbError && existingMappings) {
-          importedSet = new Set(existingMappings.map(m => m.ml_item_id));
-        }
-      }
-
-      // 4. Consolida e renderiza
-      const finalResults = mappedResults.map((r) => ({
-        ...r,
-        already_imported: importedSet.has(r.id),
-      }));
-
-      setResults(finalResults);
-      setPaging(searchData.paging || null);
+      setResults(data.results || []);
+      setPaging(data.paging || null);
       setCurrentOffset(offset);
 
-      setImported(prev => {
-        const newSet = new Set(prev);
-        importedSet.forEach(id => newSet.add(id));
-        return newSet;
-      });
-
+      const alreadyImported = new Set<string>(
+        (data.results || []).filter((r: MLItem) => r.already_imported).map((r: MLItem) => r.id)
+      );
+      setImported(alreadyImported);
     } catch (err: any) {
       console.error(err);
       toast.error("Erro na busca: " + (err.message || "Falha"));
@@ -209,12 +153,10 @@ const AdminMercadoLivre = () => {
   };
 
   const handleImport = async (item: MLItem) => {
-    if (importing.has(item.id) || imported.has(item.id)) return;
+    if (importing.has(item.id) || imported.has(item.id) || item.price === 0) return;
 
     setImporting((prev) => new Set(prev).add(item.id));
     try {
-      // A importação continua usando a Edge Function (que usa o Token)
-      // pois buscar um item específico pelo ID é permitido
       const { data, error } = await supabase.functions.invoke("ml-import-product", {
         body: { item, userId: user?.id },
       });
@@ -244,9 +186,9 @@ const AdminMercadoLivre = () => {
   };
 
   const handleImportAll = async () => {
-    const available = results.filter((r) => !imported.has(r.id));
+    const available = results.filter((r) => !imported.has(r.id) && r.price > 0);
     if (available.length === 0) {
-      toast.info("Todos os produtos já foram importados.");
+      toast.info("Nenhum produto válido disponível para importar.");
       return;
     }
     for (const item of available) {
@@ -313,9 +255,6 @@ const AdminMercadoLivre = () => {
             <Link2 className="w-5 h-5" />
             Conectar Mercado Livre
           </button>
-          <p className="text-xs text-muted-foreground">
-            Certifique-se de ter configurado <code className="bg-secondary px-1 py-0.5 rounded">VITE_ML_APP_ID</code> e os secrets da Edge Function.
-          </p>
         </div>
       </div>
     );
@@ -323,7 +262,6 @@ const AdminMercadoLivre = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="font-display font-bold text-xl text-foreground flex items-center gap-2">
@@ -349,7 +287,6 @@ const AdminMercadoLivre = () => {
         </div>
       </div>
 
-      {/* Search bar */}
       <div className="bg-card rounded-xl border border-border p-4" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -373,7 +310,6 @@ const AdminMercadoLivre = () => {
         </div>
       </div>
 
-      {/* Results */}
       {results.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -394,13 +330,14 @@ const AdminMercadoLivre = () => {
               {results.map((item) => {
                 const isImporting = importing.has(item.id);
                 const isImported = imported.has(item.id);
+                const hasOffer = item.price > 0;
 
                 return (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`bg-card rounded-xl border border-border overflow-hidden transition-all ${isImported ? "opacity-60" : ""}`}
+                    className={`bg-card rounded-xl border border-border overflow-hidden transition-all ${isImported || !hasOffer ? "opacity-60" : ""}`}
                     style={{ boxShadow: "var(--shadow-card)" }}
                   >
                     <div className="flex gap-3 p-4">
@@ -434,11 +371,10 @@ const AdminMercadoLivre = () => {
                               {item.condition === "new" ? "Novo" : "Usado"}
                             </span>
                           )}
-                          {item.sold_quantity > 0 && (
-                            <span className="text-xs text-muted-foreground">{item.sold_quantity} vendidos</span>
-                          )}
-                          {item.shipping_free && (
-                            <span className="text-xs bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded">Frete grátis</span>
+                          {!hasOffer && (
+                            <span className="text-xs bg-red-500/10 text-red-600 px-1.5 py-0.5 rounded font-medium">
+                              Sem Anúncio Ativo
+                            </span>
                           )}
                         </div>
                       </div>
@@ -446,98 +382,29 @@ const AdminMercadoLivre = () => {
                     <div className="px-4 pb-4 flex gap-2">
                       <button
                         onClick={() => handleImport(item)}
-                        disabled={isImporting || isImported}
+                        disabled={isImporting || isImported || !hasOffer}
                         className={`flex-1 h-9 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${isImported
                             ? "bg-green-500/10 text-green-600 cursor-default"
-                            : "bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
+                            : !hasOffer
+                              ? "bg-secondary text-muted-foreground cursor-not-allowed"
+                              : "bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
                           }`}
                       >
                         {isImported ? (
                           <><Check className="w-3.5 h-3.5" /> Importado</>
+                        ) : !hasOffer ? (
+                          <><X className="w-3.5 h-3.5" /> Indisponível</>
                         ) : isImporting ? (
                           <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Importando...</>
                         ) : (
                           <><Download className="w-3.5 h-3.5" /> Importar</>
                         )}
                       </button>
-                      {item.permalink && (
-                        <a
-                          href={item.permalink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="h-9 w-9 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                        </a>
-                      )}
                     </div>
                   </motion.div>
                 );
               })}
             </AnimatePresence>
-          </div>
-
-          {/* Pagination */}
-          {paging && currentOffset + 20 < (paging.total || 0) && (
-            <div className="flex justify-center">
-              <button
-                onClick={() => handleSearch(currentOffset + 20)}
-                disabled={searching}
-                className="px-6 py-2 rounded-lg border border-border text-sm hover:bg-secondary transition-colors disabled:opacity-50"
-              >
-                {searching ? "Carregando..." : "Carregar mais"}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Sync Logs */}
-      {syncLogs.length > 0 && (
-        <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="p-4 border-b border-border">
-            <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              Histórico de Sincronizações
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary">
-                  <th className="text-left p-3 font-semibold text-foreground">Tipo</th>
-                  <th className="text-center p-3 font-semibold text-foreground">Status</th>
-                  <th className="text-center p-3 font-semibold text-foreground hidden sm:table-cell">Processados</th>
-                  <th className="text-center p-3 font-semibold text-foreground hidden sm:table-cell">Atualizados</th>
-                  <th className="text-right p-3 font-semibold text-foreground">Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {syncLogs.map((log: any) => (
-                  <tr key={log.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                    <td className="p-3 capitalize text-foreground">{log.sync_type?.replace("_", " ")}</td>
-                    <td className="p-3 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${log.status === "success"
-                            ? "bg-green-500/10 text-green-600"
-                            : log.status === "error"
-                              ? "bg-destructive/10 text-destructive"
-                              : "bg-yellow-500/10 text-yellow-600"
-                          }`}
-                      >
-                        {log.status === "success" ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                        {log.status}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{log.items_processed}</td>
-                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{log.items_updated}</td>
-                    <td className="p-3 text-right text-muted-foreground">
-                      {log.created_at ? new Date(log.created_at).toLocaleString("pt-BR") : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       )}
