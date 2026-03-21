@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
         client_id: ML_APP_ID,
         client_secret: ML_CLIENT_SECRET,
         code,
-        redirect_uri: ML_REDIRECT_URI,
+        redirect_uri: finalRedirectUri,
       }),
     });
 
