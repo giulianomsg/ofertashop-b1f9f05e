@@ -139,8 +139,8 @@ Deno.serve(async (req) => {
     }
 
     // Calculate prices - try 'price' field first, then priceMin/priceMax
-    const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
-    const rawMax = Number(offer.priceMax) || rawPrice;
+    const rawPrice = parseFloat(offer.price) || parseFloat(offer.priceMin) || 0;
+    const rawMax = parseFloat(offer.priceMax) || rawPrice;
     // Detect micro-units (>100000) vs normal values
     const price = rawPrice > 100000 ? rawPrice / 100000 : rawPrice;
     const maxPrice = rawMax > 100000 ? rawMax / 100000 : rawMax;

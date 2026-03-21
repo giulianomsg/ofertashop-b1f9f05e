@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
             sortType: 2
             page: 1
             limit: ${BATCH_SIZE}
-            itemIds: [${itemIds.map(id => `"${id}"`).join(",")}]
+            itemIds: [${itemIds.join(",")}]
           ) {
             nodes {
               itemId
@@ -132,6 +132,11 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      if (shopeeItems.length === 0) {
+        console.warn(`Batch ${i / BATCH_SIZE} returned empty shopeeItems, skipping to prevent false deactivation.`);
+        continue;
+      }
+
       const shopeeMap = new Map(shopeeItems.map((item: any) => [String(item.itemId), item]));
 
       for (const mapping of batch) {
@@ -151,20 +156,23 @@ Deno.serve(async (req) => {
         }
 
         // Calculate prices natively handling micro-units mapping just like shopee-import-product
-        const rawPriceMin = Number(shopeeItem.priceMin) || Number(shopeeItem.price) || 0;
-        const rawPriceMax = Number(shopeeItem.priceMax) || rawPriceMin;
+        const rawPriceMin = parseFloat(shopeeItem.priceMin) || parseFloat(shopeeItem.price) || 0;
+        const rawPriceMax = parseFloat(shopeeItem.priceMax) || rawPriceMin;
 
         const newPrice = rawPriceMin > 100000 ? rawPriceMin / 100000 : rawPriceMin;
         const maxPrice = rawPriceMax > 100000 ? rawPriceMax / 100000 : rawPriceMax;
         const newOriginal = maxPrice > newPrice ? maxPrice : null;
 
         const updates: Record<string, any> = {};
-        if (newPrice > 0 && Math.abs(newPrice - Number(product?.price || 0)) > 0.01) {
+        const currentPrice = parseFloat(product?.price) || 0;
+        if (newPrice > 0 && Math.abs(newPrice - currentPrice) > 0.01) {
           updates.price = newPrice;
         }
-        if (newOriginal !== null && newOriginal !== Number(product?.original_price || 0)) {
+
+        const currentOriginalPrice = parseFloat(product?.original_price) || 0;
+        if (newOriginal !== null && newOriginal !== currentOriginalPrice) {
           updates.original_price = newOriginal;
-        } else if (newOriginal === null && product?.original_price) {
+        } else if (newOriginal === null && product?.original_price != null) {
           // If the original price shouldn't exist anymore, we nullify it
           updates.original_price = null;
         }
