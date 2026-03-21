@@ -479,7 +479,6 @@ export type Database = {
           brand_id: string | null
           category: string
           clicks: number
-          commission_rate: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -496,7 +495,6 @@ export type Database = {
           rating: number
           registered_by: string | null
           review_count: number
-          sales_count?: number | null
           store: string
           title: string
           updated_at: string
@@ -508,7 +506,6 @@ export type Database = {
           brand_id?: string | null
           category?: string
           clicks?: number
-          commission_rate?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -525,7 +522,6 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
-          sales_count?: number | null
           store: string
           title: string
           updated_at?: string
@@ -537,7 +533,6 @@ export type Database = {
           brand_id?: string | null
           category?: string
           clicks?: number
-          commission_rate?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -554,7 +549,6 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
-          sales_count?: number | null
           store?: string
           title?: string
           updated_at?: string
