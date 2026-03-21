@@ -106,33 +106,33 @@ Deno.serve(async (req) => {
       const batch = mappings.slice(i, i + BATCH_SIZE);
       const itemIds = batch.map((m: any) => String(m.shopee_item_id));
 
+      const aliasQueries = itemIds.map((id: string) => `
+        item_${id}: productOfferV2(itemId: ${id}) {
+          nodes {
+            itemId
+            price
+            priceMin
+            priceMax
+            productName
+            imageUrl
+            offerLink
+            shopeeShortLink
+            commissionRate
+            sales
+          }
+        }
+      `).join("\n");
+
       const query = `
         query {
-          productOfferV2(
-            page: 1
-            limit: ${BATCH_SIZE}
-            itemIds: [${itemIds.join(",")}]
-          ) {
-            nodes {
-              itemId
-              price
-              priceMin
-              priceMax
-              productName
-              imageUrl
-              offerLink
-              shopeeShortLink
-              commissionRate
-              sales
-            }
-          }
+          ${aliasQueries}
         }
       `;
 
       let shopeeItems: any[] = [];
       try {
         const data = await shopeeGraphQL(query);
-        shopeeItems = data?.productOfferV2?.nodes || [];
+        shopeeItems = Object.values(data || {}).flatMap((offer: any) => offer?.nodes || []);
         console.log(`Shopee GraphQL Response for batch ${i / BATCH_SIZE}:`, JSON.stringify(shopeeItems, null, 2));
       } catch (e) {
         console.warn(`Batch ${i / BATCH_SIZE} query failed:`, e);
