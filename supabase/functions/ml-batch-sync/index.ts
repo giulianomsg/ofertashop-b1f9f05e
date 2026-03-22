@@ -9,22 +9,23 @@ const corsHeaders = {
 };
 
 // Retry logic to handle occasional proxy/network failures gracefully
-async function fetchHtmlWithRetry(url: string, options: any, retries = 3): Promise<string> {
+async function fetchHtmlWithRetry(url: string, options: any, retries = 3): Promise<{ html: string, status: number }> {
   const isDebug = options.isDebug;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, options);
-      if (!res.ok) {
+      // Permite 404 passar para tratamento semilimitado em logica nativa
+      if (!res.ok && res.status !== 404) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      return await res.text();
+      return { html: await res.text(), status: res.status };
     } catch (err: any) {
       if (attempt === retries) throw err;
       if (isDebug) console.warn(`Tentativa HTML ${attempt} falhou: ${err.message}. Retentando...`);
       await new Promise(r => setTimeout(r, attempt * 1000));
     }
   }
-  return "";
+  return { html: "", status: 500 };
 }
 
 Deno.serve(async (req) => {
@@ -78,7 +79,9 @@ Deno.serve(async (req) => {
          };
 
          try {
-           const mlUrl = `https://produto.mercadolivre.com.br/${mapping.ml_item_id.replace('MLB', 'MLB-')}`;
+           const fallbackUrl = `https://produto.mercadolivre.com.br/${mapping.ml_item_id.replace('MLB', 'MLB-')}`;
+           const mlUrl = mapping.ml_permalink || fallbackUrl;
+           
            const scrapingBeeUrl = new URL("https://app.scrapingbee.com/api/v1");
            scrapingBeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
            scrapingBeeUrl.searchParams.append("url", mlUrl);
@@ -86,11 +89,11 @@ Deno.serve(async (req) => {
            scrapingBeeUrl.searchParams.append("premium_proxy", "true"); // avoid blocks 
            scrapingBeeUrl.searchParams.append("country_code", "br");
 
-           const html = await fetchHtmlWithRetry(scrapingBeeUrl.toString(), { isDebug }, 3);
+           const { html, status } = await fetchHtmlWithRetry(scrapingBeeUrl.toString(), { isDebug }, 3);
            const $ = cheerio.load(html);
 
-           // 1. Verificação Estrita de 404
-           const isNotFound = $('h3').text().includes('Parece que esta página não existe') || html.includes('está indisponível');
+           // 1. Verificação Estrita de 404 (via Header e HTML)
+           const isNotFound = status === 404 || $('h3').text().includes('Parece que esta página não existe') || html.includes('está indisponível');
            if (isNotFound) {
               await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id);
               await sb.from("ml_product_mappings").update({ ml_status: "not_found", last_synced_at: new Date().toISOString() }).eq("id", mapping.id);
