@@ -7,6 +7,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function fetchWithRetry(url: string, options: any, retries = 3): Promise<any> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return await res.json();
+    } catch (err: any) {
+      if (attempt === retries) throw err;
+      console.warn(`Tentativa ${attempt} falhou (${url}): ${err.message}. Retentando em ${attempt * 1000}ms...`);
+      await new Promise(r => setTimeout(r, attempt * 1000));
+    }
+  }
+}
+
 async function getValidToken(sb: any, appId: string, clientSecret: string): Promise<string> {
   const { data: token } = await sb
     .from("ml_tokens")
@@ -62,10 +78,10 @@ Deno.serve(async (req) => {
 
     const accessToken = await getValidToken(sb, ML_APP_ID, ML_CLIENT_SECRET);
 
-    // Get all active ML mappings
+    // Get all active ML mappings with extended fields needed for full sync
     const { data: mappings, error: mapErr } = await sb
       .from("ml_product_mappings")
-      .select("*, products(id, title, price, original_price, is_active, sales_count)")
+      .select("*, products(id, title, price, original_price, is_active, sales_count, available_quantity, badge, image_url)")
       .eq("sync_status", "active");
 
     if (mapErr) throw mapErr;
@@ -85,10 +101,11 @@ Deno.serve(async (req) => {
       const ids = batch.map((m: any) => m.ml_item_id).join(",");
 
       try {
-        const res = await fetch(`https://api.mercadolibre.com/items?ids=${ids}`, {
+        // Added robust fetchWithRetry and explicit attributes to prevent ML API truncation on multiget
+        const attrs = "id,price,original_price,status,sold_quantity,available_quantity,condition,title,thumbnail";
+        const items = await fetchWithRetry(`https://api.mercadolibre.com/items?ids=${ids}&attributes=${attrs}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        const items = await res.json();
 
         if (!Array.isArray(items)) {
           errors.push(`API Error: ${JSON.stringify(items)}`);
@@ -122,33 +139,55 @@ Deno.serve(async (req) => {
           const productUpdates: any = {};
           const mappingUpdates: any = { last_synced_at: new Date().toISOString() };
 
-          // Price changes
-          if (item.price && Math.abs(item.price - Number(product?.price || 0)) > 0.01) {
-            productUpdates.price = item.price;
-            mappingUpdates.ml_current_price = item.price;
+          // Price changes - robust float parsing
+          const itemPrice = parseFloat(item.price) || 0;
+          const currentPrice = parseFloat(product?.price) || 0;
+          if (itemPrice > 0 && Math.abs(itemPrice - currentPrice) > 0.01) {
+            productUpdates.price = itemPrice;
+            mappingUpdates.ml_current_price = itemPrice;
           }
+          
           if (item.original_price !== undefined) {
-            const op = item.original_price && item.original_price > (item.price || 0) ? item.original_price : null;
-            if (op !== Number(product?.original_price || 0)) {
+            const itemOp = parseFloat(item.original_price) || 0;
+            const op = itemOp > itemPrice ? itemOp : null;
+            if (op !== (parseFloat(product?.original_price) || null)) {
               productUpdates.original_price = op;
               mappingUpdates.ml_original_price = op;
             }
           }
 
-          // Status
-          if (item.status !== mapping.ml_status) {
+          // Status changes
+          const newStatus = item.status === "active";
+          if (newStatus !== product?.is_active) {
+            productUpdates.is_active = newStatus;
+            mappingUpdates.ml_status = item.status || "inactive";
+            if (!newStatus) deactivated++;
+          } else if (item.status !== mapping.ml_status) {
             mappingUpdates.ml_status = item.status;
-            if (item.status !== "active") {
-              productUpdates.is_active = false;
-              deactivated++;
-            } else {
-              productUpdates.is_active = true;
-            }
           }
 
-          // Stock & sales
-          if (item.sold_quantity !== undefined) mappingUpdates.ml_sold_quantity = item.sold_quantity;
-          if (item.available_quantity !== undefined) mappingUpdates.ml_available_quantity = item.available_quantity;
+          // Complete Extended Info Sync: Condition, Stock, Sales
+          const conditionBadge = item.condition === "new" ? "Novo" : item.condition === "used" ? "Usado" : null;
+          if (conditionBadge && product?.badge !== conditionBadge) {
+             productUpdates.badge = conditionBadge;
+             mappingUpdates.ml_condition = item.condition;
+          }
+
+          if (item.sold_quantity !== undefined) {
+             const soldQuantity = parseInt(item.sold_quantity) || 0;
+             if (soldQuantity !== parseInt(product?.sales_count || "0")) {
+                productUpdates.sales_count = soldQuantity;
+                mappingUpdates.ml_sold_quantity = soldQuantity;
+             }
+          }
+
+          if (item.available_quantity !== undefined) {
+             const availableQuantity = parseInt(item.available_quantity) || 0;
+             if (availableQuantity !== parseInt(product?.available_quantity || "0")) {
+                productUpdates.available_quantity = availableQuantity;
+                mappingUpdates.ml_available_quantity = availableQuantity;
+             }
+          }
 
           // Title
           if (item.title && item.title !== product?.title) {
@@ -158,7 +197,10 @@ Deno.serve(async (req) => {
           // Thumbnail
           if (item.thumbnail) {
             const thumb = item.thumbnail.replace("http://", "https://");
-            mappingUpdates.ml_thumbnail = thumb;
+            if (mapping.ml_thumbnail !== thumb || product?.image_url !== thumb) {
+               mappingUpdates.ml_thumbnail = thumb;
+               productUpdates.image_url = thumb;
+            }
           }
 
           // Apply updates
