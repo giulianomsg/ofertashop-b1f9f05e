@@ -18,29 +18,15 @@ const AdminMercadoLivre = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  // RECUPERAR ESTADO DA MEMÓRIA DA SESSÃO
-  const [keyword, setKeyword] = useState(() => sessionStorage.getItem('ml_keyword') || "");
-  const [results, setResults] = useState<MLItem[]>(() => {
-    const saved = sessionStorage.getItem('ml_results');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [currentOffset, setCurrentOffset] = useState(() => parseInt(sessionStorage.getItem('ml_offset') || "0"));
+  // Estados Limpos (Sem cache do navegador, a pedido)
+  const [keyword, setKeyword] = useState("");
+  const [results, setResults] = useState<MLItem[]>([]);
+  const [currentOffset, setCurrentOffset] = useState(0);
 
   const [searching, setSearching] = useState(false);
   const [importing, setImporting] = useState<Set<string>>(new Set());
-  const [imported, setImported] = useState<Set<string>>(() => {
-    const saved = sessionStorage.getItem('ml_imported');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
+  const [imported, setImported] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState(false);
-
-  // SALVAR ESTADO SEMPRE QUE HOUVER MUDANÇA
-  useEffect(() => {
-    sessionStorage.setItem('ml_keyword', keyword);
-    sessionStorage.setItem('ml_results', JSON.stringify(results));
-    sessionStorage.setItem('ml_offset', currentOffset.toString());
-    sessionStorage.setItem('ml_imported', JSON.stringify(Array.from(imported)));
-  }, [keyword, results, currentOffset, imported]);
 
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["ml_mappings_count"],
