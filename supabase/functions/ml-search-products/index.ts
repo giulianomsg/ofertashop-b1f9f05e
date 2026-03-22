@@ -95,7 +95,7 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
       }
       console.warn(`Attempt ${i + 1} failed with status: ${res.status}`);
       if (res.status === 401 || res.status === 403) {
-        throw new Error("ScrapingBee API Key inválida ou limite excedido");
+        throw new Error("API Key inválida ou limite excedido");
       }
     } catch (err: any) {
       console.error(`Fetch error on attempt ${i + 1}:`, err.message);
@@ -127,9 +127,12 @@ Deno.serve(async (req) => {
 
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // Formatação de URL de busca Mercado Livre
-    const querySlug = keyword.trim().toLowerCase().replace(/\s+/g, "-");
+    // Formatação segura de URL de busca Mercado Livre
+    const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
     const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
+    
+    // A rota oficial de busca prefere hifens em vez de query params para suportar paginação
     let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
@@ -138,6 +141,13 @@ Deno.serve(async (req) => {
     const html = await fetchWithRetry(proxyTargetUrl);
 
     const $ = cheerio.load(html);
+    const pageTitle = $("title").text().trim();
+    console.log(`[MultiScraper] Page Title Extraído: "${pageTitle}"`);
+    
+    if (pageTitle.toLowerCase().includes("verifique se você é") || pageTitle.toLowerCase().includes("captcha")) {
+       console.warn(`[MultiScraper] AVISO: O provedor ${scraperConfig.provider} foi bloqueado pelo Anti-Bot do ML (CAPTCHA).`);
+    }
+
     const results: any[] = [];
 
     // Suporta ambos seletores: Antigos (ui-search) e Novos (poly- / andes-)
