@@ -53,12 +53,23 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
 
 async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
   try {
-     const { data } = await sb.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle();
-     if (data?.value?.provider && data?.value?.apiKey) return data.value as ScraperConfig;
+     const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
+     if (data?.value?.activeProvider && data?.value?.keys) {
+        const provider = data.value.activeProvider;
+        const apiKey = data.value.keys[provider];
+        if (apiKey) return { provider, apiKey };
+     }
   } catch(e) { /* ignore */ }
+  
+  // Legacy DB Fallback
+  try {
+     const { data: legacy } = await sb.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle();
+     if (legacy?.value?.provider && legacy?.value?.apiKey) return legacy.value as ScraperConfig;
+  } catch(e) { /* ignore */ }
+
   const scrapingBeeKey = Deno.env.get("SCRAPINGBEE_API_KEY");
   if (scrapingBeeKey) return { provider: "scrapingbee", apiKey: scrapingBeeKey };
-  throw new Error("Nenhum serviço de Web Scraper configurado.");
+  throw new Error("Nenhum serviço de Web Scraper configurado com chave válida no banco de dados.");
 }
 // ----------------------------------------------
 

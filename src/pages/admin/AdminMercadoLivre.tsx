@@ -32,17 +32,30 @@ const AdminMercadoLivre = () => {
 
   // Scraper Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [scraperProvider, setScraperProvider] = useState("scrapingbee");
-  const [scraperKey, setScraperKey] = useState("");
+  const [activeProvider, setActiveProvider] = useState("scrapingbee");
+  const [scraperKeys, setScraperKeys] = useState<Record<string, string>>({
+     "scrapingbee": "", "scrape.do": "", "scrapingant": "", "scraperapi": ""
+  });
   const [savingScraper, setSavingScraper] = useState(false);
 
   useEffect(() => {
-    // Carrega a configuração global salva
-    supabase.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle()
-      .then(({ data }) => {
+    // Carrega a configuração multiplexada (todas chaves + ativo)
+    (supabase as any).from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle()
+      .then(({ data }: any) => {
         if (data?.value) {
-          setScraperProvider(data.value.provider || "scrapingbee");
-          setScraperKey(data.value.apiKey || "");
+          setActiveProvider(data.value.activeProvider || "scrapingbee");
+          if (data.value.keys) setScraperKeys(data.value.keys);
+        } else {
+           // Fallback backwards compatibility with last schema
+           (supabase as any).from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle()
+            .then(({ data: legacy }: any) => {
+               if (legacy?.value) {
+                  setActiveProvider(legacy.value.provider || "scrapingbee");
+                  if (legacy.value.provider && legacy.value.apiKey) {
+                     setScraperKeys(prev => ({ ...prev, [legacy.value.provider]: legacy.value.apiKey }));
+                  }
+               }
+            });
         }
       });
   }, []);
@@ -183,9 +196,9 @@ const AdminMercadoLivre = () => {
   const handleSaveScraper = async () => {
     setSavingScraper(true);
     try {
-       const { error } = await supabase.from("admin_settings").upsert({
-          key: "active_scraper",
-          value: { provider: scraperProvider, apiKey: scraperKey.trim() }
+       const { error } = await (supabase as any).from("admin_settings").upsert({
+          key: "scraper_config",
+          value: { activeProvider, keys: scraperKeys }
        }, { onConflict: "key" });
        
        if (error) throw error;
@@ -229,30 +242,55 @@ const AdminMercadoLivre = () => {
 
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-card border shadow-lg rounded-xl p-6 w-full max-w-md relative animate-in fade-in zoom-in-95 duration-200">
+           <div className="bg-card border shadow-lg rounded-xl p-6 w-full max-w-lg relative animate-in fade-in zoom-in-95 duration-200">
               <button onClick={() => setIsSettingsOpen(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5"/>
               </button>
               <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Settings className="w-5 h-5"/> Configuração Multi-Scraper</h3>
-              <p className="text-xs text-muted-foreground mb-4">Escolha o serviço proxy para extração de ofertas e evite bloqueios do Mercado Livre.</p>
+              <p className="text-xs text-muted-foreground mb-4">Mantenha todas as suas chaves cadastradas e alterne de provedor com apenas um clique quando seus bônus diários acabarem.</p>
+              
               <div className="space-y-4">
-                 <div>
-                    <label className="text-sm font-medium">Provedor Ativo</label>
-                    <select value={scraperProvider} onChange={e => setScraperProvider(e.target.value)} className="w-full mt-1.5 h-10 px-3 rounded-lg bg-secondary border-none text-sm outline-none">
-                       <option value="scrapingbee">ScrapingBee</option>
-                       <option value="scrape.do">Scrape.do</option>
-                       <option value="scrapingant">ScrapingAnt</option>
-                       <option value="scraperapi">ScraperAPI</option>
-                    </select>
+                 <div className="bg-secondary/50 p-3 rounded-lg border">
+                    <label className="text-sm font-semibold mb-2 block">1. Provedor de Extração Ativo</label>
+                    <div className="grid grid-cols-2 gap-2">
+                       {['scrapingbee', 'scrape.do', 'scrapingant', 'scraperapi'].map((prov) => (
+                         <label key={prov} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${activeProvider === prov ? 'bg-primary/5 border-primary text-primary font-medium' : 'bg-background hover:bg-secondary/80'}`}>
+                           <input type="radio" name="active_provider" value={prov} checked={activeProvider === prov} onChange={() => setActiveProvider(prov)} className="accent-primary w-4 h-4"/>
+                           <span className="capitalize">{prov.replace('.do', '.DO').replace('api', 'API').replace('ant', 'Ant').replace('bee', 'Bee')}</span>
+                         </label>
+                       ))}
+                    </div>
                  </div>
-                 <div>
-                    <label className="text-sm font-medium">Chave de API (Token)</label>
-                    <input type="password" value={scraperKey} onChange={e => setScraperKey(e.target.value)} placeholder="Cole o token do serviço aqui..." className="w-full mt-1.5 h-10 px-3 rounded-lg bg-secondary border-none text-sm outline-none" />
+
+                 <div className="space-y-3 pt-2">
+                    <label className="text-sm font-semibold">2. Cofre de Tokens</label>
+                    
+                    {[
+                      { id: "scrapingbee", label: "ScrapingBee (api_key)" },
+                      { id: "scrape.do", label: "Scrape.do (token)" },
+                      { id: "scrapingant", label: "ScrapingAnt (x-api-key)" },
+                      { id: "scraperapi", label: "ScraperAPI (api_key)" }
+                    ].map((svc) => (
+                      <div key={svc.id} className="flex flex-col gap-1.5">
+                         <label className="text-xs text-muted-foreground font-medium">{svc.label}</label>
+                         <input 
+                           type="password" 
+                           value={scraperKeys[svc.id] || ""} 
+                           onChange={e => setScraperKeys(prev => ({ ...prev, [svc.id]: e.target.value.trim() }))} 
+                           placeholder={`Cole a chave do ${svc.id} aqui...`} 
+                           className={`w-full h-9 px-3 rounded-md bg-background border text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 ${activeProvider === svc.id ? 'border-primary shadow-sm' : 'border-border'}`} 
+                         />
+                      </div>
+                    ))}
                  </div>
-                 <Button className="w-full mt-2" onClick={handleSaveScraper} disabled={savingScraper || !scraperKey.trim()}>
+
+                 <Button className="w-full mt-4 h-11" onClick={handleSaveScraper} disabled={savingScraper || !scraperKeys[activeProvider]}>
                     {savingScraper ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null} 
-                    Salvar Provedor
+                    Salvar e Aplicar
                  </Button>
+                 {!scraperKeys[activeProvider] && (
+                   <div className="text-xs text-red-500 text-center font-medium mt-2">Você precisa preencher a chave do provedor que está ativando.</div>
+                 )}
               </div>
            </div>
         </div>
