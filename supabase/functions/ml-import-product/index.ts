@@ -189,11 +189,11 @@ Deno.serve(async (req) => {
         affiliate_url: detail.permalink || item.permalink || "",
         image_url: imageUrl || "",
         gallery_urls: galleryUrls.length > 0 ? galleryUrls : null,
-        description: description || null,
+        description: description || item.description || null,
         category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
         is_active: detail.status === "active" || true, // fallback if detailed api fails
-        rating: detail.reviews?.rating_average || 0,
+        rating: detail.reviews?.rating_average || item.rating || 0,
         registered_by: userId || null,
         sales_count: detail.sold_quantity || item.sold_quantity || 0,
         available_quantity: detail.available_quantity || item.available_quantity || null,

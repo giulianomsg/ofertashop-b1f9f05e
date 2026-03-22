@@ -110,11 +110,62 @@ Deno.serve(async (req) => {
       const shippingElem = $(el).find(".ui-search-item__shipping--free, .poly-component__shipping");
       const shipping_free = shippingElem.text().toLowerCase().includes("grátis") || shippingElem.length > 0;
       
+      // sellerNickname já é extraído acima, vamos garantir:
       const sellerElem = $(el).find(".ui-search-official-store-label, .poly-component__seller");
-      const sellerNickname = sellerElem.text().replace("por ", "").trim() || "Vendedor Local";
+      const sellerText = sellerElem.text().trim() || "";
+      const sellerNickname = sellerText.replace(/^por\s+/i, "").trim() || "Vendedor Local";
+
+      // Extrair condição (novo, usado, recondicionado)
+      const conditionElem = $(el).find(".ui-search-item__condition, .poly-component__condition");
+      const conditionText = conditionElem.text().toLowerCase() || "";
+      let condition = "new";
+      if (conditionText.includes("usado")) condition = "used";
+      else if (conditionText.includes("recondicionado")) condition = "refurbished";
+
+      // Extrair vendas (+1000 vendidos, etc)
+      let sold_quantity = 0;
+      const salesElem = $(el).find(".poly-component__sales, .ui-search-item__group__element");
+      salesElem.each((i, node) => {
+        const text = $(node).text().toLowerCase();
+        if (text.includes("vendido")) {
+           const match = text.match(/\+?(?:de )?(\d+(?:\.\d+)?|mil)(?: mil)?/);
+           if (match) {
+              if (match[1].includes("mil") || text.includes("mil")) {
+                sold_quantity = (parseFloat(match[1]) || 1) * 1000;
+              } else {
+                sold_quantity = parseInt(match[1].replace(".", ""));
+              }
+           }
+        }
+      });
+
+      // Extrair reputação / rating
+      let rating = 0;
+      let reviewCount = 0;
+      const ratingElem = $(el).find(".ui-search-reviews__rating-number, .poly-reviews__rating");
+      if (ratingElem.length) rating = parseFloat(ratingElem.text()) || 0;
+      
+      const countElem = $(el).find(".ui-search-reviews__amount, .poly-reviews__total");
+      if (countElem.length) {
+        reviewCount = parseInt(countElem.text().replace(/\D/g, "")) || 0;
+      }
+
+      // Descrição (No ML Search List, apenas atributos curtos aparecem)
+      let description = "";
+      const attrElems = $(el).find(".ui-search-item__group__element, .poly-component__attributes");
+      if (attrElems.length > 0) {
+        const attrList: string[] = [];
+        attrElems.each((i, attr) => {
+           const t = $(attr).text().trim();
+           if (t && !t.toLowerCase().includes("vendido") && !t.toLowerCase().includes("frete")) {
+             attrList.push(t);
+           }
+        });
+        description = attrList.join(" • ");
+      }
 
       if (title && finalPrice > 0 && permalink && permalink.includes("mercadolivre")) {
-        results.push({
+        const productData = {
           id,
           title,
           price: finalPrice,
@@ -122,13 +173,21 @@ Deno.serve(async (req) => {
           currency_id: "BRL",
           thumbnail,
           permalink,
-          condition: "new",
-          sold_quantity: 0,
-          available_quantity: 99, // Assumption: visible in search means it has stock
-          seller: { id: id, nickname: sellerNickname },
+          condition, // -> Vai para a coluna 'badge' ou status no painel
+          sold_quantity, // -> Vai para 'sales_count'
+          available_quantity: 99, 
+          seller: { id: id, nickname: sellerNickname }, // -> Vai para 'store'
           category_id: "MLB", 
-          shipping_free
-        });
+          shipping_free,
+          rating, // -> Vai para 'rating'
+          reviewCount, // extra debug info
+          description, // -> Vai para 'description', mas costuma ser melhor baixar o full no import
+        };
+
+        // Solicitação do User: Log de debug de cada item para ver o mapa
+        console.log(`\n=== DEBUG ML ITEM: ${id} ===\n`, JSON.stringify(productData, null, 2));
+
+        results.push(productData);
       }
     });
 
