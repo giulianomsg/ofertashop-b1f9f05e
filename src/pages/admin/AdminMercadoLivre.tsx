@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface MLItem {
   id: string; title: string; price: number; original_price: number | null;
@@ -27,6 +28,27 @@ const AdminMercadoLivre = () => {
   const [importing, setImporting] = useState<Set<string>>(new Set());
   const [imported, setImported] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState(false);
+  const [authorizing, setAuthorizing] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code) {
+      setAuthorizing(true);
+      // Remove code from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      supabase.functions.invoke("ml-auth", {
+        body: { code, redirect_uri: window.location.origin + window.location.pathname }
+      }).then(({ data, error }) => {
+        setAuthorizing(false);
+        if (error || !data?.success) {
+          toast.error("Erro na Autorização", { description: error?.message || data?.error });
+        } else {
+          toast.success("Sucesso!", { description: "Autorização do Mercado Livre renovada." });
+        }
+      });
+    }
+  }, [toast]);
 
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["ml_mappings_count"],
@@ -90,7 +112,25 @@ const AdminMercadoLivre = () => {
     }
   };
 
-  const handleBatchSync = async () => {
+  const handleOAuthRedirect = async () => {
+    try {
+      setAuthorizing(true);
+      const redirectUri = window.location.origin + window.location.pathname;
+      const { data, error } = await supabase.functions.invoke("ml-auth", {
+        body: { action: "auth_url", redirect_uri: redirectUri }
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Erro", { description: "Não foi possível gerar a URL de autorização." });
+      setAuthorizing(false);
+    }
+  };
+
+  const handleSyncAll = async () => {
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("ml-batch-sync", { body: { userId: user?.id } });
@@ -112,11 +152,20 @@ const AdminMercadoLivre = () => {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Busque e importe via API de extração cacheada.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs bg-secondary px-3 py-1.5 rounded-full text-muted-foreground">{mappingsCount} mapeados</span>
-          <button onClick={handleBatchSync} disabled={syncing} className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50">
-            {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Sincronizar Preços
-          </button>
+          <div className="flex gap-2 w-full md:w-auto">
+            {mappingsCount > 0 && (
+              <Button variant="outline" onClick={handleSyncAll} disabled={syncing}>
+                {syncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                Sincronizar Preços
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleOAuthRedirect} disabled={authorizing}>
+              {authorizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+              Renovar Autorização API
+            </Button>
+          </div>
         </div>
       </div>
 
