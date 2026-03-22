@@ -58,6 +58,18 @@ const AdminMercadoLivre = () => {
     },
   });
 
+  const { data: mappingsList = [], isLoading: loadingMappings } = useQuery({
+    queryKey: ["ml_mappings_list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ml_product_mappings")
+        .select("*, products(id, title, price, badge, image_url, is_active)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleSearch = async (offset = 0) => {
     if (!keyword.trim()) return toast.error("Digite uma palavra-chave.");
 
@@ -136,6 +148,7 @@ const AdminMercadoLivre = () => {
       const { data, error } = await supabase.functions.invoke("ml-batch-sync", { body: { userId: user?.id } });
       if (error || data?.error) throw error || new Error(data?.error);
       toast.success(`Sincronização concluída!`);
+      qc.invalidateQueries({ queryKey: ["ml_mappings_list"] });
     } catch (err: any) {
       toast.error("Erro na sincronização.");
     } finally {
@@ -254,6 +267,34 @@ const AdminMercadoLivre = () => {
             <button onClick={() => handleSearch(currentOffset + 50)} disabled={searching} className="px-6 py-2 border rounded-lg hover:bg-secondary flex gap-2">
               {searching ? <><Loader2 className="w-4 h-4 animate-spin" /> Carregando...</> : "Carregar Próxima Página"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {mappingsList.length > 0 && !searching && results.length === 0 && (
+        <div className="mt-8">
+          <h3 className="font-display font-bold text-lg mb-4 text-foreground">Produtos Sincronizados ({mappingsCount})</h3>
+          <div className="bg-card rounded-xl border border-border shadow-sm divide-y divide-border">
+            {mappingsList.map((m: any) => (
+              <div key={m.id} className="flex flex-col sm:flex-row gap-4 p-4 items-start sm:items-center hover:bg-secondary/40 transition-colors">
+                 <div className="w-14 h-14 bg-secondary rounded-lg shrink-0 border">
+                   {m.products?.image_url && <img src={m.products.image_url} className="w-full h-full object-cover rounded-lg" />}
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <p className="text-sm font-medium line-clamp-2">{m.products?.title}</p>
+                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-1.5 items-center">
+                     <span className="font-mono bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded border border-blue-500/20">ID: {m.ml_item_id}</span>
+                     <span className="bg-secondary px-1.5 py-0.5 rounded border">Status ML: {m.ml_status}</span>
+                     {m.ml_sold_quantity > 0 && <span className="bg-secondary px-1.5 py-0.5 rounded border">Vendeu: {m.ml_sold_quantity}</span>}
+                     {m.ml_condition && <span className="uppercase bg-secondary px-1.5 py-0.5 rounded border">{m.ml_condition}</span>}
+                   </div>
+                 </div>
+                 <div className="text-right w-full sm:w-auto flex sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-2">
+                   <div className="text-sm font-bold">R$ {Number(m.products?.price || m.ml_current_price).toFixed(2).replace('.', ',')}</div>
+                   {m.products?.is_active ? <span className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Site Ativo</span> : <span className="text-xs font-medium text-red-600 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">Site Inativo</span>}
+                 </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

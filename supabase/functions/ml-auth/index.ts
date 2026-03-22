@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       const redirectUri = body.redirect_uri;
 
       if (!code || !redirectUri) {
-         throw new Error("Parâmetros code ou redirect_uri ausentes.");
+         throw new Error(`Parâmetros code ou redirect_uri ausentes. Recebido: ${JSON.stringify(body)}`);
       }
 
       const tokenRes = await fetch("https://api.mercadolibre.com/oauth/token", {
