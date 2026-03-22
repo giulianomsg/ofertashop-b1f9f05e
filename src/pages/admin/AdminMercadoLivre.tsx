@@ -148,6 +148,13 @@ const AdminMercadoLivre = () => {
       const { data, error } = await supabase.functions.invoke("ml-batch-sync", { body: { userId: user?.id } });
       if (error || data?.error) throw error || new Error(data?.error);
       toast.success(`Sincronização concluída!`);
+      
+      if (data?.debug_trace) {
+        console.group("=== ML BATCH SYNC DEBUG TRACE ===");
+        console.log(data.debug_trace);
+        console.groupEnd();
+      }
+
       qc.invalidateQueries({ queryKey: ["ml_mappings_list"] });
     } catch (err: any) {
       toast.error("Erro na sincronização.");

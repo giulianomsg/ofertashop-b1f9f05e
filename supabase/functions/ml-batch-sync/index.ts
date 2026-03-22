@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
 
     let processed = 0, updated = 0, deactivated = 0;
     const errors: string[] = [];
+    const debugTrace: any[] = [];
 
     // Process in batches of 20 using multiget
     const batchSize = 20;
@@ -101,9 +102,8 @@ Deno.serve(async (req) => {
       const ids = batch.map((m: any) => m.ml_item_id).join(",");
 
       try {
-        // Added robust fetchWithRetry and explicit attributes to prevent ML API truncation on multiget
-        const attrs = "id,price,original_price,status,sold_quantity,available_quantity,condition,title,thumbnail";
-        const items = await fetchWithRetry(`https://api.mercadolibre.com/items?ids=${ids}&attributes=${attrs}`, {
+        // Removed attributes param to see if ML API is rejecting standard fields for affiliates
+        const items = await fetchWithRetry(`https://api.mercadolibre.com/items?ids=${ids}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
@@ -117,18 +117,19 @@ Deno.serve(async (req) => {
           const item = itemWrapper.body;
 
           if (itemWrapper.code === 404) {
-            // Item was completely deleted or removed from Mercado Livre
             const mapping = batch.find((m: any) => m.ml_item_id === (item?.id || itemWrapper.body?.id || itemWrapper.body?.message?.match(/MLB\d+/)?.[0]));
             if (mapping) {
               await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id);
               await sb.from("ml_product_mappings").update({ ml_status: "not_found", last_synced_at: new Date().toISOString() }).eq("id", mapping.id);
               deactivated++;
+              debugTrace.push({ id: mapping.ml_item_id, action: "DEACTIVATED_404", reason: "API returned 404" });
             }
             continue;
           }
 
           if (itemWrapper.code !== 200 || !item) {
             errors.push(`Item ${itemWrapper.code}: ${JSON.stringify(itemWrapper)}`);
+            debugTrace.push({ error: `Item HTTP ${itemWrapper.code}`, payload: itemWrapper });
             continue;
           }
 
@@ -138,6 +139,16 @@ Deno.serve(async (req) => {
           const product = mapping.products;
           const productUpdates: any = {};
           const mappingUpdates: any = { last_synced_at: new Date().toISOString() };
+          
+          let debugLog: any = { 
+             ml_id: item.id, 
+             title: product.title,
+             api_status: item.status, 
+             db_status: product.is_active ? "active" : "inactive",
+             api_price: item.price,
+             db_price: product.price,
+             updates_applied: []
+          };
 
           // Price changes - robust float parsing
           const itemPrice = parseFloat(item.price) || 0;
@@ -145,6 +156,7 @@ Deno.serve(async (req) => {
           if (itemPrice > 0 && Math.abs(itemPrice - currentPrice) > 0.01) {
             productUpdates.price = itemPrice;
             mappingUpdates.ml_current_price = itemPrice;
+            debugLog.updates_applied.push(`Price changed from ${currentPrice} to ${itemPrice}`);
           }
           
           if (item.original_price !== undefined) {
@@ -161,6 +173,7 @@ Deno.serve(async (req) => {
           if (newStatus !== product?.is_active) {
             productUpdates.is_active = newStatus;
             mappingUpdates.ml_status = item.status || "inactive";
+            debugLog.updates_applied.push(`Status changed to ${newStatus ? 'ACTIVE' : 'INACTIVE'} (API said: ${item.status})`);
             if (!newStatus) deactivated++;
           } else if (item.status !== mapping.ml_status) {
             mappingUpdates.ml_status = item.status;
@@ -205,18 +218,23 @@ Deno.serve(async (req) => {
 
           // Apply updates
           if (Object.keys(productUpdates).length > 0) {
-            // Update product safely
             const { error: prodErr } = await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
             if (!prodErr) {
               updated++;
             } else {
               errors.push(`Product Update Error for ${item.id}: ${prodErr.message}`);
+              debugLog.error = prodErr.message;
             }
           }
           await sb.from("ml_product_mappings").update(mappingUpdates).eq("id", mapping.id);
+          
+          if (debugLog.updates_applied.length > 0 || debugLog.api_status !== "active") {
+             debugTrace.push(debugLog);
+          }
         }
       } catch (batchErr: any) {
         errors.push(`Batch error: ${batchErr.message}`);
+        debugTrace.push({ batchError: batchErr.message });
       }
 
       // Rate limit: small delay between batches
@@ -237,13 +255,16 @@ Deno.serve(async (req) => {
       completed_at: new Date().toISOString(),
     });
 
+    console.log("=== ML BATCH SYNC DEBUG TRACE ===", JSON.stringify(debugTrace, null, 2));
+
     return new Response(JSON.stringify({
       success: true,
       processed,
       updated,
       deactivated,
       errors: errors.length,
-      error_details: errors
+      error_details: errors,
+      debug_trace: debugTrace
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
