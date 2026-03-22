@@ -2,6 +2,7 @@
 // Imports a product from Mercado Livre into the local database
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import * as cheerio from "https://esm.sh/cheerio@1.0.0-rc.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,41 +35,89 @@ const RequestSchema = z.object({
   userId: z.string().uuid().optional(),
 });
 
-async function getValidToken(sb: any, appId: string, clientSecret: string): Promise<string> {
-  const { data: token } = await sb
-    .from("ml_tokens")
-    .select("*")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!token) throw new Error("Nenhum token ML encontrado.");
-
-  const expiresAt = new Date(token.expires_at).getTime();
-  if (Date.now() < expiresAt - 5 * 60 * 1000) return token.access_token;
-
-  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "refresh_token",
-      client_id: appId,
-      client_secret: clientSecret,
-      refresh_token: token.refresh_token,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.access_token) throw new Error("Falha ao renovar token ML");
-
-  await sb.from("ml_tokens").update({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq("id", token.id);
-
-  return data.access_token;
+// --- MULTI-SCRAPER ABSTRACTION (STANDALONE) ---
+interface ScraperConfig {
+  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
+  apiKey: string;
 }
+
+function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
+  try {
+     const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
+     if (data?.value?.activeProvider && data?.value?.keys) {
+        const provider = data.value.activeProvider;
+        const apiKey = data.value.keys[provider];
+        if (apiKey) return { provider, apiKey };
+     }
+  } catch(e) { /* ignore */ }
+  
+  try {
+     const { data: legacy } = await sb.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle();
+     if (legacy?.value?.provider && legacy?.value?.apiKey) return legacy.value as ScraperConfig;
+  } catch(e) { /* ignore */ }
+
+  const scrapingBeeKey = Deno.env.get("SCRAPINGBEE_API_KEY");
+  if (scrapingBeeKey) return { provider: "scrapingbee", apiKey: scrapingBeeKey };
+  throw new Error("Nenhum serviço de Web Scraper configurado.");
+}
+
+async function fetchHtmlWithRetry(url: string, retries = 3): Promise<string> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`);
+      let html = await res.text();
+      try {
+        const json = JSON.parse(html);
+        if (json && typeof json.content === 'string') html = json.content;
+      } catch(e) { /* html cru */ }
+      return html;
+    } catch (err: any) {
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
+  throw new Error("Falha no scraper detalhado.");
+}
+// ----------------------------------------------
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -111,27 +160,63 @@ Deno.serve(async (req) => {
       );
     }
 
-    const accessToken = await getValidToken(sb, ML_APP_ID, ML_CLIENT_SECRET);
+    // === 1. Deep Scraping (Extração Profunda da PDP) ===
+    const scraperConfig = await getActiveScraperConfig(sb);
+    const pdpUrl = item.permalink || `https://produto.mercadolivre.com.br/MLB-${item.id.replace("MLB", "")}`;
+    const proxyUrl = buildScraperUrl(scraperConfig, pdpUrl);
+    
+    console.log(`[Deep Scraping] Acessando PDP do ML: ${pdpUrl}`);
+    const html = await fetchHtmlWithRetry(proxyUrl);
+    const $ = cheerio.load(html);
 
-    // Fetch full item details from ML
-    const detailRes = await fetch(`https://api.mercadolibre.com/items/${item.id}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    // Precificação
+    const priceText = $(".ui-pdp-price__second-line .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
+    const scrapedPrice = parseFloat(priceText) || item.price || 0.01;
+
+    const originalPriceText = $(".ui-pdp-price__original-value .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
+    const scrapedOriginalPrice = originalPriceText ? parseFloat(originalPriceText) : null;
+    const finalOriginalPrice = scrapedOriginalPrice && scrapedOriginalPrice > scrapedPrice ? scrapedOriginalPrice : null;
+
+    // Vendedor e Vendas
+    const sellerHeader = $(".ui-pdp-seller__header__title").text().trim();
+    const storeName = sellerHeader || item.seller?.nickname || "Mercado Livre";
+    
+    let salesCount = item.sold_quantity || 0;
+    const sellerSalesText = $(".ui-pdp-seller__sales-description").text().toLowerCase();
+    const matchSales = sellerSalesText.match(/\d+/);
+    if (matchSales) salesCount = parseInt(matchSales[0]) * (sellerSalesText.includes("mil") ? 1000 : 1);
+
+    // Condições Meli+ e Cashback
+    const meliPlusHeader = $(".ui-pdp-media__title").text().toLowerCase();
+    const shippingFree = meliPlusHeader.includes("grátis") || meliPlusHeader.includes("meli+") || item.shipping_free;
+
+    // Galeria de Imagens de Alta Resolução e Thumbnail
+    const galleryUrls: string[] = [];
+    $(".ui-pdp-gallery__figure img").each((_, img) => {
+       const url = $(img).attr("data-zoom") || $(img).attr("src") || "";
+       if (url.startsWith("http") && !url.includes("data:image")) galleryUrls.push(url);
     });
-    const detail = detailRes.ok ? await detailRes.json() : {};
+    const finalImageUrl = galleryUrls.length > 0 ? galleryUrls[0] : (item.thumbnail || "");
 
-    // Fetch description via ML API
-    let description = "";
-    try {
-      const descRes = await fetch(`https://api.mercadolibre.com/items/${item.id}/description`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (descRes.ok) {
-        const descData = await descRes.json();
-        description = descData.plain_text || descData.text || "";
-      }
-    } catch (_) { /* ignore */ }
+    // Variações de modelo / cor
+    const features: any[] = [];
+    $(".ui-pdp-variations__title").each((_, el) => {
+       features.push({ name: $(el).text().trim(), value: "Disponível" });
+    });
 
-    // Platform
+    // Descrição (Tentamos pegar do DOM do PDP se SSR, senão da API oficial aberta)
+    let descriptionHTML = $(".ui-pdp-description__content").html()?.trim() || "";
+    if (!descriptionHTML) {
+       try {
+         const descRes = await fetch(`https://api.mercadolibre.com/items/${item.id}/description`);
+         if (descRes.ok) {
+           const d = await descRes.json();
+           descriptionHTML = d.plain_text || d.text || "";
+         }
+       } catch(_) { /* fallback empty */ }
+    }
+
+    // Resolvendo Plataforma
     let resolvedPlatformId = platformId;
     if (!resolvedPlatformId) {
       const { data: mlPlatform } = await sb.from("platforms").select("id").ilike("name", "%mercado%livre%").maybeSingle();
@@ -143,91 +228,66 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Category
+    // Categoria via Breadcrumb da PDP
     let resolvedCategoryId = categoryId || null;
-    if (!resolvedCategoryId && (detail.category_id || item.category_id)) {
-      try {
-        const cid = detail.category_id || item.category_id;
-        const catRes = await fetch(`https://api.mercadolibre.com/categories/${cid}`);
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          const catName = catData.name || "";
-          if (catName) {
-            const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
-            if (existingCat) {
-              resolvedCategoryId = existingCat.id;
-            } else {
-              const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-              const { data: newCat } = await sb.from("categories").insert({ name: catName, slug }).select("id").single();
-              if (newCat) resolvedCategoryId = newCat.id;
-            }
-          }
-        }
-      } catch (_) { /* ignore */ }
+    if (!resolvedCategoryId) {
+       const catName = $(".andes-breadcrumb__item a").last().text().trim() || "Diversos";
+       const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
+       if (existingCat) {
+          resolvedCategoryId = existingCat.id;
+       } else {
+          const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+          const { data: newCat } = await sb.from("categories").insert({ name: catName, slug }).select("id").single();
+          if (newCat) resolvedCategoryId = newCat.id;
+       }
     }
 
-    const imageUrl = detail.pictures?.[0]?.secure_url || detail.thumbnail?.replace("http://", "https://") || item.thumbnail;
-    const galleryUrls = (detail.pictures || []).slice(1, 6).map((p: any) => p.secure_url || p.url);
-    const price = detail.price || item.price || 0;
-    const originalPrice = detail.original_price || item.original_price || null;
-
-    const features = (detail.attributes || []).map((attr: any) => ({
-      name: attr.name,
-      value: attr.value_name
-    })).filter((f: any) => f.value);
-
-    // Upsert transaction-ish behavior via select + insert if not exists
-    // (A real PostgREST UPSERT needs a unique constraint on some column other than ID, 
-    // we use a generic insertion since we already checked ml_product_mappings)
+    // Geração do Objeto de Produto Upsert
     const { data: product, error: productErr } = await sb
       .from("products")
       .insert({
-        title: detail.title || item.title || "Produto Mercado Livre",
-        price: price > 0 ? price : 0.01,
-        original_price: originalPrice && originalPrice > price ? originalPrice : null,
-        store: detail.seller?.nickname || item.seller?.nickname || detail.seller_address?.city?.name || "Mercado Livre",
-        affiliate_url: detail.permalink || item.permalink || "",
-        image_url: imageUrl || "",
+        title: item.title || "Produto Mercado Livre",
+        price: scrapedPrice,
+        original_price: finalOriginalPrice,
+        store: storeName,
+        affiliate_url: pdpUrl,
+        image_url: finalImageUrl,
         gallery_urls: galleryUrls.length > 0 ? galleryUrls : null,
-        description: description || item.description || null,
+        description: descriptionHTML || null,
         category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
-        is_active: detail.status === "active" || true, // fallback if detailed api fails
-        rating: detail.reviews?.rating_average || item.rating || 0,
+        is_active: true,
+        rating: item.rating || 0,
         registered_by: userId || null,
-        sales_count: detail.sold_quantity || item.sold_quantity || 0,
-        available_quantity: detail.available_quantity || item.available_quantity || null,
+        sales_count: salesCount,
+        available_quantity: item.available_quantity || null,
         features: features.length > 0 ? features : null,
-        badge: (detail.condition || item.condition) === "new" ? "Novo" : (detail.condition || item.condition) === "used" ? "Usado" : null,
+        badge: item.condition === "used" ? "Usado" : "Novo",
       })
       .select()
       .single();
 
     if (productErr) throw productErr;
 
-    // Insert Mapping (unique constraint on ml_item_id)
+    // Vincular Tracking Identificador no Mapeamento
     const { error: mappingErr } = await sb
       .from("ml_product_mappings")
       .upsert({
         product_id: product.id,
         ml_item_id: item.id,
-        ml_permalink: detail.permalink || item.permalink,
-        ml_category_id: detail.category_id || item.category_id,
-        ml_seller_id: String(detail.seller_id || item.seller?.id || ""),
-        ml_condition: detail.condition || item.condition,
-        ml_sold_quantity: detail.sold_quantity || item.sold_quantity || 0,
-        ml_available_quantity: detail.available_quantity || item.available_quantity,
-        ml_status: detail.status || "active",
-        ml_original_price: originalPrice,
-        ml_current_price: price,
-        ml_thumbnail: imageUrl,
+        ml_permalink: pdpUrl,
+        ml_category_id: null,
+        ml_seller_id: null,
+        ml_condition: item.condition,
+        ml_sold_quantity: salesCount,
+        ml_status: "active",
+        ml_original_price: finalOriginalPrice,
+        ml_current_price: scrapedPrice,
+        ml_thumbnail: finalImageUrl,
         sync_status: "active",
-      }, { onConflict: 'ml_item_id' }); // Use Upsert to prevent race conditions
+      }, { onConflict: 'ml_item_id' }); 
 
-    if (mappingErr) {
-      // rollback if mapping fails (though theoretically mappings table should have unique ml_item_id)
-      console.warn("Error inserting mapping:", mappingErr.message);
-    }
+    if (mappingErr) console.warn("Error inserting mapping:", mappingErr.message);
 
     await sb.from("ml_sync_logs").insert({
       sync_type: "import",
