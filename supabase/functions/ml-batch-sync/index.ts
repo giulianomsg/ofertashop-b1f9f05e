@@ -1,62 +1,30 @@
 // Edge Function: ml-batch-sync (standalone)
-// Syncs all imported ML products: updates price, status, stock
+// Syncs all imported ML products exclusively via ScrapingBee & Cheerio
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as cheerio from "https://esm.sh/cheerio@1.0.0-rc.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function fetchWithRetry(url: string, options: any, retries = 3): Promise<any> {
+// Retry logic to handle occasional proxy/network failures gracefully
+async function fetchHtmlWithRetry(url: string, options: any, retries = 3): Promise<string> {
+  const isDebug = options.isDebug;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, options);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      return await res.json();
+      return await res.text();
     } catch (err: any) {
       if (attempt === retries) throw err;
-      console.warn(`Tentativa ${attempt} falhou (${url}): ${err.message}. Retentando em ${attempt * 1000}ms...`);
+      if (isDebug) console.warn(`Tentativa HTML ${attempt} falhou: ${err.message}. Retentando...`);
       await new Promise(r => setTimeout(r, attempt * 1000));
     }
   }
-}
-
-async function getValidToken(sb: any, appId: string, clientSecret: string): Promise<string> {
-  const { data: token } = await sb
-    .from("ml_tokens")
-    .select("*")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!token) throw new Error("Nenhum token ML encontrado.");
-
-  const expiresAt = new Date(token.expires_at).getTime();
-  if (Date.now() < expiresAt - 5 * 60 * 1000) return token.access_token;
-
-  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "refresh_token",
-      client_id: appId,
-      client_secret: clientSecret,
-      refresh_token: token.refresh_token,
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.access_token) throw new Error("Falha ao renovar token ML");
-
-  await sb.from("ml_tokens").update({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq("id", token.id);
-
-  return data.access_token;
+  return "";
 }
 
 Deno.serve(async (req) => {
@@ -67,16 +35,14 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const userId = body.userId || null;
+    const isDebug = body.debug === true;
 
-    const ML_APP_ID = Deno.env.get("ML_APP_ID");
-    const ML_CLIENT_SECRET = Deno.env.get("ML_CLIENT_SECRET");
-    if (!ML_APP_ID || !ML_CLIENT_SECRET) throw new Error("ML_APP_ID e ML_CLIENT_SECRET não configurados.");
+    const SCRAPINGBEE_API_KEY = Deno.env.get("SCRAPINGBEE_API_KEY");
+    if (!SCRAPINGBEE_API_KEY) throw new Error("SCRAPINGBEE_API_KEY não configurado.");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
-
-    const accessToken = await getValidToken(sb, ML_APP_ID, ML_CLIENT_SECRET);
 
     // Get all active ML mappings with extended fields needed for full sync
     const { data: mappings, error: mapErr } = await sb
@@ -95,157 +61,117 @@ Deno.serve(async (req) => {
     const errors: string[] = [];
     const debugTrace: any[] = [];
 
-    // Process in batches of 20 using multiget
-    const batchSize = 20;
-    for (let i = 0; i < mappings.length; i += batchSize) {
-      const batch = mappings.slice(i, i + batchSize);
-      const ids = batch.map((m: any) => m.ml_item_id).join(",");
+    // Concurrency size of 5 requests at a time so we don't blow past standard ScrapingBee Rate limits
+    const CHUNK_SIZE = 5;
+    
+    for (let i = 0; i < mappings.length; i += CHUNK_SIZE) {
+      const chunk = mappings.slice(i, i + CHUNK_SIZE);
+      
+      const chunkPromises = chunk.map(async (mapping: any) => {
+         const product = mapping.products;
+         let debugLog: any = { 
+             ml_id: mapping.ml_item_id, 
+             title: product?.title,
+             api_status: "SCRAPING", 
+             db_status: product?.is_active ? "active" : "inactive",
+             updates_applied: []
+         };
 
-      try {
-        // Removed attributes param to see if ML API is rejecting standard fields for affiliates
-        const items = await fetchWithRetry(`https://api.mercadolibre.com/items?ids=${ids}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+         try {
+           const mlUrl = `https://produto.mercadolivre.com.br/${mapping.ml_item_id.replace('MLB', 'MLB-')}`;
+           const scrapingBeeUrl = new URL("https://app.scrapingbee.com/api/v1");
+           scrapingBeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
+           scrapingBeeUrl.searchParams.append("url", mlUrl);
+           scrapingBeeUrl.searchParams.append("render_js", "false"); // pure html
+           scrapingBeeUrl.searchParams.append("premium_proxy", "true"); // avoid blocks 
+           scrapingBeeUrl.searchParams.append("country_code", "br");
 
-        if (!Array.isArray(items)) {
-          errors.push(`API Error: ${JSON.stringify(items)}`);
-          continue;
-        }
+           const html = await fetchHtmlWithRetry(scrapingBeeUrl.toString(), { isDebug }, 3);
+           const $ = cheerio.load(html);
 
-        for (const itemWrapper of items) {
-          processed++;
-          const item = itemWrapper.body;
-
-          if (itemWrapper.code === 404) {
-            const mapping = batch.find((m: any) => m.ml_item_id === (item?.id || itemWrapper.body?.id || itemWrapper.body?.message?.match(/MLB\d+/)?.[0]));
-            if (mapping) {
+           // 1. Verificação Estrita de 404
+           const isNotFound = $('h3').text().includes('Parece que esta página não existe') || html.includes('está indisponível');
+           if (isNotFound) {
               await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id);
               await sb.from("ml_product_mappings").update({ ml_status: "not_found", last_synced_at: new Date().toISOString() }).eq("id", mapping.id);
               deactivated++;
-              debugTrace.push({ id: mapping.ml_item_id, action: "DEACTIVATED_404", reason: "API returned 404" });
-            }
-            continue;
-          }
+              debugLog.updates_applied.push("DEACTIVATED_404_PAGE_MISSING");
+              return debugLog;
+           }
 
-          if (itemWrapper.code !== 200 || !item) {
-            errors.push(`Item ${itemWrapper.code}: ${JSON.stringify(itemWrapper)}`);
-            debugTrace.push({ error: `Item HTTP ${itemWrapper.code}`, payload: itemWrapper });
-            continue;
-          }
+           // 2. Extração Segura de Preço (pode faltar centavos)
+           const isPaused = html.includes('Anúncio pausado') || $('.ui-pdp-message').text().toLowerCase().includes('pausado');
+           const priceWhole = $('.ui-pdp-price__second-line .andes-money-amount__fraction').first().text().replace(/\./g, '');
+           const priceCents = $('.ui-pdp-price__second-line .andes-money-amount__cents').first().text() || '00';
+           
+           const itemPrice = priceWhole ? parseFloat(`${priceWhole}.${priceCents}`) : 0;
+           const currentPrice = parseFloat(product?.price) || 0;
+           
+           const productUpdates: any = {};
+           const mappingUpdates: any = { last_synced_at: new Date().toISOString() };
 
-          const mapping = batch.find((m: any) => m.ml_item_id === item.id);
-          if (!mapping) continue;
+           // Apenas atualiza o Preço se mudou no ML de verdade
+           if (itemPrice > 0 && Math.abs(itemPrice - currentPrice) > 0.01) {
+             productUpdates.price = itemPrice;
+             mappingUpdates.ml_current_price = itemPrice;
+             debugLog.updates_applied.push(`Price changed: ML ${itemPrice} vs Banco ${currentPrice}`);
+           }
 
-          const product = mapping.products;
-          const productUpdates: any = {};
-          const mappingUpdates: any = { last_synced_at: new Date().toISOString() };
-          
-          let debugLog: any = { 
-             ml_id: item.id, 
-             title: product.title,
-             api_status: item.status, 
-             db_status: product.is_active ? "active" : "inactive",
-             api_price: item.price,
-             db_price: product.price,
-             updates_applied: []
-          };
+           // 3. Atualização de Status
+           const newStatus = !isPaused;
+           if (newStatus !== product?.is_active) {
+             productUpdates.is_active = newStatus;
+             mappingUpdates.ml_status = newStatus ? "active" : "paused";
+             debugLog.updates_applied.push(`Status Invertido para: ${newStatus ? 'ACTIVE' : 'INACTIVE'} (Site estava ${isPaused ? 'Pausado' : 'Limpo'})`);
+             if (!newStatus) deactivated++;
+           } else if ((newStatus ? "active" : "paused") !== mapping.ml_status) {
+             // Sincroniza apenas a tabela mapping pra manter os metadados vivos
+             mappingUpdates.ml_status = newStatus ? "active" : "paused";
+           }
 
-          // Price changes - robust float parsing
-          const itemPrice = parseFloat(item.price) || 0;
-          const currentPrice = parseFloat(product?.price) || 0;
-          if (itemPrice > 0 && Math.abs(itemPrice - currentPrice) > 0.01) {
-            productUpdates.price = itemPrice;
-            mappingUpdates.ml_current_price = itemPrice;
-            debugLog.updates_applied.push(`Price changed from ${currentPrice} to ${itemPrice}`);
-          }
-          
-          if (item.original_price !== undefined) {
-            const itemOp = parseFloat(item.original_price) || 0;
-            const op = itemOp > itemPrice ? itemOp : null;
-            if (op !== (parseFloat(product?.original_price) || null)) {
-              productUpdates.original_price = op;
-              mappingUpdates.ml_original_price = op;
-            }
-          }
-
-          // Status changes
-          const newStatus = item.status === "active";
-          if (newStatus !== product?.is_active) {
-            productUpdates.is_active = newStatus;
-            mappingUpdates.ml_status = item.status || "inactive";
-            debugLog.updates_applied.push(`Status changed to ${newStatus ? 'ACTIVE' : 'INACTIVE'} (API said: ${item.status})`);
-            if (!newStatus) deactivated++;
-          } else if (item.status !== mapping.ml_status) {
-            mappingUpdates.ml_status = item.status;
-          }
-
-          // Complete Extended Info Sync: Condition, Stock, Sales
-          const conditionBadge = item.condition === "new" ? "Novo" : item.condition === "used" ? "Usado" : null;
-          if (conditionBadge && product?.badge !== conditionBadge) {
-             productUpdates.badge = conditionBadge;
-             mappingUpdates.ml_condition = item.condition;
-          }
-
-          if (item.sold_quantity !== undefined) {
-             const soldQuantity = parseInt(item.sold_quantity) || 0;
-             if (soldQuantity !== parseInt(product?.sales_count || "0")) {
-                productUpdates.sales_count = soldQuantity;
-                mappingUpdates.ml_sold_quantity = soldQuantity;
+           // 4. Salvar Updates se existirem
+           if (Object.keys(productUpdates).length > 0) {
+             const { error: prodErr } = await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
+             if (!prodErr) { 
+                updated++; 
+             } else { 
+                debugLog.error = prodErr.message; 
              }
-          }
+           }
+           await sb.from("ml_product_mappings").update(mappingUpdates).eq("id", mapping.id);
+           
+           return debugLog;
+         } catch (fallbackErr: any) {
+           debugLog.error = `Scrape Error no ${mapping.ml_item_id}: ${fallbackErr.message}`;
+           return debugLog;
+         }
+      });
 
-          if (item.available_quantity !== undefined) {
-             const availableQuantity = parseInt(item.available_quantity) || 0;
-             if (availableQuantity !== parseInt(product?.available_quantity || "0")) {
-                productUpdates.available_quantity = availableQuantity;
-                mappingUpdates.ml_available_quantity = availableQuantity;
-             }
-          }
-
-          // Title
-          if (item.title && item.title !== product?.title) {
-            productUpdates.title = item.title;
-          }
-
-          // Thumbnail
-          if (item.thumbnail) {
-            const thumb = item.thumbnail.replace("http://", "https://");
-            if (mapping.ml_thumbnail !== thumb || product?.image_url !== thumb) {
-               mappingUpdates.ml_thumbnail = thumb;
-               productUpdates.image_url = thumb;
+      // Aguarda o chunk rodar de forma simultânea
+      const results = await Promise.allSettled(chunkPromises);
+      
+      results.forEach((r) => {
+         if (r.status === 'fulfilled') {
+            processed++;
+            if (r.value?.error) errors.push(r.value.error);
+            if (r.value?.updates_applied?.length > 0 || r.value?.error) {
+               debugTrace.push(r.value);
             }
-          }
-
-          // Apply updates
-          if (Object.keys(productUpdates).length > 0) {
-            const { error: prodErr } = await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
-            if (!prodErr) {
-              updated++;
-            } else {
-              errors.push(`Product Update Error for ${item.id}: ${prodErr.message}`);
-              debugLog.error = prodErr.message;
-            }
-          }
-          await sb.from("ml_product_mappings").update(mappingUpdates).eq("id", mapping.id);
-          
-          if (debugLog.updates_applied.length > 0 || debugLog.api_status !== "active") {
-             debugTrace.push(debugLog);
-          }
-        }
-      } catch (batchErr: any) {
-        errors.push(`Batch error: ${batchErr.message}`);
-        debugTrace.push({ batchError: batchErr.message });
-      }
-
-      // Rate limit: small delay between batches
-      if (i + batchSize < mappings.length) {
-        await new Promise((r) => setTimeout(r, 500));
+         } else {
+            console.error("Chunk failed entirely ->", r.reason);
+            errors.push(String(r.reason));
+         }
+      });
+      
+      // Delay gentil para o limite de conexão simultânea proxy da API Rest do ScrapingBee
+      if (i + CHUNK_SIZE < mappings.length) {
+        await new Promise((r) => setTimeout(r, 600));
       }
     }
 
-    // Log
+    // Log the sync attempt history visually
     await sb.from("ml_sync_logs").insert({
-      sync_type: "batch_sync",
+      sync_type: "batch_sync_scraping",
       status: errors.length > 0 ? "partial" : "success",
       items_processed: processed,
       items_updated: updated,
@@ -255,7 +181,7 @@ Deno.serve(async (req) => {
       completed_at: new Date().toISOString(),
     });
 
-    console.log("=== ML BATCH SYNC DEBUG TRACE ===", JSON.stringify(debugTrace, null, 2));
+    console.log(`=== ML BATCH SYNC [SCRAPE] PROCESSED: ${processed} UPDATED: ${updated} DEACTIVATED: ${deactivated} ===`);
 
     return new Response(JSON.stringify({
       success: true,
