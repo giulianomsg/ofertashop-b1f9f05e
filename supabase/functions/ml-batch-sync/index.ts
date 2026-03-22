@@ -8,6 +8,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// --- MULTI-SCRAPER ABSTRACTION (STANDALONE) ---
+interface ScraperConfig {
+  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
+  apiKey: string;
+}
+
+function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
+  try {
+     const { data } = await sb.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle();
+     if (data?.value?.provider && data?.value?.apiKey) return data.value as ScraperConfig;
+  } catch(e) { /* ignore */ }
+  const scrapingBeeKey = Deno.env.get("SCRAPINGBEE_API_KEY");
+  if (scrapingBeeKey) return { provider: "scrapingbee", apiKey: scrapingBeeKey };
+  throw new Error("Nenhum serviço de Web Scraper configurado.");
+}
+// ----------------------------------------------
+
 // Retry logic to handle occasional proxy/network failures gracefully
 async function fetchHtmlWithRetry(url: string, options: any, retries = 3): Promise<{ html: string, status: number }> {
   const isDebug = options.isDebug;
@@ -38,12 +92,12 @@ Deno.serve(async (req) => {
     const userId = body.userId || null;
     const isDebug = body.debug === true;
 
-    const SCRAPINGBEE_API_KEY = Deno.env.get("SCRAPINGBEE_API_KEY");
-    if (!SCRAPINGBEE_API_KEY) throw new Error("SCRAPINGBEE_API_KEY não configurado.");
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
+
+    // Dynamic Multi-Scraper Abstraction Loading
+    const scraperConfig = await getActiveScraperConfig(sb);
 
     // Get all active ML mappings with extended fields needed for full sync
     const { data: mappings, error: mapErr } = await sb
@@ -82,14 +136,9 @@ Deno.serve(async (req) => {
            const fallbackUrl = `https://produto.mercadolivre.com.br/${mapping.ml_item_id.replace('MLB', 'MLB-')}`;
            const mlUrl = mapping.ml_permalink || fallbackUrl;
            
-           const scrapingBeeUrl = new URL("https://app.scrapingbee.com/api/v1");
-           scrapingBeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
-           scrapingBeeUrl.searchParams.append("url", mlUrl);
-           scrapingBeeUrl.searchParams.append("render_js", "false"); // pure html
-           scrapingBeeUrl.searchParams.append("premium_proxy", "true"); // avoid blocks 
-           scrapingBeeUrl.searchParams.append("country_code", "br");
+           const proxyScraperApiTargetUrl = buildScraperUrl(scraperConfig, mlUrl);
 
-           const { html, status } = await fetchHtmlWithRetry(scrapingBeeUrl.toString(), { isDebug }, 3);
+           const { html, status } = await fetchHtmlWithRetry(proxyScraperApiTargetUrl, { isDebug }, 3);
            const $ = cheerio.load(html);
 
            // 1. Verificação Estrita de 404 (via Header e HTML)

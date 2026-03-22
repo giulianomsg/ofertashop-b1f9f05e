@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Package } from "lucide-react";
+import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Package, Settings, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +29,23 @@ const AdminMercadoLivre = () => {
   const [imported, setImported] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState(false);
   const [authorizing, setAuthorizing] = useState(false);
+
+  // Scraper Settings State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [scraperProvider, setScraperProvider] = useState("scrapingbee");
+  const [scraperKey, setScraperKey] = useState("");
+  const [savingScraper, setSavingScraper] = useState(false);
+
+  useEffect(() => {
+    // Carrega a configuração global salva
+    supabase.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) {
+          setScraperProvider(data.value.provider || "scrapingbee");
+          setScraperKey(data.value.apiKey || "");
+        }
+      });
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -163,6 +180,24 @@ const AdminMercadoLivre = () => {
     }
   };
 
+  const handleSaveScraper = async () => {
+    setSavingScraper(true);
+    try {
+       const { error } = await supabase.from("admin_settings").upsert({
+          key: "active_scraper",
+          value: { provider: scraperProvider, apiKey: scraperKey.trim() }
+       }, { onConflict: "key" });
+       
+       if (error) throw error;
+       toast.success("Configuração de Scraper atualizada!");
+       setIsSettingsOpen(false);
+    } catch(err: any) {
+       toast.error("Erro ao salvar config: " + err.message);
+    } finally {
+       setSavingScraper(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -183,11 +218,45 @@ const AdminMercadoLivre = () => {
             )}
             <Button variant="outline" onClick={handleOAuthRedirect} disabled={authorizing}>
               {authorizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
-              Renovar Autorização API
+              Autorizar API
+            </Button>
+            <Button variant="default" className="bg-zinc-900 border" onClick={() => setIsSettingsOpen(true)}>
+              <Settings className="mr-2 h-4 w-4" /> Proxy Scraper
             </Button>
           </div>
         </div>
       </div>
+
+      {isSettingsOpen && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+           <div className="bg-card border shadow-lg rounded-xl p-6 w-full max-w-md relative animate-in fade-in zoom-in-95 duration-200">
+              <button onClick={() => setIsSettingsOpen(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5"/>
+              </button>
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Settings className="w-5 h-5"/> Configuração Multi-Scraper</h3>
+              <p className="text-xs text-muted-foreground mb-4">Escolha o serviço proxy para extração de ofertas e evite bloqueios do Mercado Livre.</p>
+              <div className="space-y-4">
+                 <div>
+                    <label className="text-sm font-medium">Provedor Ativo</label>
+                    <select value={scraperProvider} onChange={e => setScraperProvider(e.target.value)} className="w-full mt-1.5 h-10 px-3 rounded-lg bg-secondary border-none text-sm outline-none">
+                       <option value="scrapingbee">ScrapingBee</option>
+                       <option value="scrape.do">Scrape.do</option>
+                       <option value="scrapingant">ScrapingAnt</option>
+                       <option value="scraperapi">ScraperAPI</option>
+                    </select>
+                 </div>
+                 <div>
+                    <label className="text-sm font-medium">Chave de API (Token)</label>
+                    <input type="password" value={scraperKey} onChange={e => setScraperKey(e.target.value)} placeholder="Cole o token do serviço aqui..." className="w-full mt-1.5 h-10 px-3 rounded-lg bg-secondary border-none text-sm outline-none" />
+                 </div>
+                 <Button className="w-full mt-2" onClick={handleSaveScraper} disabled={savingScraper || !scraperKey.trim()}>
+                    {savingScraper ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null} 
+                    Salvar Provedor
+                 </Button>
+              </div>
+           </div>
+        </div>
+      )}
 
       <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
         <div className="flex gap-3">

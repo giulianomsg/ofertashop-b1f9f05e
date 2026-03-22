@@ -8,6 +8,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// --- MULTI-SCRAPER ABSTRACTION (STANDALONE) ---
+interface ScraperConfig {
+  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
+  apiKey: string;
+}
+
+function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
+  try {
+     const { data } = await sb.from("admin_settings").select("value").eq("key", "active_scraper").maybeSingle();
+     if (data?.value?.provider && data?.value?.apiKey) return data.value as ScraperConfig;
+  } catch(e) { /* ignore */ }
+  const scrapingBeeKey = Deno.env.get("SCRAPINGBEE_API_KEY");
+  if (scrapingBeeKey) return { provider: "scrapingbee", apiKey: scrapingBeeKey };
+  throw new Error("Nenhum serviço de Web Scraper configurado.");
+}
+// ----------------------------------------------
+
 async function fetchWithRetry(url: string, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -43,32 +97,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const SCRAPINGBEE_API_KEY = Deno.env.get("SCRAPINGBEE_API_KEY");
-    if (!SCRAPINGBEE_API_KEY) throw new Error("SCRAPINGBEE_API_KEY não configurada.");
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
+    const scraperConfig = await getActiveScraperConfig(sb);
+
     // Formatação de URL de busca Mercado Livre
-    // O offset no ML funciona como _Desde_51, _Desde_101
-    // Offset recebido do front geralmente é de 50 em 50: 0, 50, 100
     const querySlug = keyword.trim().toLowerCase().replace(/\s+/g, "-");
     const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
     let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
-    
-    // Fallback: se houver problemas consistentes na URL limpa, usar o path search?q=
-    // let targetUrl = `https://lista.mercadolivre.com.br/search?q=${encodeURIComponent(keyword)}&offset=${offset}`;
 
-    const scrapingbeeUrl = new URL("https://app.scrapingbee.com/api/v1/");
-    scrapingbeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
-    scrapingbeeUrl.searchParams.append("url", targetUrl);
-    scrapingbeeUrl.searchParams.append("render_js", "false"); // ML HTML returns enough info in SSR
-    scrapingbeeUrl.searchParams.append("premium_proxy", "true"); // Evita bloqueios do ML
-    scrapingbeeUrl.searchParams.append("country_code", "br");
+    const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
 
-    console.log(`Buscando no ML via ScrapingBee: ${targetUrl}`);
-    const html = await fetchWithRetry(scrapingbeeUrl.toString());
+    console.log(`Buscando no ML via ${scraperConfig.provider}: ${targetUrl}`);
+    const html = await fetchWithRetry(proxyTargetUrl);
 
     const $ = cheerio.load(html);
     const results: any[] = [];
