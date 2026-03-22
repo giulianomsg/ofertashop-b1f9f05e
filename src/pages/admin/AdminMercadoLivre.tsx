@@ -9,10 +9,11 @@ import { toast } from "sonner";
 interface MLItem {
   id: string; title: string; price: number; original_price: number | null;
   currency_id: string; thumbnail: string; permalink: string; condition: string;
-  sold_quantity: number; available_quantity: number; seller: { id: number; nickname: string };
+  sold_quantity: number; available_quantity: number; seller: { id: number | string; nickname: string };
   category_id: string; shipping_free: boolean; already_imported?: boolean;
+  description?: string; rating?: number; reviewCount?: number;
 }
-
+/* ... logic remains exactly the same ... */
 const AdminMercadoLivre = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -167,8 +168,40 @@ const AdminMercadoLivre = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2">{item.title}</h4>
-                        <div className="font-bold text-sm mt-2">R$ {Number(item.price).toFixed(2).replace(".", ",")}</div>
-                        {item.shipping_free && <span className="text-xs bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded mt-1 inline-block">Frete grátis</span>}
+                        <div className="font-bold text-sm mt-1.5">R$ {Number(item.price).toFixed(2).replace(".", ",")}</div>
+                        
+                        <div className="text-xs text-muted-foreground mt-1.5 flex flex-wrap gap-1.5">
+                          {item.seller?.nickname && item.seller.nickname !== "Vendedor Local" && (
+                            <span className="bg-secondary px-1.5 py-0.5 rounded border shadow-sm break-all">{item.seller.nickname}</span>
+                          )}
+                          {item.condition === 'new' ? (
+                            <span className="bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded border border-blue-500/20">Novo</span>
+                          ) : item.condition === 'used' ? (
+                            <span className="bg-orange-500/10 text-orange-600 px-1.5 py-0.5 rounded border border-orange-500/20">Usado</span>
+                          ) : item.condition === 'refurbished' ? (
+                            <span className="bg-purple-500/10 text-purple-600 px-1.5 py-0.5 rounded border border-purple-500/20">Recondicionado</span>
+                          ) : null}
+                          {item.sold_quantity > 0 && (
+                            <span className="bg-secondary px-1.5 py-0.5 rounded border shadow-sm">{item.sold_quantity}+ vend.</span>
+                          )}
+                          {item.rating ? (
+                            <span className="bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 rounded border border-yellow-500/20 flex items-center gap-1">
+                              ⭐ {item.rating} {item.reviewCount ? `(${item.reviewCount})` : ''}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2" title={item.description}>
+                            {item.description}
+                          </p>
+                        )}
+
+                        {item.shipping_free && (
+                           <span className="text-xs bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded mt-2 inline-block border border-green-500/20">
+                             Frete grátis
+                           </span>
+                        )}
                       </div>
                     </div>
                     <div className="px-4 pb-4 flex gap-2">
