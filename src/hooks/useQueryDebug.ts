@@ -10,24 +10,16 @@ export const useQueryDebug = () => {
 
     useEffect(() => {
         // Monitorar quando queries são iniciadas
-        const onQueryStart = () => {
-            console.log("[Query Debug] Query started");
-        };
+        const onQueryStart = () => {};
 
         // Monitorar quando queries são concluídas com sucesso
-        const onQuerySuccess = () => {
-            console.log("[Query Debug] Query success");
-        };
+        const onQuerySuccess = () => {};
 
         // Monitorar quando queries falham
-        const onQueryError = () => {
-            console.log("[Query Debug] Query error");
-        };
+        const onQueryError = () => {};
 
         // Monitorar quando queries são invalidadas
-        const onQueryInvalidated = () => {
-            console.log("[Query Debug] Query invalidated");
-        };
+        const onQueryInvalidated = () => {};
 
         // Assinar nos eventos do query client (API correta do React Query v5)
         const unsubscribeStart = queryClient.getQueryCache().subscribe(onQueryStart);
