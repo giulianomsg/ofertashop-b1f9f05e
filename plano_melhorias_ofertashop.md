@@ -13,13 +13,17 @@
 4. ✅ Configurado `networkMode: 'always'` para usar cache offline
 5. ✅ Criado hook `usePageVisibility` que cancela queries quando página fica oculta
 6. ✅ Ajustado Vite HMR para desenvolvimento mais estável
+7. ✅ Adicionado hook de debug `useQueryDebug` para monitorar queries (temporário)
 
 **Arquivos modificados**:
-- `src/App.tsx` - Nova configuração do QueryClient + hook integrado
+- `src/App.tsx` - Nova configuração do QueryClient + hooks integrados
 - `src/hooks/usePageVisibility.ts` - Novo hook criado
+- `src/hooks/useQueryDebug.ts` - Novo hook de debug criado
 - `vite.config.ts` - Ajustes no HMR
 
 **Teste**: Após as mudanças, a página NÃO deve mais recarregar automaticamente ao trocar de aba ou minimizar/maximizar.
+
+**Diagnóstico adicional**: Se ainda houver loading momentâneo, use o hook `useQueryDebug` no `App.tsx` para identificar quais queries estão sendo disparadas inesperadamente.
 
 ---
 

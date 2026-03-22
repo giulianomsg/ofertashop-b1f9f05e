@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
 import { usePageVisibility } from "@/hooks/usePageVisibility";
+import { useQueryDebug } from "@/hooks/useQueryDebug";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -50,6 +51,7 @@ const queryClient = new QueryClient({
 // Componente wrapper para usar o hook de visibilidade
 const AppContent = () => {
   usePageVisibility(); // Previne recarregamento automático ao trocar de aba
+  useQueryDebug();     // Debug para monitorar queries (remover em produção)
 
   return (
     <TooltipProvider>
