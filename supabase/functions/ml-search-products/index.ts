@@ -1,49 +1,31 @@
 // Edge Function: ml-search-products
-// Searches products using Mercado Livre Catalog API + Concurrent Detail fetching
+// Searches products using Mercado Livre via ScrapingBee
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as cheerio from "https://esm.sh/cheerio@1.0.0-rc.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function getValidToken(sb: any, appId: string, clientSecret: string): Promise<string> {
-  const { data: token } = await sb
-    .from("ml_tokens")
-    .select("*")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!token) throw new Error("Nenhum token ML encontrado. Autorize via OAuth primeiro.");
-
-  const expiresAt = new Date(token.expires_at).getTime();
-  if (Date.now() < expiresAt - 5 * 60 * 1000) {
-    return token.access_token;
+async function fetchWithRetry(url: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        return await res.text();
+      }
+      console.warn(`Attempt ${i + 1} failed with status: ${res.status}`);
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("ScrapingBee API Key inválida ou limite excedido");
+      }
+    } catch (err: any) {
+      console.error(`Fetch error on attempt ${i + 1}:`, err.message);
+      if (i === maxRetries - 1) throw err;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
   }
-
-  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      grant_type: "refresh_token",
-      client_id: appId,
-      client_secret: clientSecret,
-      refresh_token: token.refresh_token,
-    }),
-  });
-
-  const data = await res.json();
-  if (!res.ok || !data.access_token) throw new Error("Falha ao renovar token ML");
-
-  await sb.from("ml_tokens").update({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq("id", token.id);
-
-  return data.access_token;
+  throw new Error("Falha ao buscar página após múltiplas tentativas.");
 }
 
 Deno.serve(async (req) => {
@@ -52,7 +34,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { keyword, category, offset = 0, limit = 20 } = await req.json();
+    const { keyword, offset = 0 } = await req.json();
 
     if (!keyword || typeof keyword !== "string") {
       return new Response(JSON.stringify({ error: "keyword é obrigatório" }), {
@@ -61,89 +43,93 @@ Deno.serve(async (req) => {
       });
     }
 
-    const ML_APP_ID = Deno.env.get("ML_APP_ID");
-    const ML_CLIENT_SECRET = Deno.env.get("ML_CLIENT_SECRET");
-    if (!ML_APP_ID || !ML_CLIENT_SECRET) throw new Error("ML_APP_ID e ML_CLIENT_SECRET não configurados.");
+    const SCRAPINGBEE_API_KEY = Deno.env.get("SCRAPINGBEE_API_KEY");
+    if (!SCRAPINGBEE_API_KEY) throw new Error("SCRAPINGBEE_API_KEY não configurada.");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    const accessToken = await getValidToken(sb, ML_APP_ID, ML_CLIENT_SECRET);
+    // Formatação de URL de busca Mercado Livre
+    // O offset no ML funciona como _Desde_51, _Desde_101
+    // Offset recebido do front geralmente é de 50 em 50: 0, 50, 100
+    const querySlug = keyword.trim().toLowerCase().replace(/\s+/g, "-");
+    const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
+    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}_NoIndex_True`;
+    
+    const scrapingbeeUrl = new URL("https://app.scrapingbee.com/api/v1/");
+    scrapingbeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
+    scrapingbeeUrl.searchParams.append("url", targetUrl);
+    scrapingbeeUrl.searchParams.append("render_js", "false"); // ML HTML returns enough info in SSR
+    scrapingbeeUrl.searchParams.append("premium_proxy", "true"); // Evita bloqueios do ML
+    scrapingbeeUrl.searchParams.append("country_code", "br");
 
-    // 1. Busca no Catálogo (A única rota genérica permitida)
-    const params = new URLSearchParams({
-      status: "active",
-      site_id: "MLB",
-      q: keyword,
-      offset: String(offset),
-      limit: String(limit),
-    });
+    console.log(`Buscando no ML via ScrapingBee: ${targetUrl}`);
+    const html = await fetchWithRetry(scrapingbeeUrl.toString());
 
-    if (category) params.set("category", category);
+    const $ = cheerio.load(html);
+    const results: any[] = [];
 
-    const searchRes = await fetch(`https://api.mercadolibre.com/products/search?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    // Seletores clássicos do ML
+    $(".ui-search-layout__item").each((_, el) => {
+      const titleElem = $(el).find(".ui-search-item__title");
+      const title = titleElem.text().trim();
+      
+      const priceElem = $(el).find(".price-tag-fraction").first();
+      const priceText = priceElem.text().replace(/\./g, "").replace(",", ".");
+      const price = parseFloat(priceText) || 0;
 
-    const searchData = await searchRes.json();
+      const centsElem = $(el).find(".price-tag-cents").first();
+      const cents = parseFloat(centsElem.text()) / 100 || 0;
+      const finalPrice = price + cents;
 
-    if (!searchRes.ok) {
-      throw new Error(searchData.message || "Erro na busca de catálogo ML");
-    }
+      const linkElem = $(el).find(".ui-search-link");
+      const permalink = linkElem.attr("href")?.split("#")[0] || "";
+      
+      const matchId = permalink.match(/MLB-?(\d+)/i) || permalink.match(/MLB(\d+)/i);
+      const id = matchId ? `MLB${matchId[1]}` : `mlb_${Math.random().toString(36).substr(2, 9)}`;
 
-    const catalogItems = searchData.results || [];
+      // A thumb original costuma estar no source data-src por lazy loading
+      let thumbnail = $(el).find("img.ui-search-result-image__element").attr("data-src") || 
+                      $(el).find("img.ui-search-result-image__element").attr("src") || "";
 
-    // 2. Fetch concorrente nos detalhes de cada produto para descobrir o Preço/Anúncio vencedor
-    const detailedPromises = catalogItems.map(async (item: any) => {
-      try {
-        const detailRes = await fetch(`https://api.mercadolibre.com/products/${item.id}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+      const shippingElem = $(el).find(".ui-search-item__shipping--free");
+      const shipping_free = shippingElem.length > 0;
+      
+      const sellerElem = $(el).find(".ui-search-official-store-label");
+      const sellerNickname = sellerElem.text().replace("por ", "").trim() || "Vendedor Local";
+
+      if (title && finalPrice > 0 && permalink) {
+        results.push({
+          id,
+          title,
+          price: finalPrice,
+          original_price: null, // Pode extrair do HTML se estiver riscado (ui-search-price--original)
+          currency_id: "BRL",
+          thumbnail,
+          permalink,
+          condition: "new",
+          sold_quantity: 0,
+          available_quantity: 99,
+          seller: { id: id, nickname: sellerNickname },
+          category_id: "MLB", 
+          shipping_free
         });
-        if (!detailRes.ok) return null;
-        return await detailRes.json();
-      } catch (err) {
-        return null;
       }
     });
 
-    const detailedProducts = await Promise.all(detailedPromises);
+    if (results.length === 0) {
+      console.warn("Nenhum produto extraído via ScrapingBee do HTML retornado");
+    }
 
-    // 3. Mapear para a estrutura esperada pelo Front-end do OfertaShop
-    const results = detailedProducts
-      .filter((p: any) => p !== null && p.buy_box_winner && p.buy_box_winner.item_id) // Remove produtos sem oferta/item específico ativo
-      .map((p: any) => {
-        const buyBox = p.buy_box_winner;
-        return {
-          id: buyBox.item_id, // Extraímos o ID estrito do Anúncio (MLB...)
-          title: p.name || p.title || "Produto",
-          price: buyBox.price || 0,
-          original_price: buyBox.original_price || null,
-          currency_id: buyBox.currency_id || "BRL",
-          thumbnail: (p.pictures && p.pictures.length > 0)
-            ? p.pictures[0].url.replace("http://", "https://")
-            : (p.thumbnail ? p.thumbnail.replace("http://", "https://") : ""),
-          permalink: p.permalink || buyBox.item_url || "",
-          condition: buyBox.condition || p.condition || "new",
-          sold_quantity: p.sold_quantity || 0,
-          available_quantity: 99,
-          seller: {
-            id: buyBox.seller_id,
-            nickname: "Catálogo ML",
-          },
-          category_id: p.domain_id || p.category_id,
-          shipping_free: buyBox.shipping?.free_shipping || false,
-        };
-      });
-
-    // 4. Verificação de status de importação no Supabase
-    const mlIds = results.map((r: any) => r.id);
+    // Identificar quais já foram importados
+    const mlIds = results.map((r: any) => r.id).filter(id => id.startsWith("MLB"));
     let importedSet = new Set();
 
     if (mlIds.length > 0) {
       const { data: existingMappings } = await sb
         .from("ml_product_mappings")
-        .select("ml_item_id, product_id")
+        .select("ml_item_id")
         .in("ml_item_id", mlIds);
 
       importedSet = new Set((existingMappings || []).map((m: any) => m.ml_item_id));
@@ -156,13 +142,13 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       results: enrichedResults,
-      paging: searchData.paging || {},
+      paging: { offset, limit: 50, total: 1000 },
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {
     console.error("ml-search-products error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Erro interno" }), {
+    return new Response(JSON.stringify({ error: err.message || "Erro interno no ScrapingBee" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
