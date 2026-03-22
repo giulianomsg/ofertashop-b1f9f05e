@@ -36,8 +36,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false, // Desativa o recarregamento ao focar na aba
-      staleTime: 1000 * 60 * 5,    // Considera os dados frescos por 5 minutos
-      retry: 1                     // Limita as tentativas em caso de erro
+      staleTime: 1000 * 60 * 5,    // Considera os dados frescos por 5 minutos (evita refetchs desnecessários)
     },
   },
 });
