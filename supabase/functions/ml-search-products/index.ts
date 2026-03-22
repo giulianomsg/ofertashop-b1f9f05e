@@ -79,10 +79,18 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
       const res = await fetch(url);
       if (res.ok) {
         let finalHtml = await res.text();
+        console.log(`[Scraper Trace] Resposta Bruta (Init):`, finalHtml.substring(0, 800));
+        
         try {
           const json = JSON.parse(finalHtml);
-          if (json && typeof json.content === 'string') finalHtml = json.content;
-        } catch(e) { /* not JSON, raw html */ }
+          console.log(`[Scraper Trace] JSON detectado. Chaves:`, Object.keys(json));
+          if (json && typeof json.content === 'string') {
+             console.log(`[Scraper Trace] Extraindo campo .content (${json.content.length} chars)`);
+             finalHtml = json.content;
+          }
+        } catch(e) { 
+          console.log(`[Scraper Trace] Resposta não é JSON. Tratando como HTML Cru.`);
+        }
         return finalHtml;
       }
       console.warn(`Attempt ${i + 1} failed with status: ${res.status}`);
