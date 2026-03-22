@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -23,8 +23,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const [roleLoading, setRoleLoading] = useState(true);
 
+  // Cache para evitar buscas repetidas do mesmo usuário
+  const roleCache = useRef<Map<string, string | null>>(new Map());
+  const isFetchingRole = useRef<Set<string>>(new Set());
+
   const fetchRole = async (userId: string) => {
+    // Verificar cache primeiro
+    if (roleCache.current.has(userId)) {
+      setUserRole(roleCache.current.get(userId) ?? null);
+      setRoleLoading(false);
+      return;
+    }
+
+    // Evitar chamadas duplicadas para o mesmo usuário
+    if (isFetchingRole.current.has(userId)) {
+      return;
+    }
+
+    isFetchingRole.current.add(userId);
     setRoleLoading(true);
+
     try {
       const { data: roleData } = await supabase
         .from("user_roles")
@@ -43,11 +61,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setSession(null);
         setUserRole(null);
+        roleCache.current.delete(userId);
         return;
       }
 
-      setUserRole(roleData?.role ?? null);
+      const role = roleData?.role ?? null;
+      setUserRole(role);
+      roleCache.current.set(userId, role);
+    } catch (error) {
+      console.error("Error fetching role:", error);
+      // Em caso de erro, mantemos o role como null para não travar a UI
+      setUserRole(null);
+      roleCache.current.set(userId, null);
     } finally {
+      isFetchingRole.current.delete(userId);
       setRoleLoading(false);
     }
   };
@@ -57,7 +84,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => fetchRole(session.user.id), 0);
+        // Usar setTimeout com delay 0 para não bloquear a thread principal
+        // mas adicionamos um pequeno delay para evitar chamadas em sequência rápida
+        setTimeout(() => fetchRole(session.user.id), 50);
       } else {
         setUserRole(null);
         setRoleLoading(false);
@@ -69,7 +98,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchRole(session.user.id);
+        // Mesmo tratamento para a sessão inicial
+        setTimeout(() => fetchRole(session.user.id), 50);
       } else {
         setRoleLoading(false);
       }
@@ -103,6 +133,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    // Limpar cache ao fazer logout
+    roleCache.current.clear();
+    isFetchingRole.current.clear();
   };
 
   return (

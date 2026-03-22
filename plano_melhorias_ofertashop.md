@@ -4,7 +4,10 @@
 
 **Problema relatado**: A página recarregava automaticamente ao trocar de aba, minimizar/maximizar a janela.
 
-**Causa identificada**: Configuração do React Query que permitia refetch automático em alguns cenários, mesmo com `refetchOnWindowFocus: false`.
+**Causa identificada**: Múltiplas fontes de recarregamento/loading:
+1. Configuração do React Query que permitia refetch automático
+2. Hook de autenticação que buscava perfil de usuário em cada mudança de estado
+3. Falta de debounce/cache nas chamadas de perfil de usuário
 
 **Solução implementada** (commit atual):
 1. ✅ Aumentado `staleTime` de 5 para 10 minutos
@@ -14,14 +17,20 @@
 5. ✅ Criado hook `usePageVisibility` que cancela queries quando página fica oculta
 6. ✅ Ajustado Vite HMR para desenvolvimento mais estável
 7. ✅ Adicionado hook de debug `useQueryDebug` para monitorar queries (temporário)
+8. ✅ Otimizado `useAuth.tsx` com:
+   - Cache de roles para evitar buscas repetidas
+   - Prevenção de chamadas duplicadas simultâneas
+   - Debounce de 50ms nas chamadas de fetchRole
+   - Limpeza de cache no logout
 
 **Arquivos modificados**:
 - `src/App.tsx` - Nova configuração do QueryClient + hooks integrados
 - `src/hooks/usePageVisibility.ts` - Novo hook criado
 - `src/hooks/useQueryDebug.ts` - Novo hook de debug criado
+- `src/hooks/useAuth.tsx` - Otimização de chamadas de perfil com cache e debounce
 - `vite.config.ts` - Ajustes no HMR
 
-**Teste**: Após as mudanças, a página NÃO deve mais recarregar automaticamente ao trocar de aba ou minimizar/maximizar.
+**Teste**: Após as mudanças, a página NÃO deve mais recarregar automaticamente ao trocar de aba ou minimizar/maximizar, e o loading momentâneo deve ser significativamente reduzido.
 
 **Diagnóstico adicional**: Se ainda houver loading momentâneo, use o hook `useQueryDebug` no `App.tsx` para identificar quais queries estão sendo disparadas inesperadamente.
 
