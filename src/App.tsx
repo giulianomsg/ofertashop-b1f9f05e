@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
+import { usePageVisibility } from "@/hooks/usePageVisibility";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -35,54 +36,68 @@ import UserProfile from "./pages/UserProfile";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false, // Desativa o recarregamento ao focar na aba
-      staleTime: 1000 * 60 * 5,    // Considera os dados frescos por 5 minutos (evita refetchs desnecessários)
+      refetchOnWindowFocus: false,      // Não refetch ao focar na janela
+      refetchOnMount: false,            // Não refetch ao montar componente (se dados em cache)
+      refetchOnReconnect: false,        // Não refetch ao reconectar à internet
+      staleTime: 1000 * 60 * 10,        // Dados frescos por 10 minutos
+      gcTime: 1000 * 60 * 30,           // Manter cache por 30 minutos
+      retry: 1,                         // Tentar apenas 1 vez em caso de erro
+      networkMode: 'always',            // Usar cache mesmo offline
     },
   },
 });
+
+// Componente wrapper para usar o hook de visibilidade
+const AppContent = () => {
+  usePageVisibility(); // Previne recarregamento automático ao trocar de aba
+
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/produto/:id" element={<ProductDetail />} />
+          <Route path="/especial/:slug" element={<SpecialPage />} />
+          <Route path="/p/:slug" element={<InstitutionalPage />} />
+          <Route path="/perfil" element={<UserProfile />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="produtos" element={<AdminProducts />} />
+            <Route path="usuarios" element={<AdminUsers />} />
+            <Route path="colaboradores" element={<AdminCollaborators />} />
+            <Route path="avaliacoes" element={<AdminReviews />} />
+            <Route path="denuncias" element={<AdminReports />} />
+            <Route path="estatisticas" element={<AdminStats />} />
+            <Route path="marcas" element={<AdminBrands />} />
+            <Route path="modelos" element={<AdminModels />} />
+            <Route path="plataformas" element={<AdminPlatforms />} />
+            <Route path="categorias" element={<AdminCategories />} />
+            <Route path="paginas-especiais" element={<AdminSpecialPages />} />
+            <Route path="paginas-institucionais" element={<AdminInstitutionalPages />} />
+            <Route path="cupons" element={<AdminCoupons />} />
+            <Route path="shopee" element={<AdminShopee />} />
+            <Route path="mercadolivre" element={<AdminMercadoLivre />} />
+            <Route path="whatsapp" element={<AdminWhatsApp />} />
+            <Route path="newsletters" element={<AdminNewsletters />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  );
+};
 
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/produto/:id" element={<ProductDetail />} />
-            <Route path="/especial/:slug" element={<SpecialPage />} />
-            <Route path="/p/:slug" element={<InstitutionalPage />} />
-            <Route path="/perfil" element={<UserProfile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="banners" element={<AdminBanners />} />
-              <Route path="produtos" element={<AdminProducts />} />
-              <Route path="usuarios" element={<AdminUsers />} />
-              <Route path="colaboradores" element={<AdminCollaborators />} />
-              <Route path="avaliacoes" element={<AdminReviews />} />
-              <Route path="denuncias" element={<AdminReports />} />
-              <Route path="estatisticas" element={<AdminStats />} />
-              <Route path="marcas" element={<AdminBrands />} />
-              <Route path="modelos" element={<AdminModels />} />
-              <Route path="plataformas" element={<AdminPlatforms />} />
-              <Route path="categorias" element={<AdminCategories />} />
-              <Route path="paginas-especiais" element={<AdminSpecialPages />} />
-              <Route path="paginas-institucionais" element={<AdminInstitutionalPages />} />
-              <Route path="cupons" element={<AdminCoupons />} />
-              <Route path="shopee" element={<AdminShopee />} />
-              <Route path="mercadolivre" element={<AdminMercadoLivre />} />
-              <Route path="whatsapp" element={<AdminWhatsApp />} />
-              <Route path="newsletters" element={<AdminNewsletters />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 
