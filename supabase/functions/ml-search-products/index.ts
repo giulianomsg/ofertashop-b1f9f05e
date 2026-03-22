@@ -55,8 +55,11 @@ Deno.serve(async (req) => {
     // Offset recebido do front geralmente é de 50 em 50: 0, 50, 100
     const querySlug = keyword.trim().toLowerCase().replace(/\s+/g, "-");
     const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
-    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}_NoIndex_True`;
+    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
     
+    // Fallback: se houver problemas consistentes na URL limpa, usar o path search?q=
+    // let targetUrl = `https://lista.mercadolivre.com.br/search?q=${encodeURIComponent(keyword)}&offset=${offset}`;
+
     const scrapingbeeUrl = new URL("https://app.scrapingbee.com/api/v1/");
     scrapingbeeUrl.searchParams.append("api_key", SCRAPINGBEE_API_KEY);
     scrapingbeeUrl.searchParams.append("url", targetUrl);
@@ -70,47 +73,58 @@ Deno.serve(async (req) => {
     const $ = cheerio.load(html);
     const results: any[] = [];
 
-    // Seletores clássicos do ML
-    $(".ui-search-layout__item").each((_, el) => {
-      const titleElem = $(el).find(".ui-search-item__title");
+    // Suporta ambos seletores: Antigos (ui-search) e Novos (poly- / andes-)
+    $(".ui-search-layout__item, .andes-card").each((_, el) => {
+      const titleElem = $(el).find(".ui-search-item__title, .poly-component__title");
       const title = titleElem.text().trim();
       
-      const priceElem = $(el).find(".price-tag-fraction").first();
+      const priceElem = $(el).find(".price-tag-fraction, .andes-money-amount__fraction").first();
       const priceText = priceElem.text().replace(/\./g, "").replace(",", ".");
       const price = parseFloat(priceText) || 0;
 
-      const centsElem = $(el).find(".price-tag-cents").first();
+      const centsElem = $(el).find(".price-tag-cents, .andes-money-amount__cents").first();
       const cents = parseFloat(centsElem.text()) / 100 || 0;
       const finalPrice = price + cents;
 
-      const linkElem = $(el).find(".ui-search-link");
-      const permalink = linkElem.attr("href")?.split("#")[0] || "";
+      let linkElem = $(el).find(".ui-search-link");
+      if (linkElem.length === 0) {
+        linkElem = $(el).find("a[href*='/p/MLB'], a[href*='produto.mercadolivre.com']").first();
+      }
       
+      const permalink = linkElem.attr("href")?.split("#")[0] || "";
       const matchId = permalink.match(/MLB-?(\d+)/i) || permalink.match(/MLB(\d+)/i);
       const id = matchId ? `MLB${matchId[1]}` : `mlb_${Math.random().toString(36).substr(2, 9)}`;
 
-      // A thumb original costuma estar no source data-src por lazy loading
-      let thumbnail = $(el).find("img.ui-search-result-image__element").attr("data-src") || 
-                      $(el).find("img.ui-search-result-image__element").attr("src") || "";
+      // Thumb
+      let thumbnail = $(el).find("img.ui-search-result-image__element, .poly-component__picture").attr("data-src") || 
+                      $(el).find("img").attr("src") || "";
+                      
+      // Em layouts 'poly', a imagem no SSR pode ficar no source srcset 
+      if (!thumbnail.includes("http")) {
+         const srcset = $(el).find("img").attr("srcset");
+         if (srcset) {
+            thumbnail = srcset.split(",")[0].split(" ")[0] || thumbnail;
+         }
+      }
 
-      const shippingElem = $(el).find(".ui-search-item__shipping--free");
-      const shipping_free = shippingElem.length > 0;
+      const shippingElem = $(el).find(".ui-search-item__shipping--free, .poly-component__shipping");
+      const shipping_free = shippingElem.text().toLowerCase().includes("grátis") || shippingElem.length > 0;
       
-      const sellerElem = $(el).find(".ui-search-official-store-label");
+      const sellerElem = $(el).find(".ui-search-official-store-label, .poly-component__seller");
       const sellerNickname = sellerElem.text().replace("por ", "").trim() || "Vendedor Local";
 
-      if (title && finalPrice > 0 && permalink) {
+      if (title && finalPrice > 0 && permalink && permalink.includes("mercadolivre")) {
         results.push({
           id,
           title,
           price: finalPrice,
-          original_price: null, // Pode extrair do HTML se estiver riscado (ui-search-price--original)
+          original_price: null,
           currency_id: "BRL",
           thumbnail,
           permalink,
           condition: "new",
           sold_quantity: 0,
-          available_quantity: 99,
+          available_quantity: 99, // Assumption: visible in search means it has stock
           seller: { id: id, nickname: sellerNickname },
           category_id: "MLB", 
           shipping_free

@@ -32,7 +32,7 @@ Deno.test("ML Scraper - HTML Parsing Unit Test", () => {
 
     const permalink = $(el).find(".ui-search-link").attr("href")?.split("#")[0] || "";
     const matchId = permalink.match(/MLB-?(\d+)/i);
-    const id = matchId ? \`MLB\${matchId[1]}\` : "mock_id";
+    const id = matchId ? `MLB${matchId[1]}` : "mock_id";
 
     let thumbnail = $(el).find("img.ui-search-result-image__element").attr("data-src") || "";
 
