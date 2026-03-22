@@ -188,7 +188,11 @@ Deno.serve(async (req) => {
 
     // Condições Meli+ e Cashback
     const meliPlusHeader = $(".ui-pdp-media__title").text().toLowerCase();
-    const shippingFree = meliPlusHeader.includes("grátis") || meliPlusHeader.includes("meli+") || item.shipping_free;
+    const isMeliPlus = meliPlusHeader.includes("meli+");
+    const shippingFree = meliPlusHeader.includes("grátis") || isMeliPlus || item.shipping_free;
+    
+    const cashbackText = $(".ui-pdp-color--GREEN.ui-pdp-family--SEMIBOLD").text().trim();
+    const sellerReputationText = $(".ui-pdp-seller__reputation-info").text().trim();
 
     // Galeria de Imagens de Alta Resolução e Thumbnail
     const galleryUrls: string[] = [];
@@ -200,9 +204,27 @@ Deno.serve(async (req) => {
 
     // Variações de modelo / cor
     const features: any[] = [];
+    const variations_tree: any[] = [];
     $(".ui-pdp-variations__title").each((_, el) => {
-       features.push({ name: $(el).text().trim(), value: "Disponível" });
+       const groupName = $(el).text().trim(); // Ex: "Cor: Preto"
+       features.push({ name: groupName, value: "Disponível" });
+       
+       // Tenta pegar opções dentro do grupo iterando elementos irmãos ou pais
+       let options: string[] = [];
+       $(el).parent().find(".ui-pdp-variations__selector, .andes-listbox__option").each((_, opt) => {
+          const optText = $(opt).text().trim();
+          if (optText) options.push(optText);
+       });
+       variations_tree.push({ group: groupName, options });
     });
+
+    const extra_metadata = {
+       meli_plus: isMeliPlus,
+       cashback: cashbackText,
+       seller_reputation: sellerReputationText,
+       shipping_details: shippingFree ? "Frete Grátis" : "Consultar CEP",
+       variations: variations_tree
+    };
 
     // Descrição (Tentamos pegar do DOM do PDP se SSR, senão da API oficial aberta)
     let descriptionHTML = $(".ui-pdp-description__content").html()?.trim() || "";
@@ -263,6 +285,7 @@ Deno.serve(async (req) => {
         available_quantity: item.available_quantity || null,
         features: features.length > 0 ? features : null,
         badge: item.condition === "used" ? "Usado" : "Novo",
+        extra_metadata: extra_metadata,
       })
       .select()
       .single();

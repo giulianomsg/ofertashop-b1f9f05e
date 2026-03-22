@@ -47,6 +47,12 @@ const ProductDetail = () => {
   const visitorToken = useVisitorSession();
 
   const productAny = product as any;
+  const extra_metadata = productAny?.extra_metadata || {};
+  const isMeliPlus = extra_metadata?.meli_plus;
+  const cashback = extra_metadata?.cashback;
+  const sellerReputation = extra_metadata?.seller_reputation;
+  const variations = extra_metadata?.variations || [];
+  
   const { data: priceHistory = [] } = usePriceHistory(id || "", productAny?.brand_id, productAny?.model_id);
   const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id);
 
@@ -427,6 +433,61 @@ const ProductDetail = () => {
               {product.discount && (
                 <span className="badge-hot"><Flame className="w-3 h-3" /> Economia de {product.discount}%</span>
               )}
+            </div>
+
+            {/* Badges Adicionais do Mercado Livre */}
+            {(isMeliPlus || extra_metadata.shipping_details === "Frete Grátis" || cashback) && (
+              <div className="flex flex-wrap gap-2 pt-1 pb-2">
+                {isMeliPlus && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-600 border border-green-500/20">
+                    <Sparkles className="w-3.5 h-3.5" /> Meli+
+                  </span>
+                )}
+                {extra_metadata.shipping_details === "Frete Grátis" && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-success/10 text-success border border-success/20">
+                    <Package className="w-3.5 h-3.5" /> Frete Grátis
+                  </span>
+                )}
+                {cashback && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <TrendingUp className="w-3.5 h-3.5" /> {cashback}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Variações Interativas (Tamanhos/Cores) */}
+            {variations.length > 0 && (
+              <div className="space-y-4 py-2 border-y border-border">
+                {variations.map((v: any, idx: number) => (
+                  <div key={idx} className="space-y-2">
+                    <p className="font-semibold text-sm text-foreground">{v.group}</p>
+                    {v.options && v.options.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {v.options.map((opt: string, i: number) => (
+                          <span key={i} className="px-3 py-1.5 text-xs font-medium text-muted-foreground bg-secondary/60 border border-border rounded-lg transition-colors hover:border-accent hover:text-foreground cursor-pointer">
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Card de Reputação e Vendedor */}
+            <div className="bg-secondary/40 rounded-xl p-4 border border-border space-y-2">
+               <div className="flex items-center gap-2">
+                  <UserIcon className="w-4 h-4 text-muted-foreground"/>
+                  <span className="font-medium text-sm text-foreground">Vendido e entregue por <strong className="text-accent">{product.store}</strong></span>
+               </div>
+               {sellerReputation && (
+                  <div className="flex items-start gap-2 pl-6 mt-1 text-xs text-muted-foreground">
+                    <BadgeCheck className="w-3.5 h-3.5 mt-0.5 text-success shrink-0" />
+                    <p className="leading-relaxed">{sellerReputation}</p>
+                  </div>
+               )}
             </div>
 
             <div dangerouslySetInnerHTML={{ __html: product.description || '' }} className="text-muted-foreground leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-xl [&>h1]:font-bold [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold [&_a]:text-accent [&_a]:underline" />
