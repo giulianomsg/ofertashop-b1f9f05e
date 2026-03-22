@@ -38,6 +38,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("proxy_country", "BR");
     api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential"); // Critical for bypassing ML CAPTCHAs
     return api.toString();
   }
   if (provider === 'scraperapi') {

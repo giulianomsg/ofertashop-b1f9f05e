@@ -38,6 +38,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("proxy_country", "BR");
     api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential"); // Critical for bypassing ML CAPTCHAs
     return api.toString();
   }
   if (provider === 'scraperapi') {
@@ -127,13 +128,18 @@ Deno.serve(async (req) => {
 
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // Formatação segura de URL de busca Mercado Livre
-    const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-    const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
-    
-    // A rota oficial de busca prefere hifens em vez de query params para suportar paginação
-    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
+    // O usuário relatou preferir a busca via Query String (parâmetro nativo) em vez de Path Slugs.
+    // Assim o ML faz o escape da string inteligentemente sem gerar 404 em palavras especiais.
+    let targetUrlUrl = new URL("https://lista.mercadolivre.com.br/search");
+    targetUrlUrl.searchParams.append("q", keyword.trim());
+    if (offset > 0) {
+        // Redirecionamento por páginação (ML pode usar tanto offset no path ou aspas)
+        // Para garantir estabilidade, quando tiver offset, usamos o slug seguro do ML
+        const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+        const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+        targetUrlUrl = new URL(`https://lista.mercadolivre.com.br/${querySlug}_Desde_${offset + 1}`);
+    }
+    const targetUrl = targetUrlUrl.toString();
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
 
