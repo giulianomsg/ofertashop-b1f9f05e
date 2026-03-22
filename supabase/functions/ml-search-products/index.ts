@@ -78,7 +78,12 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
     try {
       const res = await fetch(url);
       if (res.ok) {
-        return await res.text();
+        let finalHtml = await res.text();
+        try {
+          const json = JSON.parse(finalHtml);
+          if (json && typeof json.content === 'string') finalHtml = json.content;
+        } catch(e) { /* not JSON, raw html */ }
+        return finalHtml;
       }
       console.warn(`Attempt ${i + 1} failed with status: ${res.status}`);
       if (res.status === 401 || res.status === 403) {

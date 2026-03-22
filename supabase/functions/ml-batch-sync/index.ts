@@ -83,7 +83,14 @@ async function fetchHtmlWithRetry(url: string, options: any, retries = 3): Promi
       if (!res.ok && res.status !== 404) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      return { html: await res.text(), status: res.status };
+      
+      let finalHtml = await res.text();
+      try {
+        const json = JSON.parse(finalHtml);
+        if (json && typeof json.content === 'string') finalHtml = json.content;
+      } catch(e) { /* not JSON, ignore */ }
+      
+      return { html: finalHtml, status: res.status };
     } catch (err: any) {
       if (attempt === retries) throw err;
       if (isDebug) console.warn(`Tentativa HTML ${attempt} falhou: ${err.message}. Retentando...`);
