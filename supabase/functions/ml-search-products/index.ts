@@ -128,18 +128,13 @@ Deno.serve(async (req) => {
 
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // O usuário relatou preferir a busca via Query String (parâmetro nativo) em vez de Path Slugs.
-    // Assim o ML faz o escape da string inteligentemente sem gerar 404 em palavras especiais.
-    let targetUrlUrl = new URL("https://lista.mercadolivre.com.br/search");
-    targetUrlUrl.searchParams.append("q", keyword.trim());
-    if (offset > 0) {
-        // Redirecionamento por páginação (ML pode usar tanto offset no path ou aspas)
-        // Para garantir estabilidade, quando tiver offset, usamos o slug seguro do ML
-        const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-        const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-        targetUrlUrl = new URL(`https://lista.mercadolivre.com.br/${querySlug}_Desde_${offset + 1}`);
-    }
-    const targetUrl = targetUrlUrl.toString();
+    // Formatação segura de URL de busca Mercado Livre para busca Exata (SEO)
+    const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+    const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
+    
+    // O Mercado Livre aplica restrições mais fortes com a URL padronizada, mas atende a busca "Exata" melhor
+    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
 
@@ -278,8 +273,13 @@ Deno.serve(async (req) => {
       console.warn("Nenhum produto extraído via ScrapingBee do HTML retornado");
     }
 
+    // Dedup results based on MLB ID to avoid mirrored copies from Cheerio selecting parent/children overlaps
+    const uniqueResults = results.filter((item, index, self) =>
+      index === self.findIndex((t) => t.id === item.id)
+    );
+
     // Identificar quais já foram importados
-    const mlIds = results.map((r: any) => r.id).filter(id => id.startsWith("MLB"));
+    const mlIds = uniqueResults.map((r: any) => r.id).filter(id => id.startsWith("MLB"));
     let importedSet = new Set();
 
     if (mlIds.length > 0) {
@@ -291,7 +291,7 @@ Deno.serve(async (req) => {
       importedSet = new Set((existingMappings || []).map((m: any) => m.ml_item_id));
     }
 
-    const enrichedResults = results.map((r: any) => ({
+    const enrichedResults = uniqueResults.map((r: any) => ({
       ...r,
       already_imported: importedSet.has(r.id),
     }));
