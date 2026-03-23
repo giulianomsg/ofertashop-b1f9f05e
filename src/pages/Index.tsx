@@ -7,7 +7,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
 import { useProducts } from "@/hooks/useProducts";
-import { useCategories } from "@/hooks/useEntities";
+import { useCategories, usePlatforms } from "@/hooks/useEntities";
 
 /**
  * NOTA DE DÍVIDA TÉCNICA:
@@ -25,20 +25,25 @@ const Index = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [minRating, setMinRating] = useState(0);
-  const [selectedStores, setSelectedStores] = useState<string[]>([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { data: platforms = [] } = usePlatforms();
 
-  const availableStores = useMemo(() => {
-    const stores = products.map(p => p.store).filter(Boolean);
-    return [...new Set(stores)].sort();
-  }, [products]);
+  const availablePlatforms = useMemo(() => {
+    const pIds = products.map((p: any) => p.platform_id).filter(Boolean);
+    const uniqueIds = [...new Set(pIds)];
+    return uniqueIds
+      .map(id => platforms.find((pl: any) => pl.id === id))
+      .filter(Boolean)
+      .sort((a, b) => a!.name.localeCompare(b!.name));
+  }, [products, platforms]);
 
-  const handleStoreToggle = (store: string) => {
-    setSelectedStores(prev =>
-      prev.includes(store) ? prev.filter(s => s !== store) : [...prev, store]
+  const handlePlatformToggle = (platformId: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platformId) ? prev.filter(id => id !== platformId) : [...prev, platformId]
     );
   };
 
@@ -46,21 +51,21 @@ const Index = () => {
     setSelectedCategoryId("");
     setPriceRange([0, 5000]);
     setMinRating(0);
-    setSelectedStores([]);
+    setSelectedPlatforms([]);
   };
 
   // Reset pagination when filters or search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [query, selectedCategoryId, priceRange, minRating, selectedStores]);
+  }, [query, selectedCategoryId, priceRange, minRating, selectedPlatforms]);
 
   const filtered = products.filter((p) => {
     const matchesSearch = query === "" || p.title.toLowerCase().includes(query.toLowerCase()) || (p.description && p.description.toLowerCase().includes(query.toLowerCase()));
     const categoryMatch = selectedCategoryId === "" || (p as any).category_id === selectedCategoryId;
     const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
     const ratingMatch = p.rating >= minRating;
-    const storeMatch = selectedStores.length === 0 || selectedStores.includes(p.store);
-    return matchesSearch && categoryMatch && priceMatch && ratingMatch && storeMatch;
+    const platformMatch = selectedPlatforms.length === 0 || selectedPlatforms.includes((p as any).platform_id);
+    return matchesSearch && categoryMatch && priceMatch && ratingMatch && platformMatch;
   });
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -108,9 +113,9 @@ const Index = () => {
             onPriceRangeChange={setPriceRange}
             minRating={minRating}
             onMinRatingChange={setMinRating}
-            availableStores={availableStores}
-            selectedStores={selectedStores}
-            onStoreToggle={handleStoreToggle}
+            availablePlatforms={availablePlatforms as any}
+            selectedPlatforms={selectedPlatforms}
+            onPlatformToggle={handlePlatformToggle}
             onClearFilters={handleClearFilters}
             mobileOpen={mobileFilters}
             onClose={() => setMobileFilters(false)}

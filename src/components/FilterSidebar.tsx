@@ -10,9 +10,9 @@ interface FilterSidebarProps {
   onPriceRangeChange: (range: number[]) => void;
   minRating: number;
   onMinRatingChange: (rating: number) => void;
-  availableStores: string[];
-  selectedStores: string[];
-  onStoreToggle: (store: string) => void;
+  availablePlatforms: { id: string, name: string }[];
+  selectedPlatforms: string[];
+  onPlatformToggle: (platformId: string) => void;
   onClearFilters?: () => void;
   mobileOpen?: boolean;
   onClose?: () => void;
@@ -26,14 +26,14 @@ const FilterSidebar = ({
   onPriceRangeChange,
   minRating,
   onMinRatingChange,
-  availableStores,
-  selectedStores,
-  onStoreToggle,
+  availablePlatforms,
+  selectedPlatforms,
+  onPlatformToggle,
   onClearFilters,
   mobileOpen,
   onClose
 }: FilterSidebarProps) => {
-  const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, store: true });
+  const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, platform: true });
 
   const toggleSection = (key: keyof typeof openSections) =>
     setOpenSections((s) => ({ ...s, [key]: !s[key] }));
@@ -151,25 +151,25 @@ const FilterSidebar = ({
         </AnimatePresence>
       </div>
 
-      {/* Stores */}
-      {availableStores.length > 0 && (
+      {/* Platforms */}
+      {availablePlatforms.length > 0 && (
         <div>
-          <button onClick={() => toggleSection("store")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
-            Lojas
-            <ChevronDown className={`w-4 h-4 transition-transform ${openSections.store ? "rotate-180" : ""}`} />
+          <button onClick={() => toggleSection("platform")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
+            Plataformas
+            <ChevronDown className={`w-4 h-4 transition-transform ${openSections.platform ? "rotate-180" : ""}`} />
           </button>
           <AnimatePresence>
-            {openSections.store && (
+            {openSections.platform && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
-                {availableStores.map((store) => (
-                  <label key={store} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
+                {availablePlatforms.map((platform) => (
+                  <label key={platform.id} className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
                     <input
                       type="checkbox"
                       className="rounded border-border accent-accent w-4 h-4"
-                      checked={selectedStores.includes(store)}
-                      onChange={() => onStoreToggle(store)}
+                      checked={selectedPlatforms.includes(platform.id)}
+                      onChange={() => onPlatformToggle(platform.id)}
                     />
-                    <span className="text-sm text-foreground">{store}</span>
+                    <span className="text-sm text-foreground">{platform.name}</span>
                   </label>
                 ))}
               </motion.div>
