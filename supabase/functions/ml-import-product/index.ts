@@ -173,20 +173,8 @@ Deno.serve(async (req) => {
     const priceText = $(".ui-pdp-price__second-line .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
     const scrapedPrice = parseFloat(priceText) || item.price || 0.01;
 
-    let scrapedOriginalPrice = null;
-    const installmentsText = $("#pricing_price_subtitle").text().trim();
-    const installmentsMatch = installmentsText.match(/(\d+)x/i);
-    const instFraction = $("#pricing_price_subtitle .andes-money-amount__fraction").first().text().trim().replace(/\./g, "");
-    const instCents = $("#pricing_price_subtitle .andes-money-amount__cents").first().text().trim() || "00";
-    if (installmentsMatch && instFraction) {
-       const plots = parseInt(installmentsMatch[1]);
-       const plotValue = parseFloat(`${instFraction}.${instCents}`);
-       scrapedOriginalPrice = plots * plotValue;
-    }
-    if (!scrapedOriginalPrice) {
-       const originalPriceText = $(".ui-pdp-price__original-value .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
-       scrapedOriginalPrice = originalPriceText ? parseFloat(originalPriceText) : null;
-    }
+    const originalPriceText = $(".ui-pdp-price__original-value .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
+    const scrapedOriginalPrice = originalPriceText ? parseFloat(originalPriceText) : null;
     const finalOriginalPrice = scrapedOriginalPrice && scrapedOriginalPrice > scrapedPrice ? scrapedOriginalPrice : null;
 
     // Rating
