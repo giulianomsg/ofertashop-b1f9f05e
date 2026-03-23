@@ -135,6 +135,8 @@ Deno.serve(async (req) => {
     } else if (searchType === "relampago") {
        const page = Math.floor(offset / 50) + 1;
        targetUrl = `https://www.mercadolivre.com.br/ofertas?promotion_type=lightning&page=${page}`;
+    } else if (searchType === "maisVendidos") {
+       targetUrl = `https://www.mercadolivre.com.br/mais-vendidos`;
     } else {
        // Formatação segura de URL de busca Mercado Livre para busca Exata (SEO)
        const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();

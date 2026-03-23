@@ -21,7 +21,7 @@ const AdminMercadoLivre = () => {
 
   // Estados Limpos (Sem cache do navegador, a pedido)
   const [keyword, setKeyword] = useState("");
-  const [currentSearchType, setCurrentSearchType] = useState<"default"|"ofertas"|"relampago">("default");
+  const [currentSearchType, setCurrentSearchType] = useState<"default"|"ofertas"|"relampago"|"maisVendidos">("default");
   const [results, setResults] = useState<MLItem[]>([]);
   const [currentOffset, setCurrentOffset] = useState(0);
 
@@ -101,7 +101,7 @@ const AdminMercadoLivre = () => {
     },
   });
 
-  const handleSearch = async (offset = 0, overrideType?: "default"|"ofertas"|"relampago") => {
+  const handleSearch = async (offset = 0, overrideType?: "default"|"ofertas"|"relampago"|"maisVendidos") => {
     const typeToUse = overrideType || currentSearchType;
     if (overrideType && overrideType !== currentSearchType) {
        setCurrentSearchType(overrideType);
@@ -326,6 +326,9 @@ const AdminMercadoLivre = () => {
            </button>
            <button onClick={() => { setKeyword(""); handleSearch(0, "relampago"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "relampago" ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" : "bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20"}`}>
               ⚡ Ofertas Relâmpago
+           </button>
+           <button onClick={() => { setKeyword(""); handleSearch(0, "maisVendidos"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "maisVendidos" ? "bg-purple-500 text-white shadow-md shadow-purple-500/20" : "bg-purple-500/10 text-purple-600 border border-purple-500/20 hover:bg-purple-500/20"}`}>
+              🏆 Mais Vendidos
            </button>
            {currentSearchType !== "default" && (
               <span className="text-xs text-muted-foreground ml-2 my-auto font-medium">✨ Você está visualizando o catálogo especial do Mercado Livre.</span>
