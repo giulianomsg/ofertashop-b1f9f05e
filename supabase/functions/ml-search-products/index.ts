@@ -113,9 +113,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { keyword, offset = 0 } = await req.json();
+    const { keyword = "", offset = 0, searchType = "default" } = await req.json();
 
-    if (!keyword || typeof keyword !== "string") {
+    if (searchType === "default" && (!keyword || typeof keyword !== "string")) {
       return new Response(JSON.stringify({ error: "keyword é obrigatório" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -128,13 +128,20 @@ Deno.serve(async (req) => {
 
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // Formatação segura de URL de busca Mercado Livre para busca Exata (SEO)
-    const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-    const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
-    
-    // O Mercado Livre aplica restrições mais fortes com a URL padronizada, mas atende a busca "Exata" melhor
-    let targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
+    let targetUrl = "";
+    if (searchType === "ofertas") {
+       const page = Math.floor(offset / 50) + 1;
+       targetUrl = `https://www.mercadolivre.com.br/ofertas?page=${page}`;
+    } else if (searchType === "relampago") {
+       const page = Math.floor(offset / 50) + 1;
+       targetUrl = `https://www.mercadolivre.com.br/ofertas?promotion_type=lightning&page=${page}`;
+    } else {
+       // Formatação segura de URL de busca Mercado Livre para busca Exata (SEO)
+       const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+       const querySlug = cleanKeyword.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+       const desdeSlug = offset > 0 ? `_Desde_${offset + 1}` : "";
+       targetUrl = `https://lista.mercadolivre.com.br/${querySlug}${desdeSlug}`;
+    }
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
 
@@ -151,20 +158,26 @@ Deno.serve(async (req) => {
 
     const results: any[] = [];
 
-    // Suporta ambos seletores: Antigos (ui-search) e Novos (poly- / andes-)
-    $(".ui-search-layout__item, .andes-card").each((_, el) => {
-      const titleElem = $(el).find(".ui-search-item__title, .poly-component__title");
+    // Suporta ambos seletores: Antigos (ui-search), Novos (poly- / andes-) e Abas de Oferta (promotion-item)
+    $(".ui-search-layout__item, .andes-card, .promotion-item").each((_: any, el: any) => {
+      const titleElem = $(el).find(".ui-search-item__title, .poly-component__title, .promotion-item__title");
       const title = titleElem.text().trim();
       
-      const priceElem = $(el).find(".price-tag-fraction, .andes-money-amount__fraction").first();
+      const priceElem = $(el).find(".price-tag-fraction, .andes-money-amount__fraction, .promotion-item__price span").first();
       const priceText = priceElem.text().replace(/\./g, "").replace(",", ".");
-      const price = parseFloat(priceText) || 0;
+      let price = parseFloat(priceText) || 0;
 
       const centsElem = $(el).find(".price-tag-cents, .andes-money-amount__cents").first();
       const cents = parseFloat(centsElem.text()) / 100 || 0;
-      const finalPrice = price + cents;
+      let finalPrice = price + cents;
 
-      let linkElem = $(el).find(".ui-search-link");
+      if (finalPrice <= 0) {
+         // Fallback brutal caso promotion-item__price jogue o preço em string completa sem spans
+         const fullTextPrice = $(el).find(".promotion-item__price").text().replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".");
+         finalPrice = parseFloat(fullTextPrice) || 0;
+      }
+
+      let linkElem = $(el).find(".ui-search-link, .promotion-item__link-container");
       if (linkElem.length === 0) {
         linkElem = $(el).find("a[href*='/p/MLB'], a[href*='produto.mercadolivre.com']").first();
       }
@@ -174,10 +187,10 @@ Deno.serve(async (req) => {
       const id = matchId ? `MLB${matchId[1]}` : `mlb_${Math.random().toString(36).substr(2, 9)}`;
 
       // Thumb
-      let thumbnail = $(el).find("img.ui-search-result-image__element, .poly-component__picture").attr("data-src") || 
+      let thumbnail = $(el).find("img.ui-search-result-image__element, .poly-component__picture, .promotion-item__img").attr("data-src") || 
                       $(el).find("img").attr("src") || "";
                       
-      // Em layouts 'poly', a imagem no SSR pode ficar no source srcset 
+      // Em layouts 'poly' ou 'promo', a imagem no SSR pode ficar no source srcset 
       if (!thumbnail.includes("http")) {
          const srcset = $(el).find("img").attr("srcset");
          if (srcset) {
@@ -185,11 +198,11 @@ Deno.serve(async (req) => {
          }
       }
 
-      const shippingElem = $(el).find(".ui-search-item__shipping--free, .poly-component__shipping");
+      const shippingElem = $(el).find(".ui-search-item__shipping--free, .poly-component__shipping, .promotion-item__shipping");
       const shipping_free = shippingElem.text().toLowerCase().includes("grátis") || shippingElem.length > 0;
       
       // sellerNickname já é extraído acima, vamos garantir:
-      const sellerElem = $(el).find(".ui-search-official-store-label, .poly-component__seller");
+      const sellerElem = $(el).find(".ui-search-official-store-label, .poly-component__seller, .promotion-item__seller");
       const sellerText = sellerElem.text().trim() || "";
       const sellerNickname = sellerText.replace(/^por\s+/i, "").trim() || "Vendedor Local";
 
@@ -203,7 +216,7 @@ Deno.serve(async (req) => {
       // Extrair vendas (+1000 vendidos, etc)
       let sold_quantity = 0;
       const salesElem = $(el).find(".poly-component__sales, .ui-search-item__group__element");
-      salesElem.each((i, node) => {
+      salesElem.each((i: any, node: any) => {
         const text = $(node).text().toLowerCase();
         if (text.includes("vendido")) {
            const match = text.match(/\+?(?:de )?(\d+(?:\.\d+)?|mil)(?: mil)?/);
@@ -233,7 +246,7 @@ Deno.serve(async (req) => {
       const attrElems = $(el).find(".ui-search-item__group__element, .poly-component__attributes");
       if (attrElems.length > 0) {
         const attrList: string[] = [];
-        attrElems.each((i, attr) => {
+        attrElems.each((i: any, attr: any) => {
            const t = $(attr).text().trim();
            if (t && !t.toLowerCase().includes("vendido") && !t.toLowerCase().includes("frete")) {
              attrList.push(t);

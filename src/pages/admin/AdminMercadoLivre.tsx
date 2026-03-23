@@ -21,6 +21,7 @@ const AdminMercadoLivre = () => {
 
   // Estados Limpos (Sem cache do navegador, a pedido)
   const [keyword, setKeyword] = useState("");
+  const [currentSearchType, setCurrentSearchType] = useState<"default"|"ofertas"|"relampago">("default");
   const [results, setResults] = useState<MLItem[]>([]);
   const [currentOffset, setCurrentOffset] = useState(0);
 
@@ -100,8 +101,13 @@ const AdminMercadoLivre = () => {
     },
   });
 
-  const handleSearch = async (offset = 0) => {
-    if (!keyword.trim()) return toast.error("Digite uma palavra-chave.");
+  const handleSearch = async (offset = 0, overrideType?: "default"|"ofertas"|"relampago") => {
+    const typeToUse = overrideType || currentSearchType;
+    if (overrideType && overrideType !== currentSearchType) {
+       setCurrentSearchType(overrideType);
+    }
+
+    if (typeToUse === "default" && !keyword.trim()) return toast.error("Digite uma palavra-chave.");
 
     // Se for uma busca nova, zera os resultados anteriores
     if (offset === 0) setResults([]);
@@ -109,7 +115,7 @@ const AdminMercadoLivre = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("ml-search-products", {
-        body: { keyword: keyword.trim(), offset },
+        body: { keyword: keyword.trim(), offset, searchType: typeToUse },
       });
 
       if (error) throw error;
@@ -302,15 +308,28 @@ const AdminMercadoLivre = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch(0)}
+              onChange={(e) => { setKeyword(e.target.value); setCurrentSearchType("default"); }}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(0, "default")}
               placeholder="Ex: Tênis Nike, iPhone 15"
               className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm focus:ring-2 focus:ring-yellow-500/30 outline-none"
             />
           </div>
-          <button onClick={() => handleSearch(0)} disabled={searching} className="h-10 px-5 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600 disabled:opacity-50 flex items-center gap-2">
+          <button onClick={() => handleSearch(0, "default")} disabled={searching} className="h-10 px-5 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600 disabled:opacity-50 flex items-center gap-2">
             {searching && results.length === 0 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Buscar
           </button>
+        </div>
+        
+        {/* Chips de Ofertas Especiais */}
+        <div className="flex flex-wrap gap-2 mt-3 pt-1 border-t border-border/50">
+           <button onClick={() => { setKeyword(""); handleSearch(0, "ofertas"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "ofertas" ? "bg-orange-500 text-white shadow-md shadow-orange-500/20" : "bg-orange-500/10 text-orange-600 border border-orange-500/20 hover:bg-orange-500/20"}`}>
+              🔥 Ofertas do Dia
+           </button>
+           <button onClick={() => { setKeyword(""); handleSearch(0, "relampago"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "relampago" ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" : "bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20"}`}>
+              ⚡ Ofertas Relâmpago
+           </button>
+           {currentSearchType !== "default" && (
+              <span className="text-xs text-muted-foreground ml-2 my-auto font-medium">✨ Você está visualizando o catálogo especial do Mercado Livre.</span>
+           )}
         </div>
       </div>
 
