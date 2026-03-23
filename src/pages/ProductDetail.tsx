@@ -480,7 +480,7 @@ const ProductDetail = () => {
             <div className="bg-secondary/40 rounded-xl p-4 border border-border space-y-2">
                <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-muted-foreground"/>
-                  <span className="font-medium text-sm text-foreground">Vendido e entregue por <strong className="text-accent">{product.store}</strong></span>
+                  <span className="font-medium text-sm text-foreground">Vendido e entregue por <strong className="text-accent">{product.store.replace(/^Vendido\s*por\s*/i, "")}</strong></span>
                </div>
                {sellerReputation && (
                   <div className="flex items-start gap-2 pl-6 mt-1 text-xs text-muted-foreground">

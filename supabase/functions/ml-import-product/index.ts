@@ -182,7 +182,8 @@ Deno.serve(async (req) => {
 
     // Vendedor e Vendas
     const sellerHeader = $(".ui-pdp-seller__header__title").text().trim();
-    const storeName = sellerHeader || item.seller?.nickname || "Mercado Livre";
+    let storeName = sellerHeader || item.seller?.nickname || "Mercado Livre";
+    storeName = storeName.replace(/^Vendido\s*por\s*/i, "").trim();
     
     let domSalesCount = item.sold_quantity || 0;
     const subtitleFull = $(".ui-pdp-subtitle").text().trim(); // Ex: "Novo  |  +100 vendidos"
