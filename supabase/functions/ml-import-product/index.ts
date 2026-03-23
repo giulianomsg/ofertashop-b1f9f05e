@@ -173,49 +173,96 @@ Deno.serve(async (req) => {
     const priceText = $(".ui-pdp-price__second-line .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
     const scrapedPrice = parseFloat(priceText) || item.price || 0.01;
 
-    const originalPriceText = $(".ui-pdp-price__original-value .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
-    const scrapedOriginalPrice = originalPriceText ? parseFloat(originalPriceText) : null;
+    let scrapedOriginalPrice = null;
+    const installmentsText = $("#pricing_price_subtitle").text().trim();
+    const installmentsMatch = installmentsText.match(/(\d+)x/i);
+    const instFraction = $("#pricing_price_subtitle .andes-money-amount__fraction").first().text().trim().replace(/\./g, "");
+    const instCents = $("#pricing_price_subtitle .andes-money-amount__cents").first().text().trim() || "00";
+    if (installmentsMatch && instFraction) {
+       const plots = parseInt(installmentsMatch[1]);
+       const plotValue = parseFloat(`${instFraction}.${instCents}`);
+       scrapedOriginalPrice = plots * plotValue;
+    }
+    if (!scrapedOriginalPrice) {
+       const originalPriceText = $(".ui-pdp-price__original-value .andes-money-amount__fraction").first().text().replace(/\./g, "").replace(",", ".");
+       scrapedOriginalPrice = originalPriceText ? parseFloat(originalPriceText) : null;
+    }
     const finalOriginalPrice = scrapedOriginalPrice && scrapedOriginalPrice > scrapedPrice ? scrapedOriginalPrice : null;
+
+    // Rating
+    const domRating = parseFloat($(".ui-pdp-review__rating").first().text().trim().replace(",", ".")) || item.rating || 0;
 
     // Vendedor e Vendas
     const sellerHeader = $(".ui-pdp-seller__header__title").text().trim();
     const storeName = sellerHeader || item.seller?.nickname || "Mercado Livre";
     
-    let salesCount = item.sold_quantity || 0;
-    const sellerSalesText = $(".ui-pdp-seller__sales-description").text().toLowerCase();
-    const matchSales = sellerSalesText.match(/\d+/);
-    if (matchSales) salesCount = parseInt(matchSales[0]) * (sellerSalesText.includes("mil") ? 1000 : 1);
+    let domSalesCount = item.sold_quantity || 0;
+    const subtitleFull = $(".ui-pdp-subtitle").text().trim(); // Ex: "Novo  |  +100 vendidos"
+    if (subtitleFull.includes("|")) {
+       const salesPart = subtitleFull.split("|")[1].toLowerCase();
+       const m = salesPart.match(/\d+/);
+       if (m) domSalesCount = parseInt(m[0]) * (salesPart.includes("mil") ? 1000 : 1);
+    } else {
+       const sellerSalesText = $(".ui-pdp-seller__sales-description").text().toLowerCase();
+       const matchSales = sellerSalesText.match(/\d+/);
+       if (matchSales) domSalesCount = parseInt(matchSales[0]) * (sellerSalesText.includes("mil") ? 1000 : 1);
+    }
 
     // Condições Meli+ e Cashback
     const meliPlusHeader = $(".ui-pdp-media__title").text().toLowerCase();
     const isMeliPlus = meliPlusHeader.includes("meli+");
     const shippingFree = meliPlusHeader.includes("grátis") || isMeliPlus || item.shipping_free;
     
-    const cashbackText = $(".ui-pdp-color--GREEN.ui-pdp-family--SEMIBOLD").text().trim();
+    // Extraindo cashback através do dom GREEN fraction + cents
+    const cbFraction = $(".ui-pdp-price__part.ui-pdp-color--GREEN .andes-money-amount__fraction").first().text().trim();
+    const cbCents = $(".ui-pdp-price__part.ui-pdp-color--GREEN .andes-money-amount__cents").first().text().trim();
+    const cashbackAmount = cbCents ? `${cbFraction},${cbCents}` : cbFraction;
+    const cashbackText = cashbackAmount ? `R$ ${cashbackAmount} de cashback` : "";
+    
     const sellerReputationText = $(".ui-pdp-seller__reputation-info").text().trim();
 
     // Galeria de Imagens de Alta Resolução e Thumbnail
     const galleryUrls: string[] = [];
-    $(".ui-pdp-gallery__figure img").each((_, img) => {
+    $(".ui-pdp-gallery__figure img").each((_: any, img: any) => {
        const url = $(img).attr("data-zoom") || $(img).attr("src") || "";
        if (url.startsWith("http") && !url.includes("data:image")) galleryUrls.push(url);
     });
     const finalImageUrl = galleryUrls.length > 0 ? galleryUrls[0] : (item.thumbnail || "");
 
-    // Variações de modelo / cor
+    // Variações de modelo / cor detalhadas
     const features: any[] = [];
     const variations_tree: any[] = [];
-    $(".ui-pdp-variations__title").each((_, el) => {
-       const groupName = $(el).text().trim(); // Ex: "Cor: Preto"
+    $("#outside_variations .ui-pdp-outside_variations__picker, .ui-pdp-variations__picker").each((_: any, el: any) => {
+       let groupName = $(el).find(".ui-pdp-outside_variations__title__label, .ui-pdp-variations__title__label").first().text().replace(":", "").trim();
+       if (!groupName) groupName = $(el).find(".ui-pdp-outside_variations__title, .ui-pdp-variations__title").first().text().split(":")[0].trim();
+       if (!groupName) return; // ignora picker vazio
+
        features.push({ name: groupName, value: "Disponível" });
        
-       // Tenta pegar opções dentro do grupo iterando elementos irmãos ou pais
        let options: string[] = [];
-       $(el).parent().find(".ui-pdp-variations__selector, .andes-listbox__option").each((_, opt) => {
-          const optText = $(opt).text().trim();
-          if (optText) options.push(optText);
+       // Tentativa 1: Thumbnails de Variação (ex: link images = Cores)
+       $(el).find(".ui-pdp-outside_variations__thumbnails__item img").each((_: any, img: any) => {
+          const altText = $(img).attr("alt");
+          if (altText) {
+            options.push(altText.trim());
+          }
        });
-       variations_tree.push({ group: groupName, options });
+
+       // Tentativa 2: Dropdown ou botões normais (ex: Tamanhos "Escolha")
+       if (options.length === 0) {
+          // Buscamos pelos elementos de menu Dropdown, ou text boxes estáticos
+          $(el).find(".andes-listbox__option .andes-listbox__label, .ui-pdp-variations__selector .andes-listbox__label, .ui-vpp-fit-as-expected__fit-as-expected").each((_: any, opt: any) => {
+             const txt = $(opt).text().trim();
+             if (txt && !txt.includes("Escolha") && txt !== "Tamanho") options.push(txt);
+          });
+          
+          if (options.length === 0) {
+             // Raspa label visual do dropdown se nada for clicado / injetado
+             const placeholderText = $(el).find(".andes-dropdown__placeholder").text().trim();
+             if (placeholderText && placeholderText !== "Escolha") options.push(placeholderText);
+          }
+       }
+       variations_tree.push({ group: groupName, options: options });
     });
 
     const extra_metadata = {
@@ -279,9 +326,9 @@ Deno.serve(async (req) => {
         category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
         is_active: true,
-        rating: item.rating || 0,
+        rating: domRating,
         registered_by: userId || null,
-        sales_count: salesCount,
+        sales_count: domSalesCount,
         available_quantity: item.available_quantity || null,
         features: features.length > 0 ? features : null,
         badge: item.condition === "used" ? "Usado" : "Novo",
@@ -302,7 +349,7 @@ Deno.serve(async (req) => {
         ml_category_id: null,
         ml_seller_id: null,
         ml_condition: item.condition,
-        ml_sold_quantity: salesCount,
+        ml_sold_quantity: domSalesCount,
         ml_status: "active",
         ml_original_price: finalOriginalPrice,
         ml_current_price: scrapedPrice,
