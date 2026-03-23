@@ -22,6 +22,7 @@ const AdminMercadoLivre = () => {
   // Estados Limpos (Sem cache do navegador, a pedido)
   const [keyword, setKeyword] = useState("");
   const [currentSearchType, setCurrentSearchType] = useState<"default"|"ofertas"|"relampago"|"maisVendidos">("default");
+  const [currentCategoryId, setCurrentCategoryId] = useState("");
   const [results, setResults] = useState<MLItem[]>([]);
   const [currentOffset, setCurrentOffset] = useState(0);
 
@@ -101,13 +102,19 @@ const AdminMercadoLivre = () => {
     },
   });
 
-  const handleSearch = async (offset = 0, overrideType?: "default"|"ofertas"|"relampago"|"maisVendidos") => {
+  const handleSearch = async (offset = 0, overrideType?: "default"|"ofertas"|"relampago"|"maisVendidos", overrideCategory?: string) => {
     const typeToUse = overrideType || currentSearchType;
     if (overrideType && overrideType !== currentSearchType) {
        setCurrentSearchType(overrideType);
     }
+    
+    const categoryToUse = overrideCategory !== undefined ? overrideCategory : currentCategoryId;
+    if (overrideCategory !== undefined && overrideCategory !== currentCategoryId) {
+       setCurrentCategoryId(overrideCategory);
+    }
 
     if (typeToUse === "default" && !keyword.trim()) return toast.error("Digite uma palavra-chave.");
+    if (typeToUse === "maisVendidos" && !categoryToUse) return toast.error("Selecione uma categoria para Mais Vendidos.");
 
     // Se for uma busca nova, zera os resultados anteriores
     if (offset === 0) setResults([]);
@@ -115,7 +122,7 @@ const AdminMercadoLivre = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("ml-search-products", {
-        body: { keyword: keyword.trim(), offset, searchType: typeToUse },
+        body: { keyword: keyword.trim(), offset, searchType: typeToUse, categoryId: categoryToUse },
       });
 
       if (error) throw error;
@@ -319,17 +326,64 @@ const AdminMercadoLivre = () => {
           </button>
         </div>
         
-        {/* Chips de Ofertas Especiais */}
-        <div className="flex flex-wrap gap-2 mt-3 pt-1 border-t border-border/50">
+        <div className="flex flex-wrap items-center gap-2 mt-3 pt-1 border-t border-border/50">
            <button onClick={() => { setKeyword(""); handleSearch(0, "ofertas"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "ofertas" ? "bg-orange-500 text-white shadow-md shadow-orange-500/20" : "bg-orange-500/10 text-orange-600 border border-orange-500/20 hover:bg-orange-500/20"}`}>
               🔥 Ofertas do Dia
            </button>
            <button onClick={() => { setKeyword(""); handleSearch(0, "relampago"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "relampago" ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" : "bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20"}`}>
               ⚡ Ofertas Relâmpago
            </button>
-           <button onClick={() => { setKeyword(""); handleSearch(0, "maisVendidos"); }} disabled={searching} className={`h-8 px-3 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 ${currentSearchType === "maisVendidos" ? "bg-purple-500 text-white shadow-md shadow-purple-500/20" : "bg-purple-500/10 text-purple-600 border border-purple-500/20 hover:bg-purple-500/20"}`}>
-              🏆 Mais Vendidos
-           </button>
+           
+           <div className={`flex items-center rounded-full border transition-colors ${currentSearchType === "maisVendidos" ? "bg-purple-500/10 border-purple-500/30 ring-1 ring-purple-500/20" : "bg-secondary border-border"}`}>
+              <div className="px-3 py-1.5 text-xs font-bold text-purple-600 flex items-center gap-1.5 border-r border-border/50">
+                 🏆 Mais Vendidos
+              </div>
+              <select 
+                title="Categorias de Mais Vendidos"
+                className="bg-transparent text-xs font-medium text-foreground py-1.5 px-2 outline-none cursor-pointer w-[180px] truncate"
+                value={currentCategoryId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setKeyword(""); handleSearch(0, "maisVendidos", val);
+                  } else {
+                    setCurrentCategoryId("");
+                    setCurrentSearchType("default");
+                  }
+                }}
+                disabled={searching}
+              >
+                <option value="">Selecione...</option>
+                <option value="MLB5672">Acessórios para Veículos</option>
+                <option value="MLB271599">Agro</option>
+                <option value="MLB1403">Alimentos e Bebidas</option>
+                <option value="MLB1367">Antiguidades e Coleções</option>
+                <option value="MLB1368">Arte, Papelaria e Armarinho</option>
+                <option value="MLB1384">Bebês</option>
+                <option value="MLB1246">Beleza e Cuidado Pessoal</option>
+                <option value="MLB1132">Brinquedos e Hobbies</option>
+                <option value="MLB1430">Calçados, Roupas e Bolsas</option>
+                <option value="MLB1574">Casa, Móveis e Decoração</option>
+                <option value="MLB1051">Celulares e Telefones</option>
+                <option value="MLB1500">Construção</option>
+                <option value="MLB1039">Câmeras e Acessórios</option>
+                <option value="MLB5726">Eletrodomésticos</option>
+                <option value="MLB1000">Eletrônicos, Áudio e Vídeo</option>
+                <option value="MLB1276">Esportes e Fitness</option>
+                <option value="MLB263532">Ferramentas</option>
+                <option value="MLB12404">Festas e Lembrancinhas</option>
+                <option value="MLB1144">Games</option>
+                <option value="MLB1499">Indústria e Comércio</option>
+                <option value="MLB1648">Informática</option>
+                <option value="MLB1182">Instrumentos Musicais</option>
+                <option value="MLB3937">Joias e Relógios</option>
+                <option value="MLB1196">Livros, Revistas e Comics</option>
+                <option value="MLB1168">Música, Filmes e Seriados</option>
+                <option value="MLB1071">Pet Shop</option>
+                <option value="MLB264586">Saúde</option>
+              </select>
+           </div>
+           
            {currentSearchType !== "default" && (
               <span className="text-xs text-muted-foreground ml-2 my-auto font-medium">✨ Você está visualizando o catálogo especial do Mercado Livre.</span>
            )}

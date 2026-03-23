@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { keyword = "", offset = 0, searchType = "default" } = await req.json();
+    const { keyword = "", offset = 0, searchType = "default", categoryId = "" } = await req.json();
 
     if (searchType === "default" && (!keyword || typeof keyword !== "string")) {
       return new Response(JSON.stringify({ error: "keyword é obrigatório" }), {
@@ -136,7 +136,8 @@ Deno.serve(async (req) => {
        const page = Math.floor(offset / 50) + 1;
        targetUrl = `https://www.mercadolivre.com.br/ofertas?promotion_type=lightning&page=${page}`;
     } else if (searchType === "maisVendidos") {
-       targetUrl = `https://www.mercadolivre.com.br/mais-vendidos`;
+       // A pagina do site requer um ID de Categoria
+       targetUrl = `https://www.mercadolivre.com.br/mais-vendidos/${categoryId}`;
     } else {
        // Formatação segura de URL de busca Mercado Livre para busca Exata (SEO)
        const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
