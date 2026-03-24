@@ -121,11 +121,24 @@ Deno.serve(async (req) => {
            // Capturar o bloco de preço principal
            let priceText = $("#corePriceDisplay_desktop_feature_div .a-price.a-text-price.priceToPay .a-offscreen").text();
            if (!priceText) {
-               // Fallback
+               // Fallback classes antigas
                priceText = $("#priceblock_ourprice").text() || $(".a-price-whole").first().text() + $(".a-price-fraction").first().text();
            }
-           priceText = priceText.replace(/[^\d,]/g, "").replace(",", ".");
-           const newPrice = parseFloat(priceText);
+           
+           let newPrice = 0;
+           if (priceText) {
+               priceText = priceText.replace(/[^\d,]/g, "").replace(",", ".");
+               newPrice = parseFloat(priceText) || 0;
+           }
+           
+           // Fallback brutal de Regex (Anti-React Obfuscation) contra quedas da classe .a-price
+           if (newPrice === 0) {
+               const rawText = $("#corePriceDisplay_desktop_feature_div").text() || $("#centerCol").text() || $("body").text();
+               const priceMatch = rawText.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/i);
+               if (priceMatch) {
+                  newPrice = parseFloat(priceMatch[1].replace(/\./g, "").replace(",", "."));
+               }
+           }
            
            const isOutOfStock = $("#availability span").text().toLowerCase().includes("não disponível") || $("#outOfStock").length > 0;
            
