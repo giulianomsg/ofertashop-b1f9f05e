@@ -85,25 +85,6 @@ const ProductDetail = () => {
     });
   }, [api]);
 
-  useEffect(() => {
-    if (!product) return;
-    const channel = supabase.channel(`public:products:${product.id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products', filter: `id=eq.${product.id}` }, () => {
-        toast('Esta oferta sofreu alterações agora mesmo!', {
-          description: 'Recarregue a página para visualizar os dados (preço, status) atualizados.',
-          action: {
-            label: 'Atualizar página',
-            onClick: () => window.location.reload()
-          },
-          duration: 25000,
-        });
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [product?.id]);
 
   useEffect(() => {
     if (product) {

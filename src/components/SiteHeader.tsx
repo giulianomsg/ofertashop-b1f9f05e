@@ -4,6 +4,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +22,7 @@ const SiteHeader = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
   const { user, userRole, signOut } = useAuth();
+  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
 
   useEffect(() => {
     setSearchQuery(searchParams.get("q") || "");
@@ -100,9 +103,55 @@ const SiteHeader = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            <button className="relative p-2.5 rounded-xl hover:bg-secondary transition-colors">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-            </button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button 
+                  onClick={() => unreadCount > 0 && markAllAsRead()}
+                  className="relative p-2.5 rounded-xl hover:bg-secondary transition-colors"
+                >
+                  <Bell className="w-5 h-5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-destructive outline outline-2 outline-card" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0 shadow-xl border border-border">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+                  <span className="font-semibold text-sm text-foreground">Notificações</span>
+                  {unreadCount > 0 && (
+                    <span className="text-xs font-medium text-destructive">{unreadCount} novas</span>
+                  )}
+                </div>
+                <div className="max-h-[350px] overflow-y-auto bg-card">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      Nenhuma notificação no momento.
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div 
+                        key={notif.id} 
+                        className={`p-4 border-b border-border last:border-0 hover:bg-secondary/70 transition-colors cursor-pointer ${!notif.read ? 'bg-accent/5' : ''}`}
+                        onClick={() => {
+                          markAsRead(notif.id);
+                          if (notif.link) navigate(notif.link);
+                        }}
+                      >
+                        <h4 className={`text-sm mb-1 ${!notif.read ? 'font-bold text-foreground' : 'font-semibold text-foreground/80'}`}>
+                          {notif.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground/90 mb-2 leading-relaxed">
+                          {notif.message}
+                        </p>
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          {notif.date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
