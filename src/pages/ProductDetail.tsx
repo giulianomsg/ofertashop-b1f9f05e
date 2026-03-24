@@ -16,6 +16,12 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useRef, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { CouponItem } from "@/components/CouponItem";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const getVideoEmbedUrl = (url: string) => {
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
@@ -78,6 +84,26 @@ const ProductDetail = () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
+
+  useEffect(() => {
+    if (!product) return;
+    const channel = supabase.channel(`public:products:${product.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products', filter: `id=eq.${product.id}` }, () => {
+        toast('Esta oferta sofreu alterações agora mesmo!', {
+          description: 'Recarregue a página para visualizar os dados (preço, status) atualizados.',
+          action: {
+            label: 'Atualizar página',
+            onClick: () => window.location.reload()
+          },
+          duration: 25000,
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [product?.id]);
 
   useEffect(() => {
     if (product) {
@@ -490,8 +516,7 @@ const ProductDetail = () => {
                )}
             </div>
 
-            <div dangerouslySetInnerHTML={{ __html: product.description || '' }} className="text-muted-foreground leading-relaxed [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-xl [&>h1]:font-bold [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold [&_a]:text-accent [&_a]:underline" />
-
+            {/* Descrição removida daqui e movida para o Accordion abaixo */}
             {/* Like, Wishlist, Info badges */}
             <div className="flex flex-wrap gap-3">
               <button onClick={handleLike} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${userLiked ? "bg-accent/10 border-accent/30 text-accent" : "bg-card border-border text-foreground hover:bg-secondary"}`} aria-label="Curtir produto">
@@ -565,7 +590,20 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            <button onClick={() => setShowExpired(!showExpired)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors" aria-label="Reportar oferta expirada">
+            {product.description && (
+              <Accordion type="single" collapsible className="w-full mt-4 bg-card border border-border rounded-xl px-4" style={{ boxShadow: "var(--shadow-card)" }}>
+                <AccordionItem value="description" className="border-none">
+                  <AccordionTrigger className="hover:no-underline py-4 text-sm font-semibold text-foreground">
+                    Descrição do Produto
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4">
+                    <div dangerouslySetInnerHTML={{ __html: product.description }} className="text-muted-foreground leading-relaxed text-sm [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-base [&>h1]:font-bold [&>h2]:text-sm [&>h2]:font-bold [&>h3]:text-sm [&>h3]:font-bold [&_a]:text-accent [&_a]:underline" />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
+
+            <button onClick={() => setShowExpired(!showExpired)} className="flex items-center gap-2 mt-6 text-sm text-muted-foreground hover:text-destructive transition-colors" aria-label="Reportar oferta expirada">
               <AlertTriangle className="w-4 h-4" /> Oferta expirada?
             </button>
             {showExpired && (

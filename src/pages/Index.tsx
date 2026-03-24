@@ -8,6 +8,8 @@ import ProductCard from "@/components/ProductCard";
 import HeroCarousel from "@/components/HeroCarousel";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories, usePlatforms } from "@/hooks/useEntities";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
  * NOTA DE DÍVIDA TÉCNICA:
@@ -58,6 +60,26 @@ const Index = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [query, selectedCategoryId, priceRange, minRating, selectedPlatforms]);
+
+  // Realtime updates subscription
+  useEffect(() => {
+    const channel = supabase.channel('public:products:index')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        toast('As ofertas foram atualizadas!', {
+          description: 'Clique para recarregar a página e ver as novidades.',
+          action: {
+            label: 'Atualizar agora',
+            onClick: () => window.location.reload()
+          },
+          duration: 20000,
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filtered = products.filter((p) => {
     const matchesSearch = query === "" || p.title.toLowerCase().includes(query.toLowerCase()) || (p.description && p.description.toLowerCase().includes(query.toLowerCase()));
