@@ -1,0 +1,53 @@
+ class="sg-col-4-of-4 sg-col-4-of-24 sg-col-4-of-12 s-result-item s-asin sg-col-4-of-16 AdHolder sg-col s-widget-spacing-small sg-col-4-of-8 sg-col-4-of-20">
+
+<div class="sg-col-inner">
+
+<div cel_widget_id="MAIN-SEARCH_RESULTS-3" class="s-widget-container s-spacing-small s-widget-container-height-small celwidget slot=MAIN template=SEARCH_RESULTS widgetId=search-results_1" data-csa-c-pos="1" data-csa-c-item-id="amzn1.asin.1.B0CP6CVJSG" data-csa-op-log-render="" data-csa-c-type="item">
+
+
+
+
+<div data-component-type="s-impression-logger" data-component-props="{&#34;percentageShownToFire&#34;:&#34;50&#34;,&#34;batchable&#34;:true,&#34;requiredElementSelector&#34;:&#34;.s-image:visible&#34;,&#34;url&#34;:&#34;https://unagi-na.amazon.com/1/events/com.amazon.eel.SponsoredProductsEventTracking.prod?qualifier=1774328155&amp;id=4584404206137385&amp;widgetName=sp_atf&amp;adId=300365546010302&amp;eventType=1&amp;adIndex=0&#34;}" class="rush-component s-expand-height">
+
+    
+
+
+
+<div data-component-type="s-impression-counter" data-component-props="{&#34;presenceCounterName&#34;:&#34;sp_delivered&#34;,&#34;hiddenCounterName&#34;:&#34;sp_hidden&#34;,&#34;testElementSelector&#34;:&#34;.s-image&#34;}" class="rush-component s-featured-result-item s-expand-height">
+
+    
+<span class="a-declarative" data-version-id="v34ir19azxedl22ibylefomw1e1" data-render-id="rzdwc0i3nnoo1z8bwruxt0ahh" data-action="puis-card-container-declarative" data-csa-c-func-deps="aui-da-puis-card-container-declarative" data-csa-c-item-id="amzn1.asin.B0CP6CVJSG:amzn1.promotion.A1XCXR2F3UTH4D" data-csa-c-posx="1" data-csa-c-type="item" data-csa-c-owner="puis">
+
+<div class="puis-card-container s-card-container s-overflow-hidden aok-relative puis-expand-height puis-include-content-margin puis puis-v34ir19azxedl22ibylefomw1e1 s-latency-cf-section puis-card-border" data-cy="asin-faceout-container">
+
+<div class="a-section a-spacing-base desktop-grid-content-view">
+
+<div class="s-product-image-container aok-relative s-text-center s-image-overlay-grey puis-image-overlay-grey s-padding-left-small s-padding-right-small puis-spacing-small s-height-equalized puis puis-v34ir19azxedl22ibylefomw1e1" data-cy="image-container">
+
+<span data-component-type="s-product-image" class="rush-component" data-version-id="v34ir19azxedl22ibylefomw1e1" data-render-id="rzdwc0i3nnoo1z8bwruxt0ahh">
+
+<a aria-hidden="true" class="a-link-normal s-no-outline" tabindex="-1" href="/sspa/click?ie=UTF8&amp;spc=MTo0NTg0NDA0MjA2MTM3Mzg1OjE3NzQzMjgxNTU6c3BfYXRmOjMwMDM2NTU0NjAxMDMwMjo6MDo6&amp;url=%2FApple-iPhone-15-128-GB%2Fdp%2FB0CP6CVJSG%2Fref%3Dsr_1_1_sspa%3Fdib%3DeyJ2IjoiMSJ9.D7R2kZWQ9jnZDuqM_QCY8xZJ9VQf__uaqQ3gqUmnJvF8DGgA3Xg-I1LtKyzkseYhBTje88e_2Iwwj-W6llOdMQ8hE6yY7a67WDFi26XZE0wcVqCw03pYAEeQwc-HyNhnbk4e8TP72E1DO8dSu6gffjHAMcGQTQ9LAwNzucLAnatyobQrt8gR5IP4SATBwYk_qeKkhyXGHpSdVSePsP-pKq1cs__s94SERRFZa5hiVbEUfwjKWYnIR2DnREr5bYN4bp7315PMbL_DNoKh3N1uoyexCXeqyT2bpLLeCKMOcXU.fOaWL2VSb7dKxTCDB3iY1B0XsZKTYNJCfH72eN-8COs%26dib_tag%3Dse%26keywords%3Diphone%26qid%3D1774328155%26sr%3D8-1-spons%26ufe%3Dapp_do%253Aamzn1.fos.9e6a115c-05b9-4b96-8e1c-b1f9ce2ac1a6%26sp_csd%3Dd2lkZ2V0TmFtZT1zcF9hdGY%26psc%3D1">
+
+<div class="a-section aok-relative s-image-square-aspect">
+
+<img class="s-image" src="https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL320_.jpg" srcset="https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL320_.jpg 1x, https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL480_QL65_.jpg 1.5x, https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL640_QL65_.jpg 2x, https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL800_QL65_.jpg 2.5x, https://m.media-amazon.com/images/I/416MG51rNgL._AC_UL960_QL65_.jpg 3x" alt="Anúncio patrocinado – Apple iPhone 15 (128 GB) — Preto" aria-hidden="true" data-image-index="1" data-image-load="" data-image-latency="s-product-image" data-image-source-density="1"/>
+
+</div>
+
+</a>
+
+</span>
+
+</div>
+
+<div class="a-section a-spacing-small puis-padding-left-small puis-padding-right-small">
+
+<div class="a-section a-spacing-none a-text-center">
+
+<div aria-label="cores disponíveis" class="a-section s-color-swatch-container s-color-swatch-container-left-aligned" role="group">
+
+<div class="s-color-swatch-internal-container" role="list">
+
+</div>
+
+<div data-csa-c-type="link" data-csa-c-content-id="color-swatch-more-link" data-csa-c-swatch-more-url="/sspa/click?ie=UTF8&amp;spc=MTo0NTg0NDA0MjA2MTM3Mzg1OjE3NzQzMjgxNTU6c3BfYXRmOjMwMDM2NTU0NjAxMDMwMjo6MDo6&amp;url=%2FApple-iPhone-15-128-GB%2Fdp%2FB0CP6CVJSG%2Fref%3Dsr_1_1_sspa%3Fdib%3DeyJ2IjoiMSJ9.D7R2kZWQ9jnZDuqM_QCY8xZJ9VQf__uaqQ3gqUmnJvF8DGgA3Xg-I1LtKyzkseYhBTje88e_2Iwwj-W6llOdMQ8hE6yY7a67WDFi26XZE0wcVqCw03pYAEeQwc-HyNhnbk4e8TP72E1DO8dSu6gffjHAMcGQTQ9LAwNzucLAnatyobQrt8gR5IP4SATBwYk_qeKkhyXGHpSdVSePsP-pKq1cs__s94SERRFZa5hiVbEUfwjKWYnIR2DnREr5bYN4bp7315PMbL_DNoKh3N1uoyexCXeqyT2bpLLeCKMOcXU.fOaWL2VSb7dKxTCDB3iY1B0XsZKTYNJCfH72eN-8COs%26dib_tag%3Dse%26keywords%3Diphone%26qid%3D1774328155%26sr%3D8-1-spons%26ufe%3Dapp_do%253Aamzn1.fos.9e6a115c-05b9-4b96-8e1c-b1f9ce2ac1a6%26sp_csd%3Dd2lk

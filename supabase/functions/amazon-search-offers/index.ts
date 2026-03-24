@@ -137,18 +137,21 @@ Deno.serve(async (req) => {
       const asin = $(el).attr("data-asin");
       if (!asin) return;
 
-      const title = $(el).find("h2 a span").text().trim();
-      const linkElem = $(el).find("h2 a").attr("href");
+      const title = $(el).find("h2 span").last().text().trim() || $(el).find("h2").text().trim();
+      const linkElem = $(el).find("h2 a").attr("href") || $(el).find("a:has(h2)").attr("href") || $(el).find(".a-link-normal").first().attr("href");
       const permalink = linkElem ? `https://www.amazon.com.br${linkElem}` : `https://www.amazon.com.br/dp/${asin}`;
       
       const priceWhole = $(el).find(".a-price-whole").first().text().replace(/[.,]/g, "");
       const priceFraction = $(el).find(".a-price-fraction").first().text();
       let price = parseFloat(`${priceWhole}.${priceFraction}`);
       
-      // Fallback para grids novos
+      // Fallback brutal caso a Amazon mude todas as classes do CSS (Ofuscação via React)
       if (isNaN(price) || price === 0) {
-         const altPrice = $(el).find(".a-price .a-offscreen").first().text().replace(/[^\d,]/g, "").replace(",", ".");
-         price = parseFloat(altPrice) || 0;
+         const rawText = $(el).text();
+         const priceMatch = rawText.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/i);
+         if (priceMatch) {
+            price = parseFloat(priceMatch[1].replace(/\./g, "").replace(",", "."));
+         }
       }
 
       let original_price = null;
