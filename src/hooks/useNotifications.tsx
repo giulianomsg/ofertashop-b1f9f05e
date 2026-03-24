@@ -78,6 +78,24 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Se for uma exclusão ignoramos, ou poderemos adicionar na notificação
         if (!isUpdate && !isInsert) return;
 
+        // --- REGRA DE EXCEÇÃO PARA CLICKS ---
+        if (isUpdate && payload.old && payload.new) {
+          const oldKeys = Object.keys(payload.old);
+          // Verifica se o Supabase enviou o registro antigo completo (requer REPLICA IDENTITY FULL na tabela)
+          if (oldKeys.length > 1) {
+             const changedFields = Object.keys(payload.new).filter((key) => {
+                if (key === 'updated_at') return false; // Ignora updated_at que muda automaticamente
+                return JSON.stringify(payload.new[key]) !== JSON.stringify(payload.old[key]);
+             });
+             
+             // Se o único campo alterado for 'clicks', abortamos a notificação
+             if (changedFields.length === 1 && changedFields[0] === 'clicks') {
+                return;
+             }
+          }
+        }
+        // ------------------------------------
+
         addNotification({ title, message, link, product_id: productId });
 
         // Identifica onde o usuário está
