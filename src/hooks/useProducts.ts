@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export type Product = Tables<"products">;
 
-export const useProducts = (activeOnly = true) => {
+export const useProducts = (activeOnly = true, options?: any) => {
   return useQuery({
     queryKey: ["products", activeOnly],
     queryFn: async () => {
@@ -17,6 +17,7 @@ export const useProducts = (activeOnly = true) => {
       if (error) throw error;
       return data as Product[];
     },
+    ...options
   });
 };
 

@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
-import { usePageVisibility } from "@/hooks/usePageVisibility";
 import { useQueryDebug } from "@/hooks/useQueryDebug";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
@@ -37,20 +36,12 @@ import UserProfile from "./pages/UserProfile";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,      // Não refetch ao focar na janela
-      refetchOnMount: false,            // Não refetch ao montar componente (se dados em cache)
-      refetchOnReconnect: false,        // Não refetch ao reconectar à internet
-      staleTime: 1000 * 60 * 10,        // Dados frescos por 10 minutos
-      gcTime: 1000 * 60 * 30,           // Manter cache por 30 minutos
-      retry: 1,                         // Tentar apenas 1 vez em caso de erro
-      networkMode: 'always',            // Usar cache mesmo offline
+      staleTime: 1000 * 60 * 5, // Considera os dados frescos por 5 minutos
     },
   },
 });
 
-// Componente wrapper para usar o hook de visibilidade
 const AppContent = () => {
-  usePageVisibility(); // Previne recarregamento automático ao trocar de aba
   useQueryDebug();     // Debug para monitorar queries (remover em produção)
 
   return (
