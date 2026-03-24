@@ -65,6 +65,12 @@ const AdminProducts = () => {
   const { data: platforms = [] } = usePlatforms();
   const { user } = useAuth();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -318,6 +324,18 @@ const AdminProducts = () => {
 
   const isSaving = createProduct.isPending || updateProduct.isPending;
 
+  // Process filters and pagination
+  const filteredProducts = products.filter((p) => {
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = p.title.toLowerCase().includes(term) || p.store.toLowerCase().includes(term);
+    const matchesStatus = statusFilter === "all" ? true : statusFilter === "active" ? p.is_active : !p.is_active;
+    const matchesPlatform = platformFilter === "all" ? true : (p as any).platform_id === platformFilter;
+    return matchesSearch && matchesStatus && matchesPlatform;
+  });
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -327,6 +345,41 @@ const AdminProducts = () => {
         </button>
       </div>
 
+      {/* Filtros e Busca */}
+      <div className="flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-xl border border-border" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="Buscar por nome ou loja..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            className="w-full h-10 px-3 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 transition-colors"
+          />
+        </div>
+        <div className="flex gap-4 sm:w-auto w-full">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+            className="h-10 px-3 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex-1 sm:w-40"
+          >
+            <option value="all">Todos Status</option>
+            <option value="active">Ativos</option>
+            <option value="inactive">Inativos</option>
+          </select>
+          <select
+            value={platformFilter}
+            onChange={(e) => { setPlatformFilter(e.target.value); setCurrentPage(1); }}
+            className="h-10 px-3 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex-1 sm:w-48"
+          >
+            <option value="all">Todas Plataformas</option>
+            <option value="">Nenhuma (Vazio)</option>
+            {platforms.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -334,6 +387,7 @@ const AdminProducts = () => {
               <tr className="border-b border-border bg-secondary">
                 <th className="text-left p-4 font-semibold text-foreground">Produto</th>
                 <th className="text-left p-4 font-semibold text-foreground hidden md:table-cell">Loja</th>
+                <th className="text-left p-4 font-semibold text-foreground hidden md:table-cell">Plataforma</th>
                 <th className="text-left p-4 font-semibold text-foreground">Preço</th>
                 <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Comissão</th>
                 <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Cliques</th>
@@ -343,10 +397,10 @@ const AdminProducts = () => {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Carregando...</td></tr>
-              ) : products.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Nenhum produto cadastrado.</td></tr>
-              ) : products.map((product) => (
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Carregando...</td></tr>
+              ) : paginatedProducts.length === 0 ? (
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Nenhum produto encontrado.</td></tr>
+              ) : paginatedProducts.map((product) => (
                 <motion.tr key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -355,6 +409,9 @@ const AdminProducts = () => {
                     </div>
                   </td>
                   <td className="p-4 text-muted-foreground hidden md:table-cell">{product.store}</td>
+                  <td className="p-4 text-muted-foreground hidden md:table-cell">
+                    {(product as any).platform_id ? platforms.find(p => p.id === (product as any).platform_id)?.name || "-" : "-"}
+                  </td>
                   <td className="p-4 font-semibold text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</td>
                   <td className="p-4 text-center hidden md:table-cell">
                     {(product as any).commission_rate ? (
@@ -382,6 +439,31 @@ const AdminProducts = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Footer */}
+        {totalPages > 0 && (
+          <div className="p-4 border-t border-border flex items-center justify-between bg-card text-sm">
+            <span className="text-muted-foreground">
+              Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} a {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} de <span className="font-semibold text-foreground">{filteredProducts.length}</span> resultados
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary disabled:opacity-50 text-foreground transition-colors font-medium"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary disabled:opacity-50 text-foreground transition-colors font-medium"
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (
