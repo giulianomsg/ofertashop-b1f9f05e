@@ -30,6 +30,7 @@ import AdminInstitutionalPages from "./pages/admin/AdminInstitutionalPages";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminShopee from "./pages/admin/AdminShopee";
 import AdminMercadoLivre from "./pages/admin/AdminMercadoLivre";
+import AdminAmazon from "./pages/admin/AdminAmazon";
 import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
@@ -76,6 +77,7 @@ const AppContent = () => {
               <Route path="cupons" element={<AdminCoupons />} />
               <Route path="shopee" element={<AdminShopee />} />
               <Route path="mercadolivre" element={<AdminMercadoLivre />} />
+              <Route path="amazon" element={<AdminAmazon />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
             </Route>
