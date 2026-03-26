@@ -5,8 +5,8 @@ import { createClient } from "@supabase/supabase-js";
 
 export type Product = Tables<"products">;
 
-export const useProducts = (activeOnly = true, options?: any) => {
-  return useQuery({
+export const useProducts = (activeOnly = true) => {
+  return useQuery<Product[]>({
     queryKey: ["products", activeOnly],
     queryFn: async () => {
       let query = supabase.from("products").select("*").order("created_at", { ascending: false });
@@ -17,7 +17,6 @@ export const useProducts = (activeOnly = true, options?: any) => {
       if (error) throw error;
       return data as Product[];
     },
-    ...options
   });
 };
 
@@ -87,7 +86,7 @@ export const useReviews = (productId: string | undefined) => {
 };
 
 export const useReports = () => {
-  return useQuery({
+  return useQuery<any[]>({
     queryKey: ["reports"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -101,7 +100,7 @@ export const useReports = () => {
 };
 
 export const useCollaborators = () => {
-  return useQuery({
+  return useQuery<any[]>({
     queryKey: ["collaborators"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -137,7 +136,7 @@ export const useRemoveCollaborator = () => {
 };
 
 export const useUsers = () => {
-  return useQuery({
+  return useQuery<any[]>({
     queryKey: ["users"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -238,7 +237,7 @@ export const useCreateUser = () => {
 };
 
 export const useAllReviews = () => {
-  return useQuery({
+  return useQuery<any[]>({
     queryKey: ["all_reviews"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -308,7 +307,7 @@ export const usePriceHistory = (productId: string, brandId?: string | null, mode
 };
 
 export const useAllTrustVotes = () =>
-  useQuery({
+  useQuery<any[]>({
     queryKey: ["all_trust_votes"],
     queryFn: async () => {
       const { data, error } = await supabase.from("product_trust_votes" as any).select("*").order("created_at", { ascending: true });
