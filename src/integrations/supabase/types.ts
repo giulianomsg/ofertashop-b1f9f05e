@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      amazon_product_mappings: {
+        Row: {
+          amazon_current_price: number | null
+          amazon_item_id: string
+          amazon_original_price: number | null
+          amazon_rating: number | null
+          amazon_review_count: number | null
+          amazon_status: string | null
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amazon_current_price?: number | null
+          amazon_item_id: string
+          amazon_original_price?: number | null
+          amazon_rating?: number | null
+          amazon_review_count?: number | null
+          amazon_status?: string | null
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amazon_current_price?: number | null
+          amazon_item_id?: string
+          amazon_original_price?: number | null
+          amazon_rating?: number | null
+          amazon_review_count?: number | null
+          amazon_status?: string | null
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amazon_product_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banners: {
         Row: {
           created_at: string
@@ -138,10 +206,12 @@ export type Database = {
           discount_value: string | null
           id: string
           is_link_only: boolean | null
+          link_url: string | null
           platform_id: string | null
           reports_inactive: number | null
           subtitle: string | null
           title: string
+          updated_at: string
         }
         Insert: {
           active?: boolean | null
@@ -153,10 +223,12 @@ export type Database = {
           discount_value?: string | null
           id?: string
           is_link_only?: boolean | null
+          link_url?: string | null
           platform_id?: string | null
           reports_inactive?: number | null
           subtitle?: string | null
           title?: string
+          updated_at?: string
         }
         Update: {
           active?: boolean | null
@@ -168,10 +240,12 @@ export type Database = {
           discount_value?: string | null
           id?: string
           is_link_only?: boolean | null
+          link_url?: string | null
           platform_id?: string | null
           reports_inactive?: number | null
           subtitle?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -618,15 +692,21 @@ export type Database = {
       products: {
         Row: {
           affiliate_url: string
+          available_quantity: number | null
           badge: string | null
           brand_id: string | null
           category: string
+          category_id: string | null
           clicks: number
+          commission_rate: number | null
           created_at: string
           created_by: string | null
           description: string | null
           discount: number | null
           discount_percentage: number | null
+          external_id: string | null
+          extra_metadata: Json | null
+          features: Json | null
           gallery_urls: string[] | null
           id: string
           image_url: string | null
@@ -638,6 +718,7 @@ export type Database = {
           rating: number
           registered_by: string | null
           review_count: number
+          sales_count: number | null
           store: string
           title: string
           updated_at: string
@@ -645,15 +726,21 @@ export type Database = {
         }
         Insert: {
           affiliate_url: string
+          available_quantity?: number | null
           badge?: string | null
           brand_id?: string | null
           category?: string
+          category_id?: string | null
           clicks?: number
+          commission_rate?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           discount?: number | null
           discount_percentage?: number | null
+          external_id?: string | null
+          extra_metadata?: Json | null
+          features?: Json | null
           gallery_urls?: string[] | null
           id?: string
           image_url?: string | null
@@ -665,6 +752,7 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
+          sales_count?: number | null
           store: string
           title: string
           updated_at?: string
@@ -672,15 +760,21 @@ export type Database = {
         }
         Update: {
           affiliate_url?: string
+          available_quantity?: number | null
           badge?: string | null
           brand_id?: string | null
           category?: string
+          category_id?: string | null
           clicks?: number
+          commission_rate?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           discount?: number | null
           discount_percentage?: number | null
+          external_id?: string | null
+          extra_metadata?: Json | null
+          features?: Json | null
           gallery_urls?: string[] | null
           id?: string
           image_url?: string | null
@@ -692,6 +786,7 @@ export type Database = {
           rating?: number
           registered_by?: string | null
           review_count?: number
+          sales_count?: number | null
           store?: string
           title?: string
           updated_at?: string
@@ -703,6 +798,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
           {
@@ -839,13 +941,43 @@ export type Database = {
           },
         ]
       }
+      search_cache: {
+        Row: {
+          created_at: string | null
+          data: Json
+          expires_at: string | null
+          id: string
+          keyword: string
+          offset_val: number
+        }
+        Insert: {
+          created_at?: string | null
+          data: Json
+          expires_at?: string | null
+          id?: string
+          keyword: string
+          offset_val: number
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          expires_at?: string | null
+          id?: string
+          keyword?: string
+          offset_val?: number
+        }
+        Relationships: []
+      }
       shopee_product_mappings: {
         Row: {
           created_at: string | null
           id: string
           last_synced_at: string | null
+          offer_valid_from: string | null
+          offer_valid_to: string | null
           product_id: string
           shopee_commission_rate: number | null
+          shopee_extra_data: Json | null
           shopee_image_url: string | null
           shopee_item_id: string
           shopee_offer_id: string | null
@@ -858,8 +990,11 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_synced_at?: string | null
+          offer_valid_from?: string | null
+          offer_valid_to?: string | null
           product_id: string
           shopee_commission_rate?: number | null
+          shopee_extra_data?: Json | null
           shopee_image_url?: string | null
           shopee_item_id: string
           shopee_offer_id?: string | null
@@ -872,8 +1007,11 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_synced_at?: string | null
+          offer_valid_from?: string | null
+          offer_valid_to?: string | null
           product_id?: string
           shopee_commission_rate?: number | null
+          shopee_extra_data?: Json | null
           shopee_image_url?: string | null
           shopee_item_id?: string
           shopee_offer_id?: string | null

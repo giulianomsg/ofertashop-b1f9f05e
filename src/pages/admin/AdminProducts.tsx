@@ -55,7 +55,7 @@ const emptyForm = {
 };
 
 const AdminProducts = () => {
-  const { data: products = [], isLoading } = useProducts(false, { refetchOnWindowFocus: false });
+  const { data: products = [], isLoading } = useProducts(false);
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
