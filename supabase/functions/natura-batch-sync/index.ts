@@ -177,39 +177,35 @@ Deno.serve(async (req) => {
        const isUnavailable = pageHasContent && hasExplicitUnavailable;
 
        if (newPrice > 0) {
-          // Product is available, update price
-          if (!newOrigPrice || newOrigPrice <= newPrice) {
-             newOrigPrice = 0; // No discount case
-          }
-
-          const currentPrice = parseFloat(String(mapping.products.price));
+          // Product is available — mirror the same logic as natura-import-product
           const status = "active";
 
+          // Calculate discount exactly like import does
+          let discount = 0;
+          if (newOrigPrice && newOrigPrice > newPrice) {
+             discount = Math.round(((newOrigPrice - newPrice) / newOrigPrice) * 100);
+          }
+
+          // Always update product with the correct field mapping:
+          // price = selling price (lower), original_price = strikethrough "de:" price (higher)
           const productUpdates: Record<string, any> = {
+             price: newPrice,
+             original_price: newOrigPrice > newPrice ? newOrigPrice : null,
+             badge: discount > 0 ? `${discount}% OFF` : null,
              is_active: true,
           };
-
-          // Only update price if the scraped price differs from the CURRENT mapped price
-          // (not the manually edited products.price), to respect manual overrides
-          if (newPrice !== mapping.natura_current_price) {
-             productUpdates.price = newPrice;
-             if (newOrigPrice > newPrice) {
-                productUpdates.original_price = newOrigPrice;
-                productUpdates.badge = `${Math.round(((newOrigPrice - newPrice) / newOrigPrice) * 100)}% OFF`;
-             }
-          }
 
           debug_trace.push({
             id: mapping.id,
             status: "active",
-            old_mapped_price: mapping.natura_current_price,
+            old_price: mapping.natura_current_price,
             new_price: newPrice,
-            price_changed: newPrice !== mapping.natura_current_price,
+            new_orig_price: newOrigPrice > newPrice ? newOrigPrice : null,
           });
 
           await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
 
-          // Update mapping
+          // Update mapping with the scraped values
           await sb.from("natura_product_mappings").update({
              natura_current_price: newPrice,
              natura_original_price: newOrigPrice > newPrice ? newOrigPrice : null,
