@@ -130,10 +130,14 @@ Deno.serve(async (req) => {
     if (descText && descText.length > 20) description = descText.substring(0, 2000);
 
     // Gallery
-    $("[class*='productImage'] img, [class*='gallery'] img, [class*='carousel'] img, .swiper-slide img").each((_: any, img: any) => {
+    // Avoid generic carousel/swiper classes to prevent capturing related products
+    $("[class*='gallery'] img, [class*='productImage'] img, [id*='gallery'] img, .product-image img").each((_: any, img: any) => {
       const src = $(img).attr("data-src") || $(img).attr("src") || "";
       if (src && src.startsWith("http") && !src.includes("data:image")) {
-        galleryUrls.push(src);
+        // Prevent duplicates
+        if (!galleryUrls.includes(src)) {
+            galleryUrls.push(src);
+        }
       }
     });
 
