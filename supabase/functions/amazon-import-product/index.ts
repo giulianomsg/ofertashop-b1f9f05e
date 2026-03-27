@@ -120,15 +120,12 @@ Deno.serve(async (req) => {
     // 1. Categoria via Breadcrumb
     let resolvedCategoryId = null;
     let catName = $("#wayfinding-breadcrumbs_feature_div ul li a").last().text().trim();
-    if (!catName || catName === "") catName = "Diversos";
-    
-    const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
-    if (existingCat) {
-      resolvedCategoryId = existingCat.id;
-    } else {
-      const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      const { data: newCat } = await sb.from("categories").insert({ name: catName, slug }).select("id").single();
-      if (newCat) resolvedCategoryId = newCat.id;
+    if (catName) {
+      const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
+      if (existingCat) {
+        resolvedCategoryId = existingCat.id;
+      }
+      // If not found, leave null for admin to set manually
     }
 
     // 2. Marca (Brand) via Header
