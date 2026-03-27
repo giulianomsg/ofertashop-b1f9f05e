@@ -59,6 +59,7 @@ const ProductDetail = () => {
   const cashback = extra_metadata?.cashback;
   const sellerReputation = extra_metadata?.seller_reputation;
   const variations = extra_metadata?.variations || [];
+  const priceAnalysis = extra_metadata?.price_analysis || null;
   
   const { data: priceHistory = [] } = usePriceHistory(id || "", productAny?.brand_id, productAny?.model_id);
   const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id);
@@ -73,6 +74,7 @@ const ProductDetail = () => {
   const [reportEmail, setReportEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showAiAnalysis, setShowAiAnalysis] = useState(false);
 
   const isWished = wishlistIds.includes(id || "");
 
@@ -448,6 +450,58 @@ const ProductDetail = () => {
                 modelId={productAny?.model_id}
               />
             </div>
+
+            {/* AI Price Analysis - shown when published by admin */}
+            {priceAnalysis && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowAiAnalysis(!showAiAnalysis)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all border ${
+                    showAiAnalysis 
+                      ? "bg-accent/10 border-accent/30 text-accent" 
+                      : "bg-card border-border text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  <span>Análise de Preço por IA</span>
+                  <svg className={`w-4 h-4 ml-auto transition-transform ${showAiAnalysis ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {showAiAnalysis && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className={`rounded-xl border p-4 space-y-3 ${
+                      priceAnalysis.is_good_deal 
+                        ? "bg-emerald-500/5 border-emerald-500/20" 
+                        : "bg-amber-500/5 border-amber-500/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${priceAnalysis.is_good_deal ? "bg-emerald-500/20" : "bg-amber-500/20"}`}>
+                        {priceAnalysis.is_good_deal 
+                          ? <ThumbsUp className="w-3.5 h-3.5 text-emerald-600" /> 
+                          : <TrendingDown className="w-3.5 h-3.5 text-amber-600" />
+                        }
+                      </div>
+                      <p className={`text-sm font-bold ${priceAnalysis.is_good_deal ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
+                        {priceAnalysis.verdict}
+                      </p>
+                    </div>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{priceAnalysis.recommendation}</p>
+                    {priceAnalysis.best_platform && (
+                      <p className="text-xs text-muted-foreground">
+                        <strong className="text-foreground">Melhor plataforma:</strong> {priceAnalysis.best_platform}
+                      </p>
+                    )}
+                    {priceAnalysis.savings_tip && (
+                      <p className="text-[11px] text-muted-foreground italic border-t border-border pt-2 mt-2">
+                        💡 {priceAnalysis.savings_tip}
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            )}
 
             {/* Badges Adicionais do Mercado Livre */}
             {(isMeliPlus || extra_metadata.shipping_details === "Frete Grátis" || cashback) && (

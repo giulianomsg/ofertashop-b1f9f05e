@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, Loader2, ExternalLink, Trophy, Sparkles, ThumbsUp, ThumbsDown, Lightbulb } from "lucide-react";
+import { BarChart3, Loader2, ExternalLink, Trophy, Sparkles, ThumbsUp, ThumbsDown, Lightbulb, Upload, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -43,6 +43,36 @@ const PriceComparator = ({ productId, productTitle, open, onClose }: PriceCompar
   const [cheapestPrice, setCheapestPrice] = useState<number | null>(null);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
+
+  const handlePublishAnalysis = async () => {
+    if (!aiAnalysis) return;
+    setPublishing(true);
+    try {
+      const { data: existing } = await supabase
+        .from("products")
+        .select("extra_metadata")
+        .eq("id", productId)
+        .single();
+      const currentMeta = (existing as any)?.extra_metadata || {};
+      await (supabase as any).from("products").update({
+        extra_metadata: {
+          ...currentMeta,
+          price_analysis: {
+            ...aiAnalysis,
+            published_at: new Date().toISOString(),
+          },
+        },
+      }).eq("id", productId);
+      setPublished(true);
+      toast.success("Análise publicada na página do produto!");
+    } catch (err: any) {
+      toast.error("Erro ao publicar análise.");
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const handleCompare = async () => {
     setLoading(true);
@@ -141,6 +171,24 @@ const PriceComparator = ({ productId, productTitle, open, onClose }: PriceCompar
                       )}
                     </div>
                   </div>
+                  {/* Publish button */}
+                  <button
+                    onClick={handlePublishAnalysis}
+                    disabled={publishing || published}
+                    className={`mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all ${
+                      published
+                        ? "bg-emerald-500/20 text-emerald-600 cursor-default"
+                        : "bg-accent/10 text-accent hover:bg-accent/20"
+                    }`}
+                  >
+                    {published ? (
+                      <><Check className="w-3.5 h-3.5" /> Publicado na página do produto</>
+                    ) : publishing ? (
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Publicando...</>
+                    ) : (
+                      <><Upload className="w-3.5 h-3.5" /> Publicar na página do produto</>
+                    )}
+                  </button>
                 </motion.div>
               )}
 
