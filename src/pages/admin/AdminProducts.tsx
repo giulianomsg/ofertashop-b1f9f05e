@@ -742,6 +742,25 @@ const AdminProducts = () => {
           </motion.div>
         </div>
       )}
+
+      {/* Social Copy Generator Modal */}
+      {socialCopyProduct && (
+        <SocialCopyGenerator
+          product={socialCopyProduct}
+          open={!!socialCopyProduct}
+          onClose={() => setSocialCopyProduct(null)}
+        />
+      )}
+
+      {/* Price Comparator Modal */}
+      {comparatorProduct && (
+        <PriceComparator
+          productId={comparatorProduct.id}
+          productTitle={comparatorProduct.title}
+          open={!!comparatorProduct}
+          onClose={() => setComparatorProduct(null)}
+        />
+      )}
     </div>
   );
 };
