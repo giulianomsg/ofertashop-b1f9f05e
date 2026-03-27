@@ -20,6 +20,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("render_js", "true");
     api.searchParams.append("premium_proxy", "true");
     api.searchParams.append("country_code", "br");
+    api.searchParams.append("wait", "7000"); // Wait for Next.js SPA hydration
     return api.toString();
   }
   if (provider === 'scrape.do') {
@@ -28,6 +29,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("geoCode", "br");
     api.searchParams.append("render", "true");
+    api.searchParams.append("wait", "7000");
     return api.toString();
   }
   if (provider === 'scrapingant') {
@@ -112,7 +114,6 @@ Deno.serve(async (req) => {
     const debug_trace: any[] = [];
     let synced = 0;
 
-    // Process them in series or limited parallel
     for (const mapping of mappings) {
        if (!mapping.products?.affiliate_url) continue;
        
@@ -120,61 +121,88 @@ Deno.serve(async (req) => {
        const html = await fetchWithRetry(proxyTargetUrl);
        if (!html) {
           debug_trace.push({ id: mapping.id, status: "failed_to_fetch" });
+          // Do NOT deactivate the product on fetch failure — it's a scraper issue, not product unavailability
+          await sb.from("natura_product_mappings").update({
+             last_synced_at: new Date().toISOString()
+          }).eq("id", mapping.id);
+          synced++;
           continue;
        }
 
        const $ = cheerio.load(html);
 
-       const priceText = $("[class*='sellingPrice'], [class*='price--current'], [class*='Price'] [class*='selling'], .price-best").first().text().trim();
-       let newPrice = parsePrice(priceText);
+       // Use the same Minhaloja-specific selectors as natura-search-offers and natura-import-product
+       let priceText = $("[id='product-price-por']").first().text().trim();
+       if (!priceText) priceText = $("[id*='price']:not([id*='de']):not([id*='desconto'])").last().text().trim();
+       if (!priceText) priceText = $("[class*='sellingPrice'], [class*='price--current'], .price-best").first().text().trim();
+       const newPrice = parsePrice(priceText);
        
-       const origText = $("[class*='listPrice'], [class*='price--old'], del, [class*='Price'] [class*='list']").first().text().trim();
+       let origText = $("[id='product-price-de']").first().text().trim();
+       if (!origText) origText = $("[class*='listPrice'], [class*='price--old'], del").first().text().trim();
        let newOrigPrice = parsePrice(origText);
 
-       let isUnavailable = false;
-       if ($("[class*='unavailable'], [class*='Unavailable'], [class*='outOfStock']").length > 0) {
-          isUnavailable = true;
-          newPrice = 0;
-       }
+       // Only consider truly unavailable if the page explicitly says so via a product-unavailable banner
+       // AND the page has loaded (has a <title> or <h1>)
+       const pageHasContent = $("title").text().trim().length > 0 || $("h1").text().trim().length > 0;
+       const hasExplicitUnavailable = $("[data-testid='product-unavailable'], [id='product-unavailable']").length > 0;
+       const isUnavailable = pageHasContent && hasExplicitUnavailable;
 
        if (newPrice > 0) {
+          // Product is available, update price
           if (!newOrigPrice || newOrigPrice <= newPrice) {
-             newOrigPrice = newPrice;
+             newOrigPrice = 0; // No discount case
           }
 
-          const currentPrice = mapping.products.price;
+          const currentPrice = parseFloat(String(mapping.products.price));
           const status = "active";
-          const isActive = true;
 
-          const updates = {
-             price: newPrice,
-             original_price: newOrigPrice > newPrice ? newOrigPrice : null,
-             is_active: isActive
+          const productUpdates: Record<string, any> = {
+             is_active: true,
           };
 
-          // Compare
-          if (newPrice !== currentPrice || mapping.products.is_active !== isActive) {
-             debug_trace.push({ id: mapping.id, old_price: currentPrice, new_price: newPrice });
-             await sb.from("products").update(updates).eq("id", mapping.product_id);
-
-             // Log price history trigger will handle it automatically in DB if price differs
+          // Only update price if the scraped price differs from the CURRENT mapped price
+          // (not the manually edited products.price), to respect manual overrides
+          if (newPrice !== mapping.natura_current_price) {
+             productUpdates.price = newPrice;
+             if (newOrigPrice > newPrice) {
+                productUpdates.original_price = newOrigPrice;
+                productUpdates.badge = `${Math.round(((newOrigPrice - newPrice) / newOrigPrice) * 100)}% OFF`;
+             }
           }
+
+          debug_trace.push({
+            id: mapping.id,
+            status: "active",
+            old_mapped_price: mapping.natura_current_price,
+            new_price: newPrice,
+            price_changed: newPrice !== mapping.natura_current_price,
+          });
+
+          await sb.from("products").update(productUpdates).eq("id", mapping.product_id);
 
           // Update mapping
           await sb.from("natura_product_mappings").update({
              natura_current_price: newPrice,
-             natura_original_price: updates.original_price,
+             natura_original_price: newOrigPrice > newPrice ? newOrigPrice : null,
              natura_status: status,
              last_synced_at: new Date().toISOString()
           }).eq("id", mapping.id);
 
           synced++;
-       } else if (isUnavailable || newPrice === 0) {
-          // Mark as unavailable
+       } else if (isUnavailable) {
+          // Only deactivate if the page explicitly shows unavailable
           debug_trace.push({ id: mapping.id, status: "unavailable" });
           await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id);
           await sb.from("natura_product_mappings").update({
              natura_status: "unavailable",
+             last_synced_at: new Date().toISOString()
+          }).eq("id", mapping.id);
+          synced++;
+       } else {
+          // Could not extract price but page is not explicitly unavailable
+          // This means selectors failed or page didn't fully render — do NOT deactivate
+          debug_trace.push({ id: mapping.id, status: "price_not_found_skipped", page_has_content: pageHasContent });
+          await sb.from("natura_product_mappings").update({
              last_synced_at: new Date().toISOString()
           }).eq("id", mapping.id);
           synced++;
