@@ -112,7 +112,8 @@ Deno.serve(async (req) => {
     // Construct search URL for Minha Loja Natura/Avon or standard Natura domain
     const baseUrl = "https://www.minhaloja.natura.com/s/produtos";
     const consultant = "ofertashop"; // For now fixed, could pull from admin_settings
-    targetUrl = `${baseUrl}?busca=${encodeURIComponent(keyword)}&consultoria=${consultant}&marca=${brand}`;
+    // Minhaloja is extremely strict with + vs %20 on the search term router
+    targetUrl = `${baseUrl}?busca=${encodeURIComponent(keyword).replace(/%20/g, "+")}&consultoria=${consultant}&marca=${brand}`;
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
     console.log(`Buscando Natura/Avon via ${scraperConfig.provider}: ${targetUrl}`);
@@ -143,8 +144,12 @@ Deno.serve(async (req) => {
       let thumbnail = $(el).find("img").first().attr("src") || $(el).find("img").first().attr("data-src") || "";
       if (thumbnail && thumbnail.startsWith("//")) thumbnail = `https:${thumbnail}`;
 
-      const priceText = $(el).find("[id*='product-price-por'], [id*='price'], [class*='price'], [class*='Price'], .price").last().text().trim();
-      const originalPriceText = $(el).find("[id*='product-price-de'], [class*='old'], [class*='original'], del, s, [class*='from']").first().text().trim();
+      // Precise extraction to avoid Next.js combining multiple price span values
+      let priceText = $(el).find("[id='product-price-por']").first().text().trim();
+      if (!priceText) priceText = $(el).find("[id*='price']:not([id*='de']):not([id*='desconto']), [class*='price'], [class*='Price'], .price").last().text().trim();
+
+      let originalPriceText = $(el).find("[id='product-price-de']").first().text().trim();
+      if (!originalPriceText) originalPriceText = $(el).find("[class*='old'], [class*='original'], del, s, [class*='from']").first().text().trim();
       const price = parsePrice(priceText);
       const originalPrice = parsePrice(originalPriceText);
 
