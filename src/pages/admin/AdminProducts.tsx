@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3 } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3, History } from "lucide-react";
 import SocialCopyGenerator from "@/components/SocialCopyGenerator";
 import PriceComparator from "@/components/PriceComparator";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
@@ -328,6 +328,41 @@ const AdminProducts = () => {
     catch { toast.error("Erro ao excluir."); }
   };
 
+  const handleClearPriceHistory = async (productId: string, productTitle: string) => {
+    if (!confirm(`Limpar histórico de preços de "${productTitle}"? Somente o último registro será mantido.`)) return;
+    try {
+      // 1. Fetch the most recent price_history entry for this product
+      const { data: latest, error: fetchErr } = await supabase
+        .from("price_history" as any)
+        .select("id")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      if (!latest) {
+        toast.info("Nenhum histórico de preços encontrado.");
+        return;
+      }
+
+      // 2. Delete all entries EXCEPT the most recent one
+      const { error: deleteErr } = await supabase
+        .from("price_history" as any)
+        .delete()
+        .eq("product_id", productId)
+        .neq("id", (latest as any).id);
+
+      if (deleteErr) throw deleteErr;
+
+      toast.success("Histórico de preços limpo! Apenas o último registro foi mantido.");
+    } catch (err: any) {
+      console.error("Clear price history error:", err);
+      toast.error("Erro ao limpar histórico de preços.");
+    }
+  };
+
   const isSaving = createProduct.isPending || updateProduct.isPending;
 
   // Process filters and pagination
@@ -441,6 +476,9 @@ const AdminProducts = () => {
                       </button>
                       <button onClick={() => setComparatorProduct(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Comparar preços" title="Comparar Preços">
                         <BarChart3 className="w-4 h-4 text-info" />
+                      </button>
+                      <button onClick={() => handleClearPriceHistory(product.id, product.title)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Limpar histórico de preços" title="Limpar Histórico de Preços">
+                        <History className="w-4 h-4 text-warning" />
                       </button>
                       <button onClick={() => openEdit(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar produto"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
                       <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors" aria-label="Excluir produto"><Trash2 className="w-4 h-4 text-destructive" /></button>
