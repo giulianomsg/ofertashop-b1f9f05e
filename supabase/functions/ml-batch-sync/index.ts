@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const userId = body.userId || null;
     const isDebug = body.debug === true;
+    const productId = body.productId || null;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -118,11 +119,17 @@ Deno.serve(async (req) => {
     // Dynamic Multi-Scraper Abstraction Loading
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // Get all active ML mappings with extended fields needed for full sync
-    const { data: mappings, error: mapErr } = await sb
+    // Get ML mappings — filter by productId for single-product sync
+    let mappingsQuery = sb
       .from("ml_product_mappings")
       .select("*, products(id, title, price, original_price, is_active, sales_count, available_quantity, badge, image_url)")
       .eq("sync_status", "active");
+    
+    if (productId) {
+      mappingsQuery = mappingsQuery.eq("product_id", productId);
+    }
+
+    const { data: mappings, error: mapErr } = await mappingsQuery;
 
     if (mapErr) throw mapErr;
     if (!mappings || mappings.length === 0) {

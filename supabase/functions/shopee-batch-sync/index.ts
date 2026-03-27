@@ -61,20 +61,27 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const userId = body?.userId || null;
+    const productId = body?.productId || null;
 
     // Create sync log
     const { data: logEntry } = await sb
       .from("shopee_sync_logs")
-      .insert({ sync_type: "batch_sync", status: "running", triggered_by: userId })
+      .insert({ sync_type: productId ? "single_sync" : "batch_sync", status: "running", triggered_by: userId })
       .select("id")
       .single();
     logId = logEntry?.id || null;
 
-    // Fetch all active shopee mappings
-    const { data: mappings, error: fetchErr } = await sb
+    // Fetch shopee mappings — filter by productId for single-product sync
+    let mappingsQuery = sb
       .from("shopee_product_mappings")
       .select("*, products(id, title, price, original_price, is_active, sales_count)")
       .eq("sync_status", "active");
+    
+    if (productId) {
+      mappingsQuery = mappingsQuery.eq("product_id", productId);
+    }
+
+    const { data: mappings, error: fetchErr } = await mappingsQuery;
 
     if (fetchErr) throw fetchErr;
 

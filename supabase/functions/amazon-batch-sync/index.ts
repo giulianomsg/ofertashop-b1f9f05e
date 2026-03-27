@@ -83,15 +83,22 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { userId } = await req.json();
+    const { userId, productId } = await req.json();
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    const { data: mappings, error: mappingError } = await sb
+    let mappingsQuery = sb
       .from("amazon_product_mappings")
       .select("*, products(id, price, is_active)")
-      .order("last_synced_at", { ascending: true }) // Pegar os mais antigos primeiro para evitar timeout em catálogos grandes
-      .limit(30);
+      .order("last_synced_at", { ascending: true });
+
+    if (productId) {
+      mappingsQuery = mappingsQuery.eq("product_id", productId);
+    } else {
+      mappingsQuery = mappingsQuery.limit(30);
+    }
+
+    const { data: mappings, error: mappingError } = await mappingsQuery;
 
     if (mappingError) throw mappingError;
     if (!mappings || mappings.length === 0) {

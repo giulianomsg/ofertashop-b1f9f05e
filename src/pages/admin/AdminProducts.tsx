@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3, History } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3, History, RefreshCw, ExternalLink } from "lucide-react";
 import SocialCopyGenerator from "@/components/SocialCopyGenerator";
 import PriceComparator from "@/components/PriceComparator";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
@@ -76,6 +76,7 @@ const AdminProducts = () => {
   // Social Copy & Price Comparator modals
   const [socialCopyProduct, setSocialCopyProduct] = useState<any>(null);
   const [comparatorProduct, setComparatorProduct] = useState<any>(null);
+  const [syncingProductId, setSyncingProductId] = useState<string | null>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -363,6 +364,37 @@ const AdminProducts = () => {
     }
   };
 
+  // Platform name → Edge Function mapping for per-product sync
+  const PLATFORM_SYNC_FUNCTIONS: Record<string, string> = {
+    shopee: "shopee-batch-sync",
+    "mercado livre": "ml-batch-sync",
+    amazon: "amazon-batch-sync",
+    natura: "natura-batch-sync",
+    avon: "natura-batch-sync",
+  };
+
+  const handleSyncProduct = async (product: any) => {
+    const platformName = platforms.find((p) => p.id === product.platform_id)?.name?.toLowerCase() || "";
+    const syncFn = Object.entries(PLATFORM_SYNC_FUNCTIONS).find(([key]) => platformName.includes(key))?.[1];
+    if (!syncFn) {
+      toast.error("Plataforma sem suporte para sincronização individual.");
+      return;
+    }
+    setSyncingProductId(product.id);
+    try {
+      const { data, error } = await supabase.functions.invoke(syncFn, {
+        body: { userId: user?.id, productId: product.id },
+      });
+      if (error) throw error;
+      toast.success(`Preço de "${product.title}" sincronizado!`);
+      console.log("Single product sync result:", data);
+    } catch (err: any) {
+      toast.error(`Erro ao sincronizar: ${err.message}`);
+    } finally {
+      setSyncingProductId(null);
+    }
+  };
+
   const isSaving = createProduct.isPending || updateProduct.isPending;
 
   // Process filters and pagination
@@ -471,6 +503,18 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <a href={(product as any).affiliate_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Visitar produto" title="Visitar Produto">
+                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                      </a>
+                      <button
+                        onClick={() => handleSyncProduct(product)}
+                        disabled={syncingProductId === product.id}
+                        className="p-2 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50"
+                        aria-label="Sincronizar preço"
+                        title="Sincronizar Preço"
+                      >
+                        <RefreshCw className={`w-4 h-4 text-success ${syncingProductId === product.id ? "animate-spin" : ""}`} />
+                      </button>
                       <button onClick={() => setSocialCopyProduct(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Gerar copy" title="Gerar Copy IA">
                         <Sparkles className="w-4 h-4 text-accent" />
                       </button>

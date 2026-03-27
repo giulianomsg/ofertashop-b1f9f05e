@@ -98,16 +98,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { userId } = await req.json();
+    const { userId, productId } = await req.json();
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const scraperConfig = await getActiveScraperConfig(sb);
 
-    // Fetch batch of mappings to sync
-    const { data: mappings, error: fetchErr } = await sb
+    // Fetch batch of mappings to sync — filter by productId if provided for single-product sync
+    let query = sb
       .from("natura_product_mappings")
       .select("*, products(id, price, original_price, affiliate_url, is_active)")
-      .order("last_synced_at", { ascending: true, nullsFirst: true })
-      .limit(10); // Process 10 items at a time to stay under function timeouts
+      .order("last_synced_at", { ascending: true, nullsFirst: true });
+
+    if (productId) {
+      query = query.eq("product_id", productId);
+    } else {
+      query = query.limit(10);
+    }
+
+    const { data: mappings, error: fetchErr } = await query;
 
     if (fetchErr) throw fetchErr;
     if (!mappings || mappings.length === 0) {
