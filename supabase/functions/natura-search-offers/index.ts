@@ -20,6 +20,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("render_js", "true");
     api.searchParams.append("premium_proxy", "true");
     api.searchParams.append("country_code", "br");
+    api.searchParams.append("wait", "10000"); // Ensure Next.js SPA hydrates and product skeleton loaders vanish
     return api.toString();
   }
   if (provider === 'scrape.do') {
@@ -109,13 +110,9 @@ Deno.serve(async (req) => {
     const page = Math.floor(offset / 48) + 1; // Basic pagination
     
     // Construct search URL for Minha Loja Natura/Avon or standard Natura domain
-    // For now, mirroring the requested active search approach
-    if (searchType === "default" && keyword) {
-        targetUrl = `https://www.natura.com.br/busca?q=${encodeURIComponent(keyword)}&page=${page}`;
-    } else {
-        // Fallback to minhaloja
-        targetUrl = `https://www.minhaloja.natura.com/consultoria/ofertashop?marca=${brand}&page=${page}`;
-    }
+    const baseUrl = "https://www.minhaloja.natura.com/s/produtos";
+    const consultant = "ofertashop"; // For now fixed, could pull from admin_settings
+    targetUrl = `${baseUrl}?busca=${encodeURIComponent(keyword)}&consultoria=${consultant}&marca=${brand}`;
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
     console.log(`Buscando Natura/Avon via ${scraperConfig.provider}: ${targetUrl}`);
@@ -124,36 +121,38 @@ Deno.serve(async (req) => {
     const $ = cheerio.load(html);
     const results: any[] = [];
     
-    $(".product-card, [class*='ProductCard'], [class*='product-item'], .showcase-item, article[class*='product']").each((_, el) => {
-      const title = $(el).find("[class*='name'], [class*='title'], h3, h2").first().text().trim();
+    $("[id='product-card'], .product-card, [class*='ProductCard'], [class*='product-item'], .showcase-item, article[class*='product']").each((_, el) => {
+      // Titles are often inside h4 or a link
+      const title = $(el).find("h4, h3, h2, [class*='name'], [class*='title']").text().trim();
       const linkEl = $(el).find("a[href*='/p/'], a[href*='natura.com']").first();
       let permalink = linkEl.attr("href") || "";
       if (permalink && !permalink.startsWith("http")) {
           permalink = `https://www.natura.com.br${permalink}`; // Default base
       }
 
-      // Extract a unique ID from permalink
+      // Extract a unique ID from permalink (e.g. NATBRA-205941)
       let id = "";
-      const idMatch = permalink.match(/-(\d+)$/); // e.g., /p/blabla-123456
-      if (idMatch) {
-          id = idMatch[1];
-      } else {
-          // Hash fallback
-          id = "nat_" + Math.random().toString(36).substr(2, 9);
+      try {
+        const urlObj = new URL(permalink, "https://www.natura.com.br");
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        id = pathParts[pathParts.length - 1]; // The last segment is usually the SKU or ID
+      } catch(e) {
+        id = "nat_" + Math.random().toString(36).substr(2, 9);
       }
 
       let thumbnail = $(el).find("img").first().attr("src") || $(el).find("img").first().attr("data-src") || "";
       if (thumbnail && thumbnail.startsWith("//")) thumbnail = `https:${thumbnail}`;
 
-      const priceText = $(el).find("[class*='price'], [class*='Price'], .price").last().text().trim();
-      const originalPriceText = $(el).find("[class*='old'], [class*='original'], del, s, [class*='from']").first().text().trim();
+      const priceText = $(el).find("[id*='product-price-por'], [id*='price'], [class*='price'], [class*='Price'], .price").last().text().trim();
+      const originalPriceText = $(el).find("[id*='product-price-de'], [class*='old'], [class*='original'], del, s, [class*='from']").first().text().trim();
       const price = parsePrice(priceText);
       const originalPrice = parsePrice(originalPriceText);
 
       // Extract Rating snippet if present
       let rating = 0;
       let reviewCount = 0;
-      const ratingText = $(el).find("[class*='rating'], [class*='Rating']").text().trim(); // Simplistic
+      const ratingContainer = $(el).find("i[data-icon-name*='rating']").parent().parent();
+      const ratingText = ratingContainer.length ? ratingContainer.text().trim() : $(el).find("[class*='rating'], [class*='Rating']").text().trim();
       if (ratingText) {
           const m = ratingText.match(/(\d[\.,]\d)/);
           if (m) rating = parseFloat(m[1].replace(",", "."));
