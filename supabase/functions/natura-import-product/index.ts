@@ -20,6 +20,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("render_js", "true");
     api.searchParams.append("premium_proxy", "true");
     api.searchParams.append("country_code", "br");
+    api.searchParams.append("wait", "7000");
     return api.toString();
   }
   if (provider === 'scrape.do') {
@@ -28,6 +29,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("geoCode", "br");
     api.searchParams.append("render", "true");
+    api.searchParams.append("wait", "7000");
     return api.toString();
   }
   if (provider === 'scrapingant') {
@@ -90,6 +92,42 @@ function parsePrice(text: string): number {
   return parseFloat(cleaned) || 0;
 }
 
+/**
+ * Natura CDN uses a predictable pattern for product images:
+ * e.g. https://production.na01.natura.com/dw/image/v2/.../NATBRA-205941_1.jpg?sw=300&q=80
+ * We can generate _2, _3, ... _N variants and verify them via HEAD requests.
+ */
+async function generateGalleryFromCdn(baseImageUrl: string, maxImages = 6): Promise<string[]> {
+  const gallery: string[] = [];
+  if (!baseImageUrl) return gallery;
+
+  // Extract the base pattern: replace _1 with _N
+  const match = baseImageUrl.match(/(.*_)(\d+)(\.\w+)(\?.*)?$/);
+  if (!match) {
+    gallery.push(baseImageUrl);
+    return gallery;
+  }
+
+  const [, prefix, , ext, queryStr] = match;
+  const query = queryStr || "?sw=600&q=80"; // Use higher quality for gallery
+
+  for (let i = 1; i <= maxImages; i++) {
+    const candidateUrl = `${prefix}${i}${ext}${query}`;
+    try {
+      const headRes = await fetch(candidateUrl, { method: "HEAD" });
+      if (headRes.ok) {
+        gallery.push(candidateUrl);
+      } else {
+        break; // Stop at first 404
+      }
+    } catch {
+      break;
+    }
+  }
+
+  return gallery;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -116,12 +154,14 @@ Deno.serve(async (req) => {
     const domTitle = $("h1, [class*='productName'], [class*='product-name']").first().text().trim();
     if (domTitle && domTitle.length > 5) enrichedTitle = domTitle;
 
-    // Price
-    const priceText = $("[class*='sellingPrice'], [class*='price--current'], [class*='Price'] [class*='selling'], .price-best").first().text().trim();
+    // Price – use the precise IDs from Minhaloja PDP if available
+    let priceText = $("[id='product-price-por']").first().text().trim();
+    if (!priceText) priceText = $("[class*='sellingPrice'], [class*='price--current'], .price-best").first().text().trim();
     const domPrice = parsePrice(priceText);
     if (domPrice > 0) enrichedPrice = domPrice;
 
-    const origText = $("[class*='listPrice'], [class*='price--old'], del, [class*='Price'] [class*='list']").first().text().trim();
+    let origText = $("[id='product-price-de']").first().text().trim();
+    if (!origText) origText = $("[class*='listPrice'], [class*='price--old'], del").first().text().trim();
     const domOrig = parsePrice(origText);
     if (domOrig > enrichedPrice) enrichedOriginalPrice = domOrig;
 
@@ -129,21 +169,28 @@ Deno.serve(async (req) => {
     const descText = $("[class*='productDescription'], [class*='description'], #description, [class*='details']").first().text().trim();
     if (descText && descText.length > 20) description = descText.substring(0, 2000);
 
-    // Gallery
-    // Avoid generic carousel/swiper classes to prevent capturing related products
-    $("[class*='gallery'] img, [class*='productImage'] img, [id*='gallery'] img, .product-image img").each((_: any, img: any) => {
-      const src = $(img).attr("data-src") || $(img).attr("src") || "";
-      if (src && src.startsWith("http") && !src.includes("data:image")) {
-        // Prevent duplicates
-        if (!galleryUrls.includes(src)) {
-            galleryUrls.push(src);
-        }
-      }
-    });
+    // Gallery – Use Natura CDN pattern instead of DOM selectors to avoid related product images
+    // First, find the main product image from the page
+    let mainProductImage = enrichedImageUrl || "";
+    if (!mainProductImage) {
+      // Try to find it from the PDP page
+      const pdpImg = $("img[alt*='" + (enrichedTitle || "").substring(0, 20) + "']").first().attr("src")
+        || $("[class*='productImage'] img, .product-image img").first().attr("src")
+        || $('meta[property="og:image"]').attr("content")
+        || "";
+      mainProductImage = pdpImg;
+    }
 
-    if (galleryUrls.length > 0) {
-      if (!enrichedImageUrl) enrichedImageUrl = galleryUrls[0];
-    } else if (!enrichedImageUrl) {
+    // Generate gallery from CDN pattern (_1.jpg, _2.jpg, _3.jpg...)
+    if (mainProductImage && mainProductImage.includes("natura.com")) {
+      galleryUrls = await generateGalleryFromCdn(mainProductImage);
+      if (galleryUrls.length > 0) {
+        enrichedImageUrl = galleryUrls[0];
+      }
+    }
+
+    // Fallback: if CDN pattern didn't work, use og:image
+    if (!enrichedImageUrl) {
       const ogImg = $('meta[property="og:image"]').attr("content");
       if (ogImg) enrichedImageUrl = ogImg;
     }

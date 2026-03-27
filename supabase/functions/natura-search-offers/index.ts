@@ -20,7 +20,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("render_js", "true");
     api.searchParams.append("premium_proxy", "true");
     api.searchParams.append("country_code", "br");
-    api.searchParams.append("wait", "10000"); // Ensure Next.js SPA hydrates and product skeleton loaders vanish
+    api.searchParams.append("wait", "7000"); // Wait for Next.js SPA hydration
     return api.toString();
   }
   if (provider === 'scrape.do') {
@@ -29,6 +29,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("geoCode", "br");
     api.searchParams.append("render", "true");
+    api.searchParams.append("waitForSelector", "[id='product-card']");
     return api.toString();
   }
   if (provider === 'scrapingant') {
@@ -38,6 +39,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("proxy_country", "BR");
     api.searchParams.append("browser", "true");
     api.searchParams.append("proxy_type", "residential");
+    api.searchParams.append("wait_for_selector", "[id='product-card']");
     return api.toString();
   }
   if (provider === 'scraperapi') {
@@ -46,6 +48,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("country_code", "br");
     api.searchParams.append("render", "true");
+    api.searchParams.append("wait_for_selector", "[id='product-card']");
     return api.toString();
   }
   throw new Error(`Scraper provider desconhecido: ${provider}`);
