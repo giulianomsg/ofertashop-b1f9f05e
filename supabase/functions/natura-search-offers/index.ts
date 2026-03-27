@@ -106,6 +106,14 @@ Deno.serve(async (req) => {
   try {
     const { keyword = "", offset = 0, searchType = "default", categoryId = "", brand = "natura" } = await req.json();
 
+    // Limit keyword to 50 characters to avoid issues with long queries
+    const trimmedKeyword = keyword.trim().substring(0, 50);
+    if (!trimmedKeyword) {
+      return new Response(JSON.stringify({ results: [], paging: { offset, limit: 48 } }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const scraperConfig = await getActiveScraperConfig(sb);
 
@@ -116,7 +124,7 @@ Deno.serve(async (req) => {
     const baseUrl = "https://www.minhaloja.natura.com/s/produtos";
     const consultant = "ofertashop"; // For now fixed, could pull from admin_settings
     // Minhaloja is extremely strict with + vs %20 on the search term router
-    targetUrl = `${baseUrl}?busca=${encodeURIComponent(keyword).replace(/%20/g, "+")}&consultoria=${consultant}&marca=${brand}`;
+    targetUrl = `${baseUrl}?busca=${encodeURIComponent(trimmedKeyword).replace(/%20/g, "+")}&consultoria=${consultant}&marca=${brand}`;
 
     const proxyTargetUrl = buildScraperUrl(scraperConfig, targetUrl);
     console.log(`Buscando Natura/Avon via ${scraperConfig.provider}: ${targetUrl}`);
