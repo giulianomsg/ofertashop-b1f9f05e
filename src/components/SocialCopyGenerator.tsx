@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Loader2, Copy, Check, Instagram, MessageCircle, Video, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +56,29 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
   const [content, setContent] = useState<SocialCopyContent | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("instagram");
   const [usedModel, setUsedModel] = useState<string>("");
+  const [loadingSaved, setLoadingSaved] = useState(false);
+
+  // Load previously saved content when modal opens
+  useEffect(() => {
+    if (!open || !product?.id) return;
+    const loadSaved = async () => {
+      setLoadingSaved(true);
+      try {
+        const { data } = await supabase
+          .from("products")
+          .select("extra_metadata")
+          .eq("id", product.id)
+          .single();
+        const saved = (data as any)?.extra_metadata?.social_copy;
+        if (saved?.content) {
+          setContent(saved.content);
+          setUsedModel(saved.model || "");
+        }
+      } catch (_e) {}
+      setLoadingSaved(false);
+    };
+    loadSaved();
+  }, [open, product?.id]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -69,7 +92,26 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
       if (data?.content) {
         setContent(data.content);
         setUsedModel(data.model || "");
-        toast.success("Conteúdo gerado com sucesso!");
+
+        // Save to product extra_metadata for future reference
+        const { data: existing } = await supabase
+          .from("products")
+          .select("extra_metadata")
+          .eq("id", product.id)
+          .single();
+        const currentMeta = (existing as any)?.extra_metadata || {};
+        await (supabase as any).from("products").update({
+          extra_metadata: {
+            ...currentMeta,
+            social_copy: {
+              content: data.content,
+              model: data.model || "",
+              generated_at: new Date().toISOString(),
+            },
+          },
+        }).eq("id", product.id);
+
+        toast.success("Conteúdo gerado e salvo com sucesso!");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro ao gerar conteúdo. Verifique a configuração em IA / Conteúdo.");
