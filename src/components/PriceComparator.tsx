@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, Loader2, ExternalLink, X, Trophy, TrendingDown } from "lucide-react";
+import { BarChart3, Loader2, ExternalLink, Trophy, Sparkles, ThumbsUp, ThumbsDown, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,6 +21,14 @@ interface PriceResult {
   cheapestPrice: number;
 }
 
+interface AIAnalysis {
+  is_good_deal: boolean;
+  verdict: string;
+  recommendation: string;
+  best_platform: string;
+  savings_tip: string;
+}
+
 interface PriceComparatorProps {
   productId: string;
   productTitle: string;
@@ -34,10 +42,12 @@ const PriceComparator = ({ productId, productTitle, open, onClose }: PriceCompar
   const [cheapestPlatform, setCheapestPlatform] = useState<string | null>(null);
   const [cheapestPrice, setCheapestPrice] = useState<number | null>(null);
   const [currentProduct, setCurrentProduct] = useState<any>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
 
   const handleCompare = async () => {
     setLoading(true);
     setResults([]);
+    setAiAnalysis(null);
     try {
       const { data, error } = await supabase.functions.invoke("compare-prices", {
         body: { productId },
@@ -48,6 +58,7 @@ const PriceComparator = ({ productId, productTitle, open, onClose }: PriceCompar
       setCheapestPlatform(data.cheapestPlatform);
       setCheapestPrice(data.cheapestPrice);
       setCurrentProduct(data.currentProduct);
+      setAiAnalysis(data.aiAnalysis || null);
       if (data.results?.length === 0) {
         toast.info("Nenhum produto similar encontrado em outras plataformas.");
       }
@@ -83,20 +94,57 @@ const PriceComparator = ({ productId, productTitle, open, onClose }: PriceCompar
           className="btn-accent w-full flex items-center justify-center gap-2 py-3"
         >
           {loading ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Comparando...</>
+            <><Loader2 className="w-4 h-4 animate-spin" /> Analisando com IA...</>
           ) : (
-            <><BarChart3 className="w-4 h-4" /> {results.length > 0 ? "Comparar Novamente" : "Comparar Preços"}</>
+            <><Sparkles className="w-4 h-4" /> {results.length > 0 ? "Comparar Novamente" : "Comparar Preços com IA"}</>
           )}
         </button>
 
         <AnimatePresence>
-          {results.length > 0 && (
+          {(results.length > 0 || aiAnalysis) && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              {/* Summary */}
+              {/* AI Analysis Card */}
+              {aiAnalysis && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`p-4 rounded-xl border ${
+                    aiAnalysis.is_good_deal
+                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      : "bg-amber-500/10 border-amber-500/20"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg shrink-0 ${aiAnalysis.is_good_deal ? "bg-emerald-500/20" : "bg-amber-500/20"}`}>
+                      {aiAnalysis.is_good_deal
+                        ? <ThumbsUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        : <ThumbsDown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      }
+                    </div>
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
+                        <p className={`text-sm font-bold ${aiAnalysis.is_good_deal ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
+                          {aiAnalysis.verdict}
+                        </p>
+                      </div>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{aiAnalysis.recommendation}</p>
+                      {aiAnalysis.savings_tip && (
+                        <div className="flex items-start gap-1.5 mt-1">
+                          <Lightbulb className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-muted-foreground italic">{aiAnalysis.savings_tip}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Cheapest summary */}
               {cheapestPlatform && cheapestPrice && (
                 <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                   <div className="flex items-center gap-2 text-emerald-600">
