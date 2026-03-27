@@ -128,7 +128,9 @@ Deno.serve(async (req) => {
       const linkEl = $(el).find("a[href*='/p/'], a[href*='natura.com']").first();
       let permalink = linkEl.attr("href") || "";
       if (permalink && !permalink.startsWith("http")) {
-          permalink = `https://www.natura.com.br${permalink}`; // Default base
+          // If the href starts with /, we don't need to add another /
+          const prefix = permalink.startsWith("/") ? "" : "/";
+          permalink = `https://minhaloja.natura.com${prefix}${permalink}`;
       }
 
       // Extract a unique ID from permalink (e.g. NATBRA-205941)
