@@ -9,6 +9,7 @@ interface SocialCopyContent {
   instagram_captions: string[];
   whatsapp_message: string;
   reels_hook: string;
+  video_description?: string;
 }
 
 interface SocialCopyGeneratorProps {
@@ -86,6 +87,7 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
       content.whatsapp_message,
       "\n\n🎬 REELS/STORIES HOOK:",
       content.reels_hook,
+      ...(content.video_description ? ["\n\n🎥 DESCRIÇÃO DO VÍDEO:", content.video_description] : []),
     ].join("\n");
     navigator.clipboard.writeText(allText);
     toast.success("Todo o conteúdo copiado!");
@@ -217,6 +219,7 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
+                    className="space-y-3"
                   >
                     {content.reels_hook && (
                       <CopyBlock
@@ -224,6 +227,14 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
                         icon={Video}
                         content={content.reels_hook}
                         accentClass="border-l-2 border-purple-500"
+                      />
+                    )}
+                    {content.video_description && (
+                      <CopyBlock
+                        label="Descrição do Vídeo"
+                        icon={Video}
+                        content={content.video_description}
+                        accentClass="border-l-2 border-blue-500"
                       />
                     )}
                   </motion.div>

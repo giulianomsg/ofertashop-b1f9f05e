@@ -84,14 +84,32 @@ Deno.serve(async (req) => {
       ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
       : 0;
 
-    const systemPrompt = `Você é um copywriter brasileiro especialista em marketing de afiliados e conversão. 
-Seu objetivo é criar conteúdo persuasivo, com gatilhos mentais de urgência e escassez, que gere cliques e vendas.
-Responda APENAS em formato JSON válido, sem markdown, sem blocos de código. O JSON deve ter exatamente estas chaves:
-{
+    const hasVideo = !!product.video_url;
+    const productLink = product.affiliate_url || "";
+
+    const jsonStructure = hasVideo
+      ? `{
+  "instagram_captions": ["legenda1", "legenda2", "legenda3"],
+  "whatsapp_message": "mensagem",
+  "reels_hook": "hook",
+  "video_description": "descrição do vídeo com link saiba mais"
+}`
+      : `{
   "instagram_captions": ["legenda1", "legenda2", "legenda3"],
   "whatsapp_message": "mensagem",
   "reels_hook": "hook"
 }`;
+
+    const systemPrompt = `Você é um copywriter brasileiro especialista em marketing de afiliados e conversão. 
+Seu objetivo é criar conteúdo persuasivo, com gatilhos mentais de urgência e escassez, que gere cliques e vendas.
+REGRA CRÍTICA: Você DEVE incluir o link do produto em TODOS os textos gerados.
+Responda APENAS em formato JSON válido, sem markdown, sem blocos de código. O JSON deve ter exatamente estas chaves:
+${jsonStructure}`;
+
+    const videoInstructions = hasVideo
+      ? `
+4. O produto possui um vídeo. Gere uma "video_description" (texto de descrição para acompanhar o vídeo nas redes sociais, 3-5 linhas com emojis, incluindo um CTA "🔗 Saiba mais: ${productLink}" no final da descrição)`
+      : "";
 
     const userPrompt = `Gere conteúdo de redes sociais para este produto de afiliado:
 
@@ -102,14 +120,15 @@ ${originalPriceFormatted ? `Preço original: ${originalPriceFormatted}` : ""}
 ${discount > 0 ? `Desconto: ${discount}%` : ""}
 ${product.description ? `Descrição: ${product.description.substring(0, 300)}` : ""}
 ${product.rating ? `Avaliação: ${product.rating}/5` : ""}
+Link do produto: ${productLink}
 
 REGRAS OBRIGATÓRIAS:
-1. 3 variações de legendas para Instagram (com emojis relevantes e 5-8 hashtags cada, incluindo #oferta #desconto e hashtags do nicho)
-2. 1 mensagem curta e persuasiva para WhatsApp (com emojis, no máximo 3 linhas, direta ao ponto)
-3. 1 hook curto para Reels/Stories (máximo 10 palavras, impactante, com emoji)
+1. 3 variações de legendas para Instagram (com emojis relevantes e 5-8 hashtags cada, incluindo #oferta #desconto e hashtags do nicho). INCLUA O LINK "${productLink}" no final de CADA legenda.
+2. 1 mensagem curta e persuasiva para WhatsApp (com emojis, no máximo 4 linhas, direta ao ponto). INCLUA O LINK "${productLink}" na mensagem.
+3. 1 hook curto para Reels/Stories (máximo 10 palavras, impactante, com emoji)${videoInstructions}
 
 Use gatilhos: urgência ("por tempo limitado"), escassez ("últimas unidades"), prova social ("mais vendido"), autoridade ("recomendado").
-Inclua CTAs como "Link na bio 🔗", "Corre que acaba rápido!", "Aproveite agora!".`;
+Inclua CTAs como "Compre aqui 👇", "Corre que acaba rápido!", "Aproveite agora!".`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
