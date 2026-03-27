@@ -1,5 +1,6 @@
 // Edge Function: shopee-import-product (standalone)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as cheerio from "https://esm.sh/cheerio@1.0.0-rc.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,6 +47,85 @@ async function shopeeGraphQL<T = any>(query: string, variables: Record<string, a
   return json.data as T;
 }
 
+// --- MULTI-SCRAPER ABSTRACTION ---
+interface ScraperConfig {
+  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
+  apiKey: string;
+}
+
+function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
+  try {
+    const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
+    if (data?.value?.activeProvider && data?.value?.keys) {
+      const provider = data.value.activeProvider;
+      const apiKey = data.value.keys[provider];
+      if (apiKey) return { provider, apiKey };
+    }
+  } catch (e) { /* ignore */ }
+
+  const defaultKey = Deno.env.get("SCRAPINGBEE_API_KEY");
+  if (defaultKey) return { provider: "scrapingbee", apiKey: defaultKey };
+  throw new Error("Nenhum serviço de Web Scraper configurado.");
+}
+
+async function fetchWithRetry(url: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        let finalHtml = await res.text();
+        try {
+          const json = JSON.parse(finalHtml);
+          if (json && typeof json.content === 'string') finalHtml = json.content;
+        } catch (e) { /* raw html */ }
+        return finalHtml;
+      }
+    } catch (err: any) {
+      if (i === maxRetries - 1) throw err;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
+  }
+  throw new Error("Falha ao buscar página.");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -53,7 +133,6 @@ Deno.serve(async (req) => {
 
   try {
     const { offer, categoryId, platformId, userId } = await req.json();
-    const categoryName = offer?.categoryName || null;
 
     if (!offer || !offer.itemId) {
       return new Response(JSON.stringify({ error: "offer com itemId é obrigatório" }), {
@@ -114,50 +193,94 @@ Deno.serve(async (req) => {
       resolvedPlatformId = shopeePlatform?.id || null;
     }
 
-    // Resolve category_id: use provided or auto-create from categoryName
+    // Resolve category_id: use provided or search existing only (NO auto-create)
     let resolvedCategoryId = categoryId || null;
-    if (!resolvedCategoryId && categoryName) {
-      // Try to find existing category
+    if (!resolvedCategoryId && offer.categoryName) {
       const { data: existingCat } = await sb
         .from("categories")
         .select("id")
-        .ilike("name", categoryName)
+        .ilike("name", offer.categoryName)
         .maybeSingle();
-
       if (existingCat) {
         resolvedCategoryId = existingCat.id;
-      } else {
-        // Auto-create category
-        const slug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-        const { data: newCat } = await sb
-          .from("categories")
-          .insert({ name: categoryName, slug })
-          .select("id")
-          .single();
-        if (newCat) resolvedCategoryId = newCat.id;
       }
+      // If not found, leave null for admin to set manually
     }
 
-    // Identifique o valor base do produto tratando as micro-unidades (>100000)
-    const baseRaw = parseFloat(offer.priceMax) || parseFloat(offer.price) || parseFloat(offer.priceMin) || 0;
-    const basePrice = baseRaw > 100000 ? baseRaw / 100000 : baseRaw;
-
+    // === PRICING: Use literal values from API ===
+    // priceMax = full price (original/sem desconto), priceMin = discounted price (com desconto)
+    const priceMax = parseFloat(offer.priceMax) || parseFloat(offer.price) || 0;
+    const priceMin = parseFloat(offer.priceMin) || 0;
     const discountRate = parseFloat(offer.priceDiscountRate) || 0;
 
-    let finalPrice = basePrice;
+    let finalPrice: number;
     let finalOriginalPrice: number | null = null;
 
-    if (discountRate > 0) {
-      finalOriginalPrice = basePrice;
-      finalPrice = basePrice * (1 - (discountRate / 100));
+    if (priceMin > 0 && priceMax > priceMin) {
+      // priceMin is the discounted/cash price, priceMax is the original
+      finalPrice = priceMin;
+      finalOriginalPrice = priceMax;
+    } else if (discountRate > 0 && priceMax > 0) {
+      finalOriginalPrice = priceMax;
+      finalPrice = priceMax * (1 - (discountRate / 100));
     } else {
-      finalPrice = basePrice;
+      finalPrice = priceMax > 0 ? priceMax : 0.01;
       finalOriginalPrice = null;
     }
 
     // Compute commission percentage properly
     const rate = Number(offer.commissionRate) || 0;
     const commissionPct = rate < 1 && rate > 0 ? rate * 100 : rate;
+
+    // === SCRAPING FALLBACK: Enrich product data ===
+    let scrapedDescription: string | null = null;
+    let scrapedGalleryUrls: string[] = [];
+    let scrapedImageUrl = offer.imageUrl || null;
+
+    try {
+      const productUrl = offer.productLink || offer.offerLink;
+      if (productUrl) {
+        const scraperConfig = await getActiveScraperConfig(sb);
+        const proxyUrl = buildScraperUrl(scraperConfig, productUrl);
+        console.log(`[Shopee Scraping] Enriching product via ${scraperConfig.provider}`);
+        const html = await fetchWithRetry(proxyUrl);
+        const $ = cheerio.load(html);
+
+        // Try to extract better images
+        const images: string[] = [];
+        $("img[src*='cf.shopee'], img[src*='down-id.img.susercontent'], img[data-src*='cf.shopee']").each((_: any, el: any) => {
+          const src = $(el).attr("data-src") || $(el).attr("src") || "";
+          if (src && src.startsWith("http") && !src.includes("data:image")) {
+            // Get high-res version
+            const hiRes = src.replace(/_tn$/, "").replace(/\?.*$/, "");
+            images.push(hiRes);
+          }
+        });
+        // Also try og:image and product gallery images
+        $('meta[property="og:image"]').each((_: any, el: any) => {
+          const content = $(el).attr("content");
+          if (content && content.startsWith("http")) images.push(content);
+        });
+
+        if (images.length > 0) {
+          const uniqueImages = [...new Set(images)].slice(0, 8);
+          scrapedGalleryUrls = uniqueImages;
+          scrapedImageUrl = uniqueImages[0] || scrapedImageUrl;
+        }
+
+        // Extract description
+        const descEl = $(".product-detail, [class*='product-detail'], [class*='description'], .QN2lPu").text().trim();
+        if (descEl && descEl.length > 20) {
+          scrapedDescription = descEl.substring(0, 2000);
+        }
+        if (!scrapedDescription) {
+          const ogDesc = $('meta[property="og:description"]').attr("content");
+          if (ogDesc && ogDesc.length > 20) scrapedDescription = ogDesc;
+        }
+      }
+    } catch (scrapeErr) {
+      console.warn("[Shopee Scraping] Fallback scraping failed (non-blocking):", scrapeErr);
+    }
 
     // Insert product
     const { data: product, error: productErr } = await sb
@@ -166,9 +289,11 @@ Deno.serve(async (req) => {
         title: offer.productName || "Produto Shopee",
         price: finalPrice > 0 ? finalPrice : 0.01,
         original_price: finalOriginalPrice,
+        description: scrapedDescription || null,
         store: offer.shopName || "Shopee",
         affiliate_url: shortLink || offer.productLink || "",
-        image_url: offer.imageUrl || null,
+        image_url: scrapedImageUrl,
+        gallery_urls: scrapedGalleryUrls.length > 0 ? scrapedGalleryUrls : null,
         category_id: resolvedCategoryId,
         platform_id: resolvedPlatformId,
         is_active: true,
@@ -182,6 +307,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (productErr) throw productErr;
+
+    // price_history is automatically populated by the track_price_history trigger
 
     const shopee_extra_data = {
       appExistRate: offer.appExistRate,

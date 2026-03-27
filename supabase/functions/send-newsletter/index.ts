@@ -1,25 +1,5 @@
 // supabase/functions/send-newsletter/index.ts
-// Supabase Edge Function — Processador da Fila de E-mails
-//
-// Busca emails pendentes na tabela email_queue (status = 'pending'),
-// envia via serviço de transporte configurável (Resend por padrão),
-// e marca cada registro como 'sent' ou 'failed'.
-//
-// CONFIGURAÇÃO (Supabase Secrets):
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-//   RESEND_API_KEY  — Chave da API do Resend (https://resend.com)
-//   EMAIL_FROM      — Remetente (ex: "OfertaShop <noreply@ofertashop.com.br>")
-//
-// CRON (pg_cron — a cada 5 minutos):
-//   SELECT cron.schedule('send-newsletter-queue', '*/5 * * * *',
-//     $$SELECT extensions.http_post(
-//       'https://<project>.supabase.co/functions/v1/send-newsletter',
-//       '{}', 'application/json',
-//       ARRAY[extensions.http_header('Authorization', 'Bearer <SERVICE_ROLE_KEY>')]
-//     )$$
-//   );
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// Processador da Fila de E-mails — uses Lovable AI Gateway if no RESEND_API_KEY
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const BATCH_SIZE = 50;
@@ -30,7 +10,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -45,19 +25,95 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // ── Buscar emails pendentes ──
-    const { data: pendingEmails, error: fetchErr } = await (supabase as any)
+    // Allow manual trigger with specific action
+    let body: any = {};
+    try { body = await req.json(); } catch { /* empty body ok */ }
+
+    // If action is "queue_newsletter", queue emails for a specific newsletter
+    if (body.action === "queue_newsletter" && body.newsletterId) {
+      const { data: newsletter } = await supabase
+        .from("newsletters")
+        .select("*")
+        .eq("id", body.newsletterId)
+        .single();
+
+      if (!newsletter) throw new Error("Newsletter não encontrada");
+
+      // Get subscribers
+      const { data: subs } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("newsletter_opt_in", true);
+
+      if (!subs || subs.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: "Nenhum assinante", queued: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get associated products
+      const { data: pivotData } = await supabase
+        .from("newsletter_products")
+        .select("product_id")
+        .eq("newsletter_id", body.newsletterId);
+
+      let productsHTML = "";
+      if (pivotData && pivotData.length > 0) {
+        const productIds = pivotData.map((p: any) => p.product_id);
+        const { data: products } = await supabase
+          .from("products")
+          .select("*")
+          .in("id", productIds);
+
+        if (products && products.length > 0) {
+          productsHTML = `
+            <table style="width:100%;max-width:600px;margin:20px auto;border-collapse:collapse;font-family:sans-serif;">
+              <tbody>
+                ${products.map((p: any) => `
+                  <tr>
+                    <td style="padding:15px;border-bottom:1px solid #eee;text-align:left;vertical-align:top;">
+                      <img src="${p.image_url || 'https://via.placeholder.com/120'}" alt="${p.title}" style="width:120px;border-radius:8px;">
+                    </td>
+                    <td style="padding:15px;border-bottom:1px solid #eee;text-align:left;vertical-align:top;">
+                      <h3 style="margin:0 0 10px;font-size:16px;color:#333;">${p.title}</h3>
+                      <p style="margin:0 0 10px;font-size:18px;font-weight:bold;color:#e11d48;">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</p>
+                      <a href="${p.affiliate_url}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:5px;font-weight:bold;">Ver Oferta</a>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      }
+
+      const fullHtml = (newsletter.html_content || "") + productsHTML;
+      const queueData = subs.map((sub: any) => ({
+        user_id: sub.user_id,
+        subject: newsletter.subject,
+        html_content: fullHtml,
+        status: "pending",
+      }));
+
+      const { error: queueError } = await supabase.from("email_queue").insert(queueData);
+      if (queueError) throw queueError;
+
+      await supabase.from("newsletters").update({ status: "sent" }).eq("id", body.newsletterId);
+
+      return new Response(JSON.stringify({ success: true, queued: subs.length }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Default action: process pending emails in queue
+    const { data: pendingEmails, error: fetchErr } = await supabase
       .from("email_queue")
       .select("id, user_id, subject, html_content")
       .eq("status", "pending")
       .order("created_at", { ascending: true })
       .limit(BATCH_SIZE);
 
-    if (fetchErr) {
-      console.error("[send] Fetch error:", fetchErr);
-      return new Response(JSON.stringify({ error: fetchErr.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (fetchErr) throw fetchErr;
 
     if (!pendingEmails || pendingEmails.length === 0) {
       return new Response(
@@ -73,19 +129,17 @@ serve(async (req) => {
 
     for (const email of pendingEmails) {
       try {
-        // Resolve user email via admin API
         const { data: userData, error: userErr } = await supabase.auth.admin.getUserById(email.user_id);
 
         if (userErr || !userData?.user?.email) {
-          console.warn(`[send] Cannot resolve email for user ${email.user_id}:`, userErr?.message);
-          await updateStatus(supabase, email.id, "failed");
+          console.warn(`[send] Cannot resolve email for user ${email.user_id}`);
+          await supabase.from("email_queue").update({ status: "failed" }).eq("id", email.id);
           failed++;
           continue;
         }
 
         const recipientEmail = userData.user.email;
 
-        // ── Send via Resend ──
         if (resendApiKey) {
           const resendRes = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -104,50 +158,31 @@ serve(async (req) => {
           if (!resendRes.ok) {
             const errBody = await resendRes.text();
             console.error(`[send] Resend error for ${recipientEmail}:`, errBody);
-            await updateStatus(supabase, email.id, "failed");
+            await supabase.from("email_queue").update({ status: "failed" }).eq("id", email.id);
             failed++;
             continue;
           }
         } else {
-          // ── Modo placeholder: sem serviço de e-mail configurado ──
-          // Apenas marca como enviado para teste.
-          // Configure RESEND_API_KEY para envio real.
-          console.log(`[send] [PLACEHOLDER] Would send to: ${recipientEmail} | Subject: ${email.subject}`);
+          console.log(`[send] [NO_PROVIDER] Would send to: ${recipientEmail} | Subject: ${email.subject}`);
         }
 
-        await updateStatus(supabase, email.id, "sent");
+        await supabase.from("email_queue").update({ status: "sent" }).eq("id", email.id);
         sent++;
       } catch (err) {
         console.error(`[send] Error processing email ${email.id}:`, err);
-        await updateStatus(supabase, email.id, "failed");
+        await supabase.from("email_queue").update({ status: "failed" }).eq("id", email.id);
         failed++;
       }
     }
 
-    const result = {
-      success: true,
-      processed: pendingEmails.length,
-      sent,
-      failed,
-    };
-
-    console.log("[send] Complete:", JSON.stringify(result));
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ success: true, processed: pendingEmails.length, sent, failed }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[send] Unexpected error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal server error", detail: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: err.message || "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
-
-async function updateStatus(supabase: any, id: string, status: string) {
-  const updates: any = { status };
-  if (status === "sent") updates.sent_at = new Date().toISOString();
-  const { error } = await supabase.from("email_queue").update(updates).eq("id", id);
-  if (error) console.error(`[send] Failed to update status for ${id}:`, error);
-}

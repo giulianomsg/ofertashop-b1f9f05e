@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3 } from "lucide-react";
+import SocialCopyGenerator from "@/components/SocialCopyGenerator";
+import PriceComparator from "@/components/PriceComparator";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
 import { useCategories, useBrands, useCreateBrand, useModels, useCreateModel, usePlatforms } from "@/hooks/useEntities";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,6 +72,10 @@ const AdminProducts = () => {
   const [platformFilter, setPlatformFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+
+  // Social Copy & Price Comparator modals
+  const [socialCopyProduct, setSocialCopyProduct] = useState<any>(null);
+  const [comparatorProduct, setComparatorProduct] = useState<any>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -430,6 +436,12 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setSocialCopyProduct(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Gerar copy" title="Gerar Copy IA">
+                        <Sparkles className="w-4 h-4 text-accent" />
+                      </button>
+                      <button onClick={() => setComparatorProduct(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Comparar preços" title="Comparar Preços">
+                        <BarChart3 className="w-4 h-4 text-info" />
+                      </button>
                       <button onClick={() => openEdit(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar produto"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
                       <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors" aria-label="Excluir produto"><Trash2 className="w-4 h-4 text-destructive" /></button>
                     </div>
@@ -729,6 +741,25 @@ const AdminProducts = () => {
             </button>
           </motion.div>
         </div>
+      )}
+
+      {/* Social Copy Generator Modal */}
+      {socialCopyProduct && (
+        <SocialCopyGenerator
+          product={socialCopyProduct}
+          open={!!socialCopyProduct}
+          onClose={() => setSocialCopyProduct(null)}
+        />
+      )}
+
+      {/* Price Comparator Modal */}
+      {comparatorProduct && (
+        <PriceComparator
+          productId={comparatorProduct.id}
+          productTitle={comparatorProduct.title}
+          open={!!comparatorProduct}
+          onClose={() => setComparatorProduct(null)}
+        />
       )}
     </div>
   );

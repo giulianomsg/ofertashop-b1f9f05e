@@ -289,14 +289,13 @@ Deno.serve(async (req) => {
     // Categoria via Breadcrumb da PDP
     let resolvedCategoryId = categoryId || null;
     if (!resolvedCategoryId) {
-       const catName = $(".andes-breadcrumb__item a").last().text().trim() || "Diversos";
-       const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
-       if (existingCat) {
-          resolvedCategoryId = existingCat.id;
-       } else {
-          const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-          const { data: newCat } = await sb.from("categories").insert({ name: catName, slug }).select("id").single();
-          if (newCat) resolvedCategoryId = newCat.id;
+       const catName = $(".andes-breadcrumb__item a").last().text().trim();
+       if (catName) {
+         const { data: existingCat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
+         if (existingCat) {
+            resolvedCategoryId = existingCat.id;
+         }
+         // If not found, leave null for admin to set manually
        }
     }
 

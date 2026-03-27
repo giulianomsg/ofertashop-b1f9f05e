@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon, Package } from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, BadgeCheck, Flame, AlertTriangle, ThumbsUp, Send, TrendingUp, Shield, Sparkles, Share2, Facebook, Twitter, Check, Heart, Bookmark, User as UserIcon, Package, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import SiteHeader from "@/components/SiteHeader";
@@ -16,6 +16,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useRef, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { CouponItem } from "@/components/CouponItem";
+import LowestPriceBadge from "@/components/LowestPriceBadge";
 import {
   Accordion,
   AccordionContent,
@@ -430,7 +431,7 @@ const ProductDetail = () => {
               <span className="text-sm text-muted-foreground">({product.review_count.toLocaleString()} avaliações)</span>
             </div>
 
-            <div className="bg-secondary rounded-xl p-5 space-y-2">
+            <div className="bg-secondary rounded-xl p-5 space-y-3">
               <div className="flex items-baseline gap-3">
                 <span className="font-display font-bold text-3xl text-foreground">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
                 {product.original_price && (
@@ -440,6 +441,12 @@ const ProductDetail = () => {
               {product.discount && (
                 <span className="badge-hot"><Flame className="w-3 h-3" /> Economia de {product.discount}%</span>
               )}
+              <LowestPriceBadge
+                productId={product.id}
+                currentPrice={Number(product.price)}
+                brandId={productAny?.brand_id}
+                modelId={productAny?.model_id}
+              />
             </div>
 
             {/* Badges Adicionais do Mercado Livre */}
