@@ -96,7 +96,8 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
 
 function parsePrice(text: string): number {
   if (!text) return 0;
-  const cleaned = text.replace(/[^\d,\.]/g, "").replace(",", ".");
+  let cleaned = text.replace(/[^\d.,]/g, "");
+  cleaned = cleaned.replace(/\./g, "").replace(",", ".");
   return parseFloat(cleaned) || 0;
 }
 

@@ -87,7 +87,10 @@ async function fetchWithRetry(url: string, maxRetries = 2) {
 
 function parsePrice(text: string): number {
   if (!text) return 0;
-  const cleaned = text.replace(/[^\d,\.]/g, "").replace(",", ".");
+  // Remove tudo que não é dígito, ponto ou vírgula
+  let cleaned = text.replace(/[^\d.,]/g, "");
+  // Formato BR: ponto = milhar, vírgula = decimal → remove pontos, troca vírgula por ponto
+  cleaned = cleaned.replace(/\./g, "").replace(",", ".");
   return parseFloat(cleaned) || 0;
 }
 
