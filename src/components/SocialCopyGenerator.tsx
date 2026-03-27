@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, Copy, Check, Instagram, MessageCircle, Video, X } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, Instagram, MessageCircle, Video, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ interface SocialCopyGeneratorProps {
   onClose: () => void;
 }
 
-const CopyBlock = ({ label, icon: Icon, content, className = "" }: { label: string; icon: any; content: string; className?: string }) => {
+const CopyBlock = ({ label, icon: Icon, content, accentClass = "" }: { label: string; icon: any; content: string; accentClass?: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -28,12 +28,12 @@ const CopyBlock = ({ label, icon: Icon, content, className = "" }: { label: stri
   };
 
   return (
-    <div className={`bg-secondary rounded-lg p-4 space-y-2 ${className}`}>
+    <div className={`bg-secondary rounded-lg p-4 space-y-2 ${accentClass}`}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
           <Icon className="w-3.5 h-3.5" /> {label}
         </span>
-        <button onClick={handleCopy} className="p-1.5 rounded-md hover:bg-background transition-colors">
+        <button onClick={handleCopy} className="p-1.5 rounded-md hover:bg-background transition-colors" title="Copiar">
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
         </button>
       </div>
@@ -42,9 +42,19 @@ const CopyBlock = ({ label, icon: Icon, content, className = "" }: { label: stri
   );
 };
 
+type TabKey = "instagram" | "whatsapp" | "reels";
+
+const TABS: { key: TabKey; label: string; icon: typeof Instagram }[] = [
+  { key: "instagram", label: "Instagram", icon: Instagram },
+  { key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { key: "reels", label: "Reels/Stories", icon: Video },
+];
+
 const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProps) => {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<SocialCopyContent | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>("instagram");
+  const [usedModel, setUsedModel] = useState<string>("");
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -57,10 +67,11 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
       if (data?.error) throw new Error(data.error);
       if (data?.content) {
         setContent(data.content);
+        setUsedModel(data.model || "");
         toast.success("Conteúdo gerado com sucesso!");
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar conteúdo");
+      toast.error(err.message || "Erro ao gerar conteúdo. Verifique a configuração em IA / Conteúdo.");
     } finally {
       setLoading(false);
     }
@@ -86,7 +97,7 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
-            Gerador de Copy / Social
+            Gerador de Conteúdo IA
           </DialogTitle>
         </DialogHeader>
 
@@ -115,7 +126,7 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Gerando com IA...</>
           ) : (
-            <><Sparkles className="w-4 h-4" /> {content ? "Regenerar Conteúdo" : "Gerar Conteúdo com IA"}</>
+            <><Wand2 className="w-4 h-4" /> {content ? "Regenerar Conteúdo" : "Gerar Conteúdo com IA"}</>
           )}
         </button>
 
@@ -127,42 +138,97 @@ const SocialCopyGenerator = ({ product, open, onClose }: SocialCopyGeneratorProp
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
+              {/* Header with model badge */}
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Conteúdo Gerado</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">Conteúdo Gerado</h3>
+                  {usedModel && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
+                      {usedModel.split("/").pop()}
+                    </span>
+                  )}
+                </div>
                 <button onClick={handleCopyAll} className="text-xs text-accent hover:underline flex items-center gap-1">
                   <Copy className="w-3 h-3" /> Copiar tudo
                 </button>
               </div>
 
-              {/* Instagram Captions */}
-              {content.instagram_captions?.map((caption, i) => (
-                <CopyBlock
-                  key={i}
-                  label={`Instagram #${i + 1}`}
-                  icon={Instagram}
-                  content={caption}
-                />
-              ))}
+              {/* Tabs */}
+              <div className="flex rounded-lg bg-secondary p-1 gap-1">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                      activeTab === tab.key
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-              {/* WhatsApp */}
-              {content.whatsapp_message && (
-                <CopyBlock
-                  label="WhatsApp"
-                  icon={MessageCircle}
-                  content={content.whatsapp_message}
-                  className="border-l-2 border-emerald-500"
-                />
-              )}
+              {/* Tab Content */}
+              <AnimatePresence mode="wait">
+                {activeTab === "instagram" && (
+                  <motion.div
+                    key="instagram"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-3"
+                  >
+                    {content.instagram_captions?.map((caption, i) => (
+                      <CopyBlock
+                        key={i}
+                        label={`Legenda #${i + 1}`}
+                        icon={Instagram}
+                        content={caption}
+                        accentClass="border-l-2 border-pink-500"
+                      />
+                    ))}
+                  </motion.div>
+                )}
 
-              {/* Reels Hook */}
-              {content.reels_hook && (
-                <CopyBlock
-                  label="Reels / Stories Hook"
-                  icon={Video}
-                  content={content.reels_hook}
-                  className="border-l-2 border-pink-500"
-                />
-              )}
+                {activeTab === "whatsapp" && (
+                  <motion.div
+                    key="whatsapp"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                  >
+                    {content.whatsapp_message && (
+                      <CopyBlock
+                        label="Mensagem WhatsApp"
+                        icon={MessageCircle}
+                        content={content.whatsapp_message}
+                        accentClass="border-l-2 border-emerald-500"
+                      />
+                    )}
+                  </motion.div>
+                )}
+
+                {activeTab === "reels" && (
+                  <motion.div
+                    key="reels"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                  >
+                    {content.reels_hook && (
+                      <CopyBlock
+                        label="Hook para Reels / Stories"
+                        icon={Video}
+                        content={content.reels_hook}
+                        accentClass="border-l-2 border-purple-500"
+                      />
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,5 +1,5 @@
-// Edge Function: generate-social-copy (standalone)
-// Uses Lovable AI Gateway to generate social media copy for affiliate products
+// Edge Function: generate-social-copy
+// Uses OpenRouter API to generate social media copy for affiliate products
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -7,24 +7,81 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface OpenRouterConfig {
+  apiKey: string;
+  model: string;
+}
+
+async function getOpenRouterConfig(sb: any): Promise<OpenRouterConfig> {
+  try {
+    const { data } = await sb
+      .from("admin_settings")
+      .select("value")
+      .eq("key", "openrouter_config")
+      .maybeSingle();
+    if (data?.value?.apiKey && data?.value?.model) {
+      return { apiKey: data.value.apiKey, model: data.value.model };
+    }
+  } catch (e) {
+    console.warn("Falha ao buscar config OpenRouter:", e);
+  }
+  // Fallback to env var
+  const envKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (envKey) {
+    return { apiKey: envKey, model: "google/gemini-2.0-flash-exp:free" };
+  }
+  throw new Error("API Key do OpenRouter não configurada. Acesse Administração > IA / Conteúdo para configurar.");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product } = await req.json();
+    const { product, testConnection } = await req.json();
+
+    const sb = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const config = await getOpenRouterConfig(sb);
+
+    // Test connection mode — quick validation
+    if (testConnection) {
+      const testRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://ofertashop.com",
+          "X-Title": "OfertaShop",
+        },
+        body: JSON.stringify({
+          model: config.model,
+          messages: [{ role: "user", content: "Responda apenas: OK" }],
+          max_tokens: 10,
+        }),
+      });
+      if (!testRes.ok) {
+        const errText = await testRes.text();
+        throw new Error(`OpenRouter retornou ${testRes.status}: ${errText}`);
+      }
+      return new Response(JSON.stringify({ success: true, model: config.model }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate content mode
     if (!product || !product.title) {
       return new Response(JSON.stringify({ error: "Produto com título é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
-
     const priceFormatted = product.price ? `R$ ${Number(product.price).toFixed(2).replace('.', ',')}` : "";
     const originalPriceFormatted = product.original_price ? `R$ ${Number(product.original_price).toFixed(2).replace('.', ',')}` : "";
-    const discount = product.original_price && product.price 
-      ? Math.round(((product.original_price - product.price) / product.original_price) * 100) 
+    const discount = product.original_price && product.price
+      ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
       : 0;
 
     const systemPrompt = `Você é um copywriter brasileiro especialista em marketing de afiliados e conversão. 
@@ -54,14 +111,16 @@ REGRAS OBRIGATÓRIAS:
 Use gatilhos: urgência ("por tempo limitado"), escassez ("últimas unidades"), prova social ("mais vendido"), autoridade ("recomendado").
 Inclua CTAs como "Link na bio 🔗", "Corre que acaba rápido!", "Aproveite agora!".`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://ofertashop.com",
+        "X-Title": "OfertaShop",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: config.model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -76,12 +135,12 @@ Inclua CTAs como "Link na bio 🔗", "Corre que acaba rápido!", "Aproveite agor
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA insuficientes." }), {
+        return new Response(JSON.stringify({ error: "Créditos de IA insuficientes no OpenRouter." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errText = await response.text();
-      throw new Error(`AI Gateway error: ${response.status} - ${errText}`);
+      throw new Error(`OpenRouter error: ${response.status} - ${errText}`);
     }
 
     const aiResponse = await response.json();
@@ -90,15 +149,14 @@ Inclua CTAs como "Link na bio 🔗", "Corre que acaba rápido!", "Aproveite agor
     // Parse JSON from AI response
     let parsedContent;
     try {
-      // Try to extract JSON from the response (may contain markdown fences)
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedContent = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch (parseErr) {
-      console.warn("Failed to parse AI JSON, returning raw:", parseErr);
+    } catch (_parseErr) {
+      console.warn("Failed to parse AI JSON, returning raw:", _parseErr);
       parsedContent = {
         instagram_captions: [rawContent],
         whatsapp_message: rawContent,
@@ -106,7 +164,7 @@ Inclua CTAs como "Link na bio 🔗", "Corre que acaba rápido!", "Aproveite agor
       };
     }
 
-    return new Response(JSON.stringify({ success: true, content: parsedContent }), {
+    return new Response(JSON.stringify({ success: true, content: parsedContent, model: config.model }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {

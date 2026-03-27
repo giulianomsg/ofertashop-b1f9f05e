@@ -32,6 +32,7 @@ import AdminShopee from "./pages/admin/AdminShopee";
 import AdminMercadoLivre from "./pages/admin/AdminMercadoLivre";
 import AdminAmazon from "./pages/admin/AdminAmazon";
 import AdminNatura from "./pages/admin/AdminNatura";
+import AdminAISettings from "./pages/admin/AdminAISettings";
 import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
@@ -82,6 +83,7 @@ const AppContent = () => {
               <Route path="natura" element={<AdminNatura />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
+              <Route path="ia" element={<AdminAISettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
