@@ -134,15 +134,41 @@ Deno.serve(async (req) => {
 
        const $ = cheerio.load(html);
 
-       // Use the same Minhaloja-specific selectors as natura-search-offers and natura-import-product
-       let priceText = $("[id='product-price-por']").first().text().trim();
-       if (!priceText) priceText = $("[id*='price']:not([id*='de']):not([id*='desconto'])").last().text().trim();
-       if (!priceText) priceText = $("[class*='sellingPrice'], [class*='price--current'], .price-best").first().text().trim();
-       const newPrice = parsePrice(priceText);
-       
-       let origText = $("[id='product-price-de']").first().text().trim();
-       if (!origText) origText = $("[class*='listPrice'], [class*='price--old'], del").first().text().trim();
-       let newOrigPrice = parsePrice(origText);
+       // The Minhaloja PDP puts both prices inside a single #product-price container.
+       // Text looks like: "de: R$ 207,70 R$ 124,62 -40%" or just "R$ 75,90".
+       // Strategy: extract ALL currency values, identify "de:" as original, the rest as selling price.
+       let newPrice = 0;
+       let newOrigPrice = 0;
+
+       const priceContainer = $("[id='product-price']").first().text().trim();
+       if (priceContainer) {
+          // Find all R$ values in the text
+          const allPrices = [...priceContainer.matchAll(/R\$\s*([\d.,]+)/g)].map(m => parsePrice(m[1]));
+          // Check if there's a "de:" prefix indicating original/strikethrough price
+          const deMatch = priceContainer.match(/de:\s*R\$\s*([\d.,]+)/i);
+          
+          if (deMatch && allPrices.length >= 2) {
+             // Has "de:" → first match is original, second is selling price
+             newOrigPrice = parsePrice(deMatch[1]);
+             // The selling price is the other value (not the "de:" one)
+             newPrice = allPrices.find(p => p !== newOrigPrice) || allPrices[allPrices.length - 1];
+          } else if (allPrices.length >= 2) {
+             // Two prices but no "de:" label — assume larger is original, smaller is current
+             newOrigPrice = Math.max(...allPrices);
+             newPrice = Math.min(...allPrices);
+          } else if (allPrices.length === 1) {
+             // Single price, no discount
+             newPrice = allPrices[0];
+          }
+       }
+
+       // Fallback: try individual selectors if container didn't yield results
+       if (newPrice === 0) {
+          const porText = $("[id='product-price-por']").first().text().trim();
+          if (porText) newPrice = parsePrice(porText);
+          const deText = $("[id='product-price-de']").first().text().trim();
+          if (deText) newOrigPrice = parsePrice(deText);
+       }
 
        // Only consider truly unavailable if the page explicitly says so via a product-unavailable banner
        // AND the page has loaded (has a <title> or <h1>)

@@ -158,14 +158,30 @@ Deno.serve(async (req) => {
       let thumbnail = $(el).find("img").first().attr("src") || $(el).find("img").first().attr("data-src") || "";
       if (thumbnail && thumbnail.startsWith("//")) thumbnail = `https:${thumbnail}`;
 
-      // Precise extraction to avoid Next.js combining multiple price span values
-      let priceText = $(el).find("[id='product-price-por']").first().text().trim();
-      if (!priceText) priceText = $(el).find("[id*='price']:not([id*='de']):not([id*='desconto']), [class*='price'], [class*='Price'], .price").last().text().trim();
-
-      let originalPriceText = $(el).find("[id='product-price-de']").first().text().trim();
-      if (!originalPriceText) originalPriceText = $(el).find("[class*='old'], [class*='original'], del, s, [class*='from']").first().text().trim();
-      const price = parsePrice(priceText);
-      const originalPrice = parsePrice(originalPriceText);
+      // Parse prices from the combined #product-price container
+      // Text looks like: "de: R$ 207,70 R$ 124,62 -40%" or just "R$ 75,90"
+      let price = 0;
+      let originalPrice = 0;
+      const priceContainer = $(el).find("[id='product-price']").first().text().trim();
+      if (priceContainer) {
+        const allPrices = [...priceContainer.matchAll(/R\$\s*([\d.,]+)/g)].map(m => parsePrice(m[1]));
+        const deMatch = priceContainer.match(/de:\s*R\$\s*([\d.,]+)/i);
+        if (deMatch && allPrices.length >= 2) {
+          originalPrice = parsePrice(deMatch[1]);
+          price = allPrices.find(p => p !== originalPrice) || allPrices[allPrices.length - 1];
+        } else if (allPrices.length >= 2) {
+          price = Math.min(...allPrices);
+          originalPrice = Math.max(...allPrices);
+        } else if (allPrices.length === 1) {
+          price = allPrices[0];
+        }
+      } else {
+        // Fallback: try individual selectors
+        const porText = $(el).find("[id='product-price-por']").first().text().trim();
+        if (porText) price = parsePrice(porText);
+        const deText = $(el).find("[id='product-price-de']").first().text().trim();
+        if (deText) originalPrice = parsePrice(deText);
+      }
 
       // Extract Rating snippet if present
       let rating = 0;

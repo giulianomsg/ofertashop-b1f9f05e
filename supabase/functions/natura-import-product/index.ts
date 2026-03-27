@@ -155,16 +155,31 @@ Deno.serve(async (req) => {
     const domTitle = $("h1, [class*='productName'], [class*='product-name']").first().text().trim();
     if (domTitle && domTitle.length > 5) enrichedTitle = domTitle;
 
-    // Price – use the precise IDs from Minhaloja PDP if available
-    let priceText = $("[id='product-price-por']").first().text().trim();
-    if (!priceText) priceText = $("[class*='sellingPrice'], [class*='price--current'], .price-best").first().text().trim();
-    const domPrice = parsePrice(priceText);
-    if (domPrice > 0) enrichedPrice = domPrice;
+    // Price – parse #product-price container which has both prices combined
+    // Text looks like: "de: R$ 207,70 R$ 124,62 -40%" or just "R$ 75,90"
+    const priceContainer = $("[id='product-price']").first().text().trim();
+    if (priceContainer) {
+      const allPrices = [...priceContainer.matchAll(/R\$\s*([\d.,]+)/g)].map(m => parsePrice(m[1]));
+      const deMatch = priceContainer.match(/de:\s*R\$\s*([\d.,]+)/i);
 
-    let origText = $("[id='product-price-de']").first().text().trim();
-    if (!origText) origText = $("[class*='listPrice'], [class*='price--old'], del").first().text().trim();
-    const domOrig = parsePrice(origText);
-    if (domOrig > enrichedPrice) enrichedOriginalPrice = domOrig;
+      if (deMatch && allPrices.length >= 2) {
+        const origVal = parsePrice(deMatch[1]);
+        const sellVal = allPrices.find(p => p !== origVal) || allPrices[allPrices.length - 1];
+        if (sellVal > 0) enrichedPrice = sellVal;
+        if (origVal > sellVal) enrichedOriginalPrice = origVal;
+      } else if (allPrices.length >= 2) {
+        enrichedPrice = Math.min(...allPrices);
+        enrichedOriginalPrice = Math.max(...allPrices);
+      } else if (allPrices.length === 1 && allPrices[0] > 0) {
+        enrichedPrice = allPrices[0];
+      }
+    } else {
+      // Fallback: try individual selectors
+      const porText = $("[id='product-price-por']").first().text().trim();
+      if (porText) { const p = parsePrice(porText); if (p > 0) enrichedPrice = p; }
+      const deText = $("[id='product-price-de']").first().text().trim();
+      if (deText) { const o = parsePrice(deText); if (o > enrichedPrice) enrichedOriginalPrice = o; }
+    }
 
     // Description text processing (clean HTML tags via text extraction)
     const descText = $("[class*='productDescription'], [class*='description'], #description, [class*='details']").first().text().trim();
