@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X, List, Package } from "lucide-react";
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useEntities";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AdminCategories = () => {
@@ -16,6 +17,28 @@ const AdminCategories = () => {
   const [editSlug, setEditSlug] = useState("");
   const [editIcon, setEditIcon] = useState("");
 
+  const [viewingCategory, setViewingCategory] = useState<{id: string, name: string, icon?: string | null} | null>(null);
+  const [categoryProducts, setCategoryProducts] = useState<{id: string, title: string, price: number, image_url: string, is_active: boolean}[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  const fetchCategoryProducts = async (c: {id: string, name: string, icon?: string | null}) => {
+    setViewingCategory(c);
+    setLoadingProducts(true);
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, title, price, image_url, is_active")
+        .eq("category_id", c.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setCategoryProducts(data || []);
+    } catch (err) {
+      toast.error("Erro ao puxar produtos da categoria.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
   const autoSlug = (val: string) => {
     setName(val);
     setSlug(val.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
@@ -30,7 +53,7 @@ const AdminCategories = () => {
     } catch { toast.error("Erro ao criar categoria."); }
   };
 
-  const startEdit = (c: any) => {
+  const startEdit = (c: {id: string, name: string, slug: string, icon?: string | null}) => {
     setEditingId(c.id);
     setEditName(c.name);
     setEditSlug(c.slug);
@@ -62,13 +85,60 @@ const AdminCategories = () => {
         <input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Ícone (opcional)" className="w-32 h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" />
         <button onClick={handleCreate} disabled={createCategory.isPending} className="btn-accent flex items-center gap-2 text-sm" aria-label="Adicionar categoria"><Plus className="w-4 h-4" /> Adicionar</button>
       </div>
+
+      {viewingCategory && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border shadow-lg rounded-xl p-6 w-full max-w-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <button onClick={() => setViewingCategory(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+              <X className="w-5 h-5"/>
+            </button>
+            <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+              {viewingCategory.icon || <Package className="w-5 h-5"/>} 
+              Produtos na categoria: {viewingCategory.name}
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">{categoryProducts.length} itens encontrados</p>
+            
+            <div className="overflow-y-auto pr-2 space-y-3 flex-1 min-h-[100px]">
+              {loadingProducts ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">Carregando produtos...</div>
+              ) : categoryProducts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">Nenhum produto está usando esta categoria.</div>
+              ) : (
+                categoryProducts.map((p) => (
+                  <div key={p.id} className="flex gap-3 p-3 rounded-lg border bg-secondary/50 items-center">
+                    <div className="w-12 h-12 rounded-md border bg-white flex items-center justify-center shrink-0 p-1">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.title} className="w-full h-full object-contain mix-blend-multiply" />
+                      ) : (
+                        <Package className="w-6 h-6 text-muted-foreground/50" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium line-clamp-1 truncate" title={p.title}>{p.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-bold text-accent">R$ {Number(p.price).toFixed(2).replace('.', ',')}</span>
+                        {p.is_active ? (
+                           <span className="text-[10px] uppercase font-bold text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">Ativo</span>
+                        ) : (
+                           <span className="text-[10px] uppercase font-bold text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Inativo</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <table className="w-full text-sm">
           <thead><tr className="border-b border-border bg-secondary"><th className="text-left p-4 font-semibold text-foreground">Nome</th><th className="text-left p-4 font-semibold text-foreground">Slug</th><th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Ícone</th><th className="text-center p-4 font-semibold text-foreground">Produtos</th><th className="text-right p-4 font-semibold text-foreground">Ações</th></tr></thead>
           <tbody>
             {isLoading ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
               categories.length === 0 ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhuma categoria.</td></tr> :
-                categories.map((c: any) => {
+                categories.map((c: {id: string, name: string, slug: string, icon: string | null, products: any}) => {
                   const productCount = Array.isArray(c.products) ? c.products[0]?.count || 0 : c.products?.count || 0;
                   return (
                   <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
@@ -99,6 +169,11 @@ const AdminCategories = () => {
                           </>
                         ) : (
                           <>
+                            {productCount > 0 && (
+                               <button onClick={() => fetchCategoryProducts(c)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-accent flex items-center gap-1" aria-label="Ver produtos" title="Ver produtos nesta categoria">
+                                  <List className="w-4 h-4" />
+                               </button>
+                            )}
                             <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar categoria"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
                             <button 
                               onClick={async () => { 
