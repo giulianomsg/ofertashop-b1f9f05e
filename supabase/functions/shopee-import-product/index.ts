@@ -237,31 +237,56 @@ Deno.serve(async (req) => {
     const rate = Number(offer.commissionRate) || 0;
     const commissionPct = rate < 1 && rate > 0 ? rate * 100 : rate;
 
-    // === SCRAPING FALLBACK: Enrich product data ===
+    // === 3. DYNAMIC DATA ENRICHMENT (SCRAPING) ===
     let scrapedDescription: string | null = null;
     let scrapedGalleryUrls: string[] = [];
     let scrapedImageUrl = offer.imageUrl || null;
+    let scrapedFinalPrice: number | null = null;
+    let scrapedRating: number | null = null;
+    let scrapedSales: number | null = null;
 
     try {
       const productUrl = offer.productLink || offer.offerLink;
       if (productUrl) {
         const scraperConfig = await getActiveScraperConfig(sb);
         const proxyUrl = buildScraperUrl(scraperConfig, productUrl);
-        console.log(`[Shopee Scraping] Enriching product via ${scraperConfig.provider}`);
+        console.log(`[Shopee Scraping] Hybrid enrichment via ${scraperConfig.provider} at ${productUrl}`);
         const html = await fetchWithRetry(proxyUrl);
         const $ = cheerio.load(html);
 
-        // Try to extract better images
+        // 3.1 Try to extract deep JSON states (Next.js/Shopee SSR) for precise price
+        try {
+          // Shopee often stores the initial state in a script tag containing "window.__NUXT__" or "window.SHOP..."
+          $('script').each((_: any, el: any) => {
+            const scriptContent = $(el).html() || '';
+            if (!scrapedFinalPrice) {
+              const priceMatch = scriptContent.match(/"price":\s*(\d{4,9})/);
+              if (priceMatch) {
+                 const rawP = parseInt(priceMatch[1], 10);
+                 if (rawP > 100000) scrapedFinalPrice = rawP / 100000;
+              }
+            }
+          });
+        } catch (e) { /* ignore ssr regex error */ }
+
+        // 3.2 Extract Promotional Price explicitly from DOM (if SSR failed)
+        if (!scrapedFinalPrice) {
+          const domPriceText = $(".pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
+          if (domPriceText) {
+             const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
+             if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
+          }
+        }
+
+        // 3.3 Extract Images (Gallery)
         const images: string[] = [];
         $("img[src*='cf.shopee'], img[src*='down-id.img.susercontent'], img[data-src*='cf.shopee']").each((_: any, el: any) => {
           const src = $(el).attr("data-src") || $(el).attr("src") || "";
-          if (src && src.startsWith("http") && !src.includes("data:image")) {
-            // Get high-res version
+          if (src && src.startsWith("http") && !src.includes("data:image") && !src.includes("badge")) {
             const hiRes = src.replace(/_tn$/, "").replace(/\?.*$/, "");
             images.push(hiRes);
           }
         });
-        // Also try og:image and product gallery images
         $('meta[property="og:image"]').each((_: any, el: any) => {
           const content = $(el).attr("content");
           if (content && content.startsWith("http")) images.push(content);
@@ -273,7 +298,20 @@ Deno.serve(async (req) => {
           scrapedImageUrl = uniqueImages[0] || scrapedImageUrl;
         }
 
-        // Extract description
+        // 3.4 Extract Rating and Sales
+        const ratingText = $(".OitTbl, ._1k47d8, .rating, [class*='rating']").first().text().trim();
+        const ratingMatch = ratingText.match(/(\d[\.,]\d)/);
+        if (ratingMatch) scrapedRating = parseFloat(ratingMatch[1].replace(',', '.'));
+
+        const salesDOM = $(".p1\\+k1E, ._1k47d8, .sales, [class*='sold']").first().text().trim();
+        if (salesDOM) {
+           let mult = 1;
+           if (salesDOM.toLowerCase().includes("mil")) mult = 1000;
+           const sMatch = salesDOM.replace(',', '.').match(/(\d+[\.,]?\d*)/);
+           if (sMatch) scrapedSales = Math.floor(parseFloat(sMatch[1]) * mult);
+        }
+
+        // 3.5 Extract description
         const descEl = $(".product-detail, [class*='product-detail'], [class*='description'], .QN2lPu").text().trim();
         if (descEl && descEl.length > 20) {
           scrapedDescription = descEl.substring(0, 2000);
@@ -284,8 +322,24 @@ Deno.serve(async (req) => {
         }
       }
     } catch (scrapeErr) {
-      console.warn("[Shopee Scraping] Fallback scraping failed (non-blocking):", scrapeErr);
+      console.warn("[Shopee Scraping] Hybrid enrichment failed (fallback to API data):", scrapeErr);
     }
+
+    // === 4. MERGE DATA ===
+    if (scrapedFinalPrice && scrapedFinalPrice > 0) {
+       // if scraped price is different and lower, we use it as final
+       // because API often misses dynamic/flash discounts
+       if (scrapedFinalPrice < finalPrice || finalPrice <= 0.01) {
+          if (!finalOriginalPrice || finalPrice > scrapedFinalPrice) {
+             finalOriginalPrice = finalPrice > 0.01 ? finalPrice : finalOriginalPrice;
+          }
+          finalPrice = scrapedFinalPrice;
+          console.log(`[Shopee Merged] Price overridden by Scraper: ${finalPrice}`);
+       }
+    }
+
+    const mergedRating = scrapedRating !== null && scrapedRating > 0 ? scrapedRating : (Number(offer.ratingStar) || 0);
+    const mergedSales = scrapedSales !== null && scrapedSales > 0 ? scrapedSales : (Number(offer.sales) || 0);
 
     // Insert product
     const { data: product, error: productErr } = await sb
