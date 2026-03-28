@@ -85,6 +85,11 @@ const AdminProducts = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  // Price History Modal
+  const [historyProduct, setHistoryProduct] = useState<any>(null);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   const [brandOpen, setBrandOpen] = useState(false);
   const [brandSearch, setBrandSearch] = useState("");
   const [modelOpen, setModelOpen] = useState(false);
@@ -329,38 +334,35 @@ const AdminProducts = () => {
     catch { toast.error("Erro ao excluir."); }
   };
 
-  const handleClearPriceHistory = async (productId: string, productTitle: string) => {
-    if (!confirm(`Limpar histórico de preços de "${productTitle}"? Somente o último registro será mantido.`)) return;
+  const openPriceHistory = async (product: any) => {
+    setHistoryProduct(product);
+    setLoadingHistory(true);
     try {
-      // 1. Fetch the most recent price_history entry for this product
-      const { data: latest, error: fetchErr } = await supabase
+      const { data, error } = await supabase
         .from("price_history" as any)
-        .select("id")
-        .eq("product_id", productId)
+        .select("*")
+        .eq("product_id", product.id)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(5);
 
-      if (fetchErr) throw fetchErr;
+      if (error) throw error;
+      setPriceHistory(data || []);
+    } catch (err) {
+      toast.error("Erro ao carregar histórico de preços.");
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
-      if (!latest) {
-        toast.info("Nenhum histórico de preços encontrado.");
-        return;
-      }
-
-      // 2. Delete all entries EXCEPT the most recent one
-      const { error: deleteErr } = await supabase
-        .from("price_history" as any)
-        .delete()
-        .eq("product_id", productId)
-        .neq("id", (latest as any).id);
-
-      if (deleteErr) throw deleteErr;
-
-      toast.success("Histórico de preços limpo! Apenas o último registro foi mantido.");
-    } catch (err: any) {
-      console.error("Clear price history error:", err);
-      toast.error("Erro ao limpar histórico de preços.");
+  const handleDeleteHistoryEntry = async (entryId: string) => {
+    if (!confirm("Excluir este registro de preço?")) return;
+    try {
+      const { error } = await supabase.from("price_history" as any).delete().eq("id", entryId);
+      if (error) throw error;
+      setPriceHistory((prev) => prev.filter((e) => e.id !== entryId));
+      toast.success("Registro de preço excluído.");
+    } catch (err) {
+      toast.error("Erro ao excluir registro.");
     }
   };
 
@@ -521,7 +523,7 @@ const AdminProducts = () => {
                       <button onClick={() => setComparatorProduct(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Comparar preços" title="Comparar Preços">
                         <BarChart3 className="w-4 h-4 text-info" />
                       </button>
-                      <button onClick={() => handleClearPriceHistory(product.id, product.title)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Limpar histórico de preços" title="Limpar Histórico de Preços">
+                      <button onClick={() => openPriceHistory(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Histórico de preços" title="Histórico de Preços">
                         <History className="w-4 h-4 text-warning" />
                       </button>
                       <button onClick={() => openEdit(product)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar produto"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
@@ -821,6 +823,56 @@ const AdminProducts = () => {
             <button onClick={handleSave} disabled={isSaving} className="btn-accent w-full disabled:opacity-50 mt-6" aria-label="Salvar produto">
               {isSaving ? "Salvando..." : editingId ? "Salvar Alterações" : "Salvar Produto"}
             </button>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Price History Modal */}
+      {historyProduct && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card rounded-2xl border border-border p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto"
+            style={{ boxShadow: "var(--shadow-elevated)" }}
+          >
+            <div className="flex items-center justify-between border-b pb-3 border-border">
+              <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
+                <History className="w-5 h-5 text-warning" /> Histórico de Preços
+              </h3>
+              <button onClick={() => setHistoryProduct(null)} className="p-1.5 rounded-lg hover:bg-secondary" aria-label="Fechar"><X className="w-4 h-4" /></button>
+            </div>
+            
+            <p className="text-sm font-medium text-muted-foreground line-clamp-2" title={historyProduct.title}>
+              {historyProduct.title}
+            </p>
+
+            <div className="space-y-3 pt-2">
+              {loadingHistory ? (
+                <div className="text-center py-6 text-muted-foreground flex justify-center"><Loader2 className="w-5 h-5 animate-spin" /></div>
+              ) : priceHistory.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm border border-dashed border-border rounded-lg">Nenhum registro de preço encontrado.</div>
+              ) : (
+                priceHistory.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/50">
+                    <div>
+                      <div className="font-bold text-foreground">R$ {Number(entry.price).toFixed(2).replace('.', ',')}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(entry.created_at).toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteHistoryEntry(entry.id)}
+                      className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                      aria-label="Excluir registro"
+                      title="Excluir este registro"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </motion.div>
         </div>
       )}
