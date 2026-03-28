@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Plus, Trash2, Pencil, Check, X, List, Package } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X, List, Package, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useEntities";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AdminCategories = () => {
+  const queryClient = useQueryClient();
   const { data: categories = [], isLoading } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -20,6 +22,7 @@ const AdminCategories = () => {
   const [viewingCategory, setViewingCategory] = useState<{id: string, name: string, icon?: string | null} | null>(null);
   const [categoryProducts, setCategoryProducts] = useState<{id: string, title: string, price: number, image_url: string, is_active: boolean}[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [changingProduct, setChangingProduct] = useState<string | null>(null);
 
   const fetchCategoryProducts = async (c: {id: string, name: string, icon?: string | null}) => {
     setViewingCategory(c);
@@ -36,6 +39,22 @@ const AdminCategories = () => {
       toast.error("Erro ao puxar produtos da categoria.");
     } finally {
       setLoadingProducts(false);
+    }
+  };
+
+  const handleMoveProduct = async (productId: string, newCategoryId: string) => {
+    if (!newCategoryId) return;
+    setChangingProduct(productId);
+    try {
+      const { error } = await supabase.from("products").update({ category_id: newCategoryId }).eq("id", productId);
+      if (error) throw error;
+      setCategoryProducts(prev => prev.filter(p => p.id !== productId));
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Produto movido com sucesso!");
+    } catch (err) {
+      toast.error("Erro ao mover produto.");
+    } finally {
+      setChangingProduct(null);
     }
   };
 
@@ -105,24 +124,47 @@ const AdminCategories = () => {
                 <div className="text-center py-8 text-muted-foreground text-sm">Nenhum produto está usando esta categoria.</div>
               ) : (
                 categoryProducts.map((p) => (
-                  <div key={p.id} className="flex gap-3 p-3 rounded-lg border bg-secondary/50 items-center">
-                    <div className="w-12 h-12 rounded-md border bg-white flex items-center justify-center shrink-0 p-1">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.title} className="w-full h-full object-contain mix-blend-multiply" />
-                      ) : (
-                        <Package className="w-6 h-6 text-muted-foreground/50" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1 truncate" title={p.title}>{p.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-bold text-accent">R$ {Number(p.price).toFixed(2).replace('.', ',')}</span>
-                        {p.is_active ? (
-                           <span className="text-[10px] uppercase font-bold text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">Ativo</span>
+                  <div key={p.id} className="flex flex-col sm:flex-row gap-3 p-3 rounded-lg border bg-secondary/50 items-start sm:items-center">
+                    <div className="flex gap-3 flex-1 min-w-0 w-full">
+                      <div className="w-12 h-12 rounded-md border bg-white flex items-center justify-center shrink-0 p-1">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.title} className="w-full h-full object-contain mix-blend-multiply" />
                         ) : (
-                           <span className="text-[10px] uppercase font-bold text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Inativo</span>
+                          <Package className="w-6 h-6 text-muted-foreground/50" />
                         )}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-1 truncate" title={p.title}>{p.title}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-bold text-accent">R$ {Number(p.price).toFixed(2).replace('.', ',')}</span>
+                          {p.is_active ? (
+                             <span className="text-[10px] uppercase font-bold text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">Ativo</span>
+                          ) : (
+                             <span className="text-[10px] uppercase font-bold text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Inativo</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full sm:w-auto shrink-0 flex items-center gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 mt-2 sm:mt-0">
+                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Mover para:</span>
+                       <div className="relative">
+                         {changingProduct === p.id && (
+                           <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground pointer-events-none" />
+                         )}
+                         <select
+                           className="h-8 px-2 pr-7 text-xs rounded border border-border bg-background focus:ring-1 focus:ring-accent w-full sm:w-[150px] disabled:opacity-50 appearance-none"
+                           value=""
+                           onChange={(e) => handleMoveProduct(p.id, e.target.value)}
+                           disabled={changingProduct === p.id}
+                         >
+                           <option value="" disabled>Selecionar...</option>
+                           {categories.map((cat: any) => (
+                             cat.id !== viewingCategory.id && (
+                               <option key={cat.id} value={cat.id}>{cat.name}</option>
+                             )
+                           ))}
+                         </select>
+                       </div>
                     </div>
                   </div>
                 ))
