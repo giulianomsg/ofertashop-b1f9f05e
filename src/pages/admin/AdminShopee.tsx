@@ -45,6 +45,7 @@ const AdminShopee = () => {
   const [offers, setOffers] = useState<ShopeeOffer[]>([]);
   const [pageInfo, setPageInfo] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [localSort, setLocalSort] = useState<string>("default");
 
   // Import state
   const [importing, setImporting] = useState<Set<string>>(new Set());
@@ -334,20 +335,50 @@ const AdminShopee = () => {
       {/* Results */}
       {offers.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{offers.length} ofertas encontradas</span>
-            <button
-              onClick={handleImportAll}
-              className="text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Importar Todos
-            </button>
+          <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border shadow-sm flex-wrap gap-2">
+            <span className="text-sm font-medium text-muted-foreground">{offers.length} resultados exibidos</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground hidden sm:inline">Organizar por:</span>
+                <select
+                  value={localSort}
+                  onChange={(e) => setLocalSort(e.target.value)}
+                  className="h-9 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none cursor-pointer border"
+                >
+                  <option value="default">Relevância (Padrão)</option>
+                  <option value="maisVendidos">Mais vendidos</option>
+                  <option value="menorPreco">Menor Preço</option>
+                  <option value="maiorPreco">Maior Preço</option>
+                  <option value="melhorAvaliacao">Melhor Avaliação</option>
+                </select>
+              </div>
+              <button
+                onClick={handleImportAll}
+                className="text-sm h-9 px-3 rounded-lg border border-border hover:bg-secondary transition-colors flex items-center gap-1.5 bg-background font-medium shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Importar Todos
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <AnimatePresence>
-              {offers.map((offer) => {
+              {[...offers].sort((a, b) => {
+                if (localSort === "maisVendidos") return (b.sales || 0) - (a.sales || 0);
+                if (localSort === "menorPreco") {
+                    const priceA = a.price > 100000 ? a.price / 100000 : (a.price > 0 && a.price < 1) ? a.price : a.price;
+                    const priceB = b.price > 100000 ? b.price / 100000 : (b.price > 0 && b.price < 1) ? b.price : b.price;
+                    return priceA - priceB;
+                }
+                if (localSort === "maiorPreco") {
+                    const priceA = a.price > 100000 ? a.price / 100000 : (a.price > 0 && a.price < 1) ? a.price : a.price;
+                    const priceB = b.price > 100000 ? b.price / 100000 : (b.price > 0 && b.price < 1) ? b.price : b.price;
+                    return priceB - priceA;
+                }
+                if (localSort === "melhorAvaliacao") return (b.ratingStar || 0) - (a.ratingStar || 0);
+                return 0;
+              }).map((offer) => {
                 const itemId = String(offer.itemId);
                 const isImporting = importing.has(itemId);
                 const isImported = imported.has(itemId);

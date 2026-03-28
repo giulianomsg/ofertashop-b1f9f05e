@@ -13,6 +13,7 @@ interface AmazonItem {
   seller: { nickname: string };
   already_imported?: boolean;
   rating?: number; reviewCount?: number; badge?: string;
+  sold_quantity?: number;
 }
 
 const AdminAmazon = () => {
@@ -25,6 +26,7 @@ const AdminAmazon = () => {
   const [currentCategoryId, setCurrentCategoryId] = useState("");
   const [results, setResults] = useState<AmazonItem[]>([]);
   const [currentOffset, setCurrentOffset] = useState(0);
+  const [localSort, setLocalSort] = useState<string>("default");
 
   const [searching, setSearching] = useState(false);
   const [importing, setImporting] = useState<Set<string>>(new Set());
@@ -306,9 +308,32 @@ const AdminAmazon = () => {
 
       {results.length > 0 && (
         <div className="space-y-4">
+          <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border shadow-sm">
+            <span className="text-sm font-medium text-muted-foreground">{results.length} resultados exibidos</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Organizar por:</span>
+              <select
+                value={localSort}
+                onChange={(e) => setLocalSort(e.target.value)}
+                className="h-9 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500/30 appearance-none cursor-pointer border"
+              >
+                <option value="default">Relevância (Padrão)</option>
+                <option value="maisVendidos">Mais vendidos</option>
+                <option value="menorPreco">Menor Preço</option>
+                <option value="maiorPreco">Maior Preço</option>
+                <option value="melhorAvaliacao">Melhor Avaliação</option>
+              </select>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <AnimatePresence>
-              {results.map((item) => {
+              {[...results].sort((a, b) => {
+                if (localSort === "maisVendidos") return (b.sold_quantity || 0) - (a.sold_quantity || 0);
+                if (localSort === "menorPreco") return (Number(a.price) || 0) - (Number(b.price) || 0);
+                if (localSort === "maiorPreco") return (Number(b.price) || 0) - (Number(a.price) || 0);
+                if (localSort === "melhorAvaliacao") return (b.rating || 0) - (a.rating || 0);
+                return 0;
+              }).map((item) => {
                 const isImporting = importing.has(item.id);
                 const isImported = imported.has(item.id);
 
