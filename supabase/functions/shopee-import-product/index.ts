@@ -141,6 +141,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log("[Shopee Import] Raw Offer Data from API:", JSON.stringify(offer, null, 2));
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
@@ -207,10 +209,13 @@ Deno.serve(async (req) => {
       // If not found, leave null for admin to set manually
     }
 
-    // === PRICING: Use literal values from API ===
-    // priceMax = full price (original/sem desconto), priceMin = discounted price (com desconto)
-    const priceMax = parseFloat(offer.priceMax) || parseFloat(offer.price) || 0;
-    const priceMin = parseFloat(offer.priceMin) || 0;
+    // === PRICING: Normalize Shopee micro-units (if > 100000) ===
+    const rawMax = parseFloat(offer.priceMax) || parseFloat(offer.price) || 0;
+    const rawMin = parseFloat(offer.priceMin) || 0;
+    
+    // Convert from micro-units to standard BRL
+    const priceMax = rawMax > 100000 ? rawMax / 100000 : rawMax;
+    const priceMin = rawMin > 100000 ? rawMin / 100000 : rawMin;
     const discountRate = parseFloat(offer.priceDiscountRate) || 0;
 
     let finalPrice: number;
@@ -302,6 +307,7 @@ Deno.serve(async (req) => {
         sales_count: Number(offer.sales) || 0,
         commission_rate: commissionPct > 0 ? Number(commissionPct.toFixed(2)) : null,
         badge: null,
+        extra_metadata: offer,
       })
       .select()
       .single();
