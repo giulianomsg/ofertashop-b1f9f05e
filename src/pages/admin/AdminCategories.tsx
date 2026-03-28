@@ -64,11 +64,13 @@ const AdminCategories = () => {
       </div>
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
         <table className="w-full text-sm">
-          <thead><tr className="border-b border-border bg-secondary"><th className="text-left p-4 font-semibold text-foreground">Nome</th><th className="text-left p-4 font-semibold text-foreground">Slug</th><th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Ícone</th><th className="text-right p-4 font-semibold text-foreground">Ações</th></tr></thead>
+          <thead><tr className="border-b border-border bg-secondary"><th className="text-left p-4 font-semibold text-foreground">Nome</th><th className="text-left p-4 font-semibold text-foreground">Slug</th><th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Ícone</th><th className="text-center p-4 font-semibold text-foreground">Produtos</th><th className="text-right p-4 font-semibold text-foreground">Ações</th></tr></thead>
           <tbody>
-            {isLoading ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
-              categories.length === 0 ? <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Nenhuma categoria.</td></tr> :
-                categories.map((c) => (
+            {isLoading ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Carregando...</td></tr> :
+              categories.length === 0 ? <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhuma categoria.</td></tr> :
+                categories.map((c: any) => {
+                  const productCount = Array.isArray(c.products) ? c.products[0]?.count || 0 : c.products?.count || 0;
+                  return (
                   <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
                     <td className="p-4 text-foreground">
                       {editingId === c.id ? (
@@ -85,6 +87,9 @@ const AdminCategories = () => {
                         <input value={editIcon} onChange={(e) => setEditIcon(e.target.value)} className="w-full h-9 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30" placeholder="Ícone" />
                       ) : (c.icon || "—")}
                     </td>
+                    <td className="p-4 text-center text-muted-foreground font-medium">
+                      {productCount}
+                    </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {editingId === c.id ? (
@@ -95,13 +100,25 @@ const AdminCategories = () => {
                         ) : (
                           <>
                             <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar categoria"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
-                            <button onClick={async () => { if (!confirm("Excluir?")) return; try { await deleteCategory.mutateAsync(c.id); toast.success("Excluída."); } catch { toast.error("Erro."); } }} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors" aria-label="Excluir categoria"><Trash2 className="w-4 h-4 text-destructive" /></button>
+                            <button 
+                              onClick={async () => { 
+                                if (productCount > 0) return toast.error("Não é possível excluir categorias que contêm produtos.");
+                                if (!confirm("Excluir?")) return; 
+                                try { await deleteCategory.mutateAsync(c.id); toast.success("Excluída."); } catch { toast.error("Erro."); } 
+                              }} 
+                              className={`p-2 rounded-lg transition-colors ${productCount > 0 ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'hover:bg-destructive/10 text-destructive'}`} 
+                              aria-label="Excluir categoria"
+                              title={productCount > 0 ? "Categoria possui produtos" : "Excluir"}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </>
                         )}
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
           </tbody>
         </table>
       </div>
