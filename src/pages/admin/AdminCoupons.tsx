@@ -267,19 +267,18 @@ const AdminCoupons = () => {
                   className="w-4 h-4 rounded border-border text-accent"
                   id="is_link_only"
                 />
-                <label htmlFor="is_link_only" className="text-sm text-foreground cursor-pointer">Sem código / Apenas Link ("Eu quero")</label>
+                <label htmlFor="is_link_only" className="text-sm text-foreground cursor-pointer">Sem código (Apenas botão "Eu quero")</label>
               </div>
-              {form.is_link_only ? (
-                <div>
-                  <label className="text-xs font-semibold block mb-1">Link do Botão "Eu quero"</label>
-                  <input value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })} placeholder="https://exemplo.com/oferta" className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm" />
-                </div>
-              ) : (
+              {!form.is_link_only && (
                 <div>
                   <label className="text-xs font-semibold block mb-1">Código</label>
                   <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none uppercase font-mono text-sm" />
                 </div>
               )}
+              <div>
+                <label className="text-xs font-semibold block mb-1">Link de Redirecionamento {form.is_link_only ? "" : "(Opcional)"}</label>
+                <input value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })} placeholder="https://exemplo.com/oferta?consultoria=..." className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm" />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold block mb-1">Valor do Desconto</label>

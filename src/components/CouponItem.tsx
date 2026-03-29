@@ -88,14 +88,27 @@ export const CouponItem = ({ coupon, affiliateUrl }: { coupon: any; affiliateUrl
               <ExternalLink className="w-4 h-4" /> Eu quero!
             </a>
           ) : (
-            <button 
-              onClick={handleCopy}
-              className="flex items-center justify-between sm:justify-center gap-3 bg-secondary/50 border border-border border-dashed rounded-lg px-4 py-2 hover:bg-secondary transition-colors group"
-              aria-label="Copiar código do cupom"
-            >
-              <span className="font-mono font-bold tracking-wider text-foreground">{coupon.code}</span>
-              {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button 
+                onClick={handleCopy}
+                className="flex items-center justify-between sm:justify-center gap-3 bg-secondary/50 border border-border border-dashed rounded-lg px-4 py-2 hover:bg-secondary transition-colors group flex-1"
+                aria-label="Copiar código do cupom"
+              >
+                <span className="font-mono font-bold tracking-wider text-foreground">{coupon.code}</span>
+                {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
+              </button>
+              {(coupon.link_url || affiliateUrl) && (
+                <a
+                  href={coupon.link_url || affiliateUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-accent/10 text-accent rounded-lg px-4 py-2 font-semibold text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                  aria-label="Acessar página da oferta"
+                >
+                  <ExternalLink className="w-4 h-4" /> Acessar
+                </a>
+              )}
+            </div>
           )}
           
           <div className="flex items-center gap-2 text-sm">
