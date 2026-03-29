@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3, History, RefreshCw, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Image, Loader2, Upload, Video, Check, ChevronsUpDown, Sparkles, BarChart3, History, RefreshCw, ExternalLink, AlertTriangle } from "lucide-react";
 import SocialCopyGenerator from "@/components/SocialCopyGenerator";
 import PriceComparator from "@/components/PriceComparator";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
