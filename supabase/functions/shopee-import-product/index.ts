@@ -225,11 +225,8 @@ Deno.serve(async (req) => {
       // priceMin is the discounted/cash price, priceMax is the original
       finalPrice = priceMin;
       finalOriginalPrice = priceMax;
-    } else if (discountRate > 0 && priceMax > 0) {
-      finalOriginalPrice = priceMax;
-      finalPrice = priceMax * (1 - (discountRate / 100));
     } else {
-      finalPrice = priceMax > 0 ? priceMax : 0.01;
+      finalPrice = priceMax > 0 ? priceMax : (priceMin > 0 ? priceMin : 0.01);
       finalOriginalPrice = null;
     }
 

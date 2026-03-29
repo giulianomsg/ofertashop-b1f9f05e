@@ -180,20 +180,21 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Calculate prices exactly like shopee-import-product
-        const baseRaw = parseFloat(shopeeItem.priceMax) || parseFloat(shopeeItem.price) || parseFloat(shopeeItem.priceMin) || 0;
-        const basePrice = baseRaw > 100000 ? baseRaw / 100000 : baseRaw;
+        // Normalize Shopee micro-units
+        const rawMax = parseFloat(shopeeItem.priceMax) || parseFloat(shopeeItem.price) || 0;
+        const rawMin = parseFloat(shopeeItem.priceMin) || 0;
 
-        const discountRate = parseFloat(shopeeItem.priceDiscountRate) || 0;
+        const priceMax = rawMax > 100000 ? rawMax / 100000 : rawMax;
+        const priceMin = rawMin > 100000 ? rawMin / 100000 : rawMin;
 
-        let finalPrice = basePrice;
+        let finalPrice: number;
         let finalOriginalPrice: number | null = null;
 
-        if (discountRate > 0) {
-          finalOriginalPrice = basePrice;
-          finalPrice = basePrice * (1 - (discountRate / 100));
+        if (priceMin > 0 && priceMax > priceMin) {
+          finalPrice = priceMin;
+          finalOriginalPrice = priceMax;
         } else {
-          finalPrice = basePrice;
+          finalPrice = priceMax > 0 ? priceMax : (priceMin > 0 ? priceMin : 0.01);
           finalOriginalPrice = null;
         }
 
@@ -226,9 +227,6 @@ Deno.serve(async (req) => {
           shopee_raw_price: shopeeItem.price,
           shopee_raw_priceMin: shopeeItem.priceMin,
           shopee_raw_priceMax: shopeeItem.priceMax,
-          baseRaw: baseRaw,
-          basePrice: basePrice,
-          discountRate: discountRate,
           calcPrice: finalPrice,
           calcOriginalPrice: finalOriginalPrice,
           dbCurrentPrice: currentPrice,
