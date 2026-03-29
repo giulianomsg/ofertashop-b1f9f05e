@@ -81,7 +81,9 @@ const AdminProducts = () => {
     if (platformName.includes("amazon")) return url.startsWith("https://amzn.to/");
     if (platformName.includes("shopee")) return url.startsWith("https://s.shopee.com.br/");
     if (platformName.includes("mercado livre") || platformName.includes("mercadolivre")) return url.startsWith("https://meli.la/");
-    if (platformName.includes("natura") || platformName.includes("avon")) return url.includes("consultoria=ofertashop");
+    if (platformName.includes("natura") || platformName.includes("avon")) {
+      return url.includes("consultoria=ofertashop") || url.startsWith("https://sminhaloja.natura.com/");
+    }
     
     // Se a plataforma não for uma das conhecidas, apenas verifica se a URL básica existe
     return url.length > 5;
@@ -536,9 +538,8 @@ const AdminProducts = () => {
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
                       {!isAffiliateLinkValid((product as any).affiliate_url, (product as any).platform_id) && (
-                        <div className="mr-2 px-2 py-1 rounded bg-destructive/10 text-destructive flex items-center gap-1 group" title="Link de Afiliado Ausente ou Fora do Padrão">
+                        <div className="mr-1 p-2 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center cursor-help" title="Link de Afiliado Ausente ou Fora do Padrão">
                           <AlertTriangle className="w-4 h-4" />
-                          <span className="text-[10px] font-bold uppercase hidden xl:inline">Erro de Link</span>
                         </div>
                       )}
                       <a href={(product as any).affiliate_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Visitar produto" title="Visitar Produto">
