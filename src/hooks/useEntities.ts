@@ -277,7 +277,8 @@ export const useActiveCoupons = (platformId?: string | null, productId?: string 
         .from("coupons")
         .select("*")
         .eq("active", true)
-        .eq("platform_id", platformId);
+        .eq("platform_id", platformId)
+        .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`);
         
       if (productId) {
         query = query.or(`product_id.is.null,product_id.eq.${productId}`);

@@ -39,12 +39,12 @@ const AdminCoupons = () => {
   const [form, setForm] = useState({
     title: "", code: "", platform_id: "", product_id: "", discount_amount: "",
     discount_value: "", subtitle: "", conditions: "",
-    is_link_only: false, link_url: "", active: true
+    is_link_only: false, link_url: "", active: true, expires_at: ""
   });
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ title: "", code: "", platform_id: "", product_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, link_url: "", active: true });
+    setForm({ title: "", code: "", platform_id: "", product_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, link_url: "", active: true, expires_at: "" });
     setShowModal(true);
   };
 
@@ -61,7 +61,8 @@ const AdminCoupons = () => {
       conditions: coupon.conditions || "",
       is_link_only: coupon.is_link_only || false,
       link_url: coupon.link_url || "",
-      active: coupon.active
+      active: coupon.active !== undefined ? coupon.active : true,
+      expires_at: coupon.expires_at ? new Date(coupon.expires_at).toISOString().slice(0, 16) : ""
     });
     setShowModal(true);
   };
@@ -76,7 +77,11 @@ const AdminCoupons = () => {
       return;
     }
     try {
-      const payload = { ...form, product_id: form.product_id ? form.product_id : null };
+      const payload = { 
+        ...form, 
+        product_id: form.product_id ? form.product_id : null,
+        expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null
+      };
       if (editingId) {
         await updateCoupon.mutateAsync({ id: editingId, ...payload });
         toast.success("Cupom atualizado.");
@@ -137,6 +142,7 @@ const AdminCoupons = () => {
               <th className="text-left p-4 font-semibold text-foreground">Título</th>
               <th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Código</th>
               <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Tipo</th>
+              <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">Validade</th>
               <th className="text-center p-4 font-semibold text-foreground hidden md:table-cell">🚩</th>
               <th className="text-center p-4 font-semibold text-foreground">Ativo</th>
               <th className="text-right p-4 font-semibold text-foreground">Ações</th>
@@ -170,6 +176,17 @@ const AdminCoupons = () => {
                       <span className={`text-xs px-2 py-1 rounded-full ${c.is_link_only ? 'bg-accent/10 text-accent' : 'bg-secondary text-muted-foreground'}`}>
                         {c.is_link_only ? 'Eu quero' : 'Código'}
                       </span>
+                    </td>
+                    <td className="p-4 text-center hidden md:table-cell">
+                      {c.expires_at ? (
+                        new Date(c.expires_at) < new Date() ? (
+                          <span className="text-xs px-2 py-1 bg-destructive/10 text-destructive rounded font-medium">Vencido</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(c.expires_at).toLocaleDateString("pt-BR")}</span>
+                        )
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="p-4 text-center hidden md:table-cell">
                       {(c.reports_inactive || 0) > 0 && (
@@ -264,6 +281,15 @@ const AdminCoupons = () => {
               <div>
                 <label className="text-xs font-semibold block mb-1">Condições</label>
                 <textarea value={form.conditions} onChange={(e) => setForm({ ...form, conditions: e.target.value })} placeholder="Ex: Apenas para compras acima de R$100" className="w-full h-20 px-3 py-2 rounded-lg bg-secondary border-none text-sm resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold block mb-1">Expira em (Opcional)</label>
+                <input 
+                  type="datetime-local" 
+                  value={form.expires_at} 
+                  onChange={(e) => setForm({ ...form, expires_at: e.target.value })} 
+                  className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30" 
+                />
               </div>
             </div>
             <button onClick={handleSave} className="btn-accent w-full mt-4" aria-label="Salvar">Salvar</button>

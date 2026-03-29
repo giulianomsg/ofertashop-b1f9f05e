@@ -67,6 +67,11 @@ export const CouponItem = ({ coupon, affiliateUrl }: { coupon: any; affiliateUrl
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div className="mb-3">
           <h4 className="font-semibold text-foreground text-lg mb-1">{coupon.title}</h4>
+          {coupon.expires_at && (
+            <span className="inline-block mb-1 px-2 py-0.5 bg-warning/10 text-warning text-xs font-semibold rounded-md">
+              Válido até: {new Date(coupon.expires_at).toLocaleDateString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
           {coupon.description && <p className="text-sm text-muted-foreground line-clamp-2">{coupon.description}</p>}
           {coupon.conditions && <p className="text-xs text-muted-foreground/70 mt-1 italic">{coupon.conditions}</p>}
         </div>
