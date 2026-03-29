@@ -135,6 +135,94 @@ async function fetchHtmlViaScraper(config: ScraperConfig, targetUrl: string): Pr
   return null;
 }
 
+// Build scraper URL WITHOUT render_js (cheaper, for JSON API calls)
+function buildScraperUrlNoJs(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Provider desconhecido: ${provider}`);
+}
+
+function normalizeMicroPrice(raw: number | undefined | null): number {
+  if (!raw || raw <= 0) return 0;
+  if (raw > 10000000) return raw / 100000;
+  if (raw > 10000) return raw / 100;
+  return raw;
+}
+
+async function fetchShopeeInternalApiSync(config: ScraperConfig, shopId: string, itemId: string): Promise<{ price: number; originalPrice: number | null } | null> {
+  const apiUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`;
+  try {
+    const proxyUrl = buildScraperUrlNoJs(config, apiUrl);
+    const res = await fetch(proxyUrl);
+    if (!res.ok) return null;
+
+    let text = await res.text();
+    try {
+      const wrapper = JSON.parse(text);
+      if (wrapper && typeof wrapper.content === 'string') text = wrapper.content;
+    } catch (_e) { /* */ }
+
+    const json = JSON.parse(text);
+    const item = json?.data?.item || json?.item || json?.data;
+    if (!item) return null;
+
+    const priceMinRaw = item.price_min || item.price || 0;
+    const priceBeforeDiscountRaw = item.price_before_discount || item.price_max_before_discount || 0;
+    const priceMinBeforeDiscountRaw = item.price_min_before_discount || 0;
+    const priceMaxRaw = item.price_max || 0;
+
+    const price = normalizeMicroPrice(priceMinRaw);
+    const priceBeforeDiscount = normalizeMicroPrice(priceBeforeDiscountRaw);
+    const priceMinBeforeDiscount = normalizeMicroPrice(priceMinBeforeDiscountRaw);
+    const priceMax = normalizeMicroPrice(priceMaxRaw);
+
+    let originalPrice: number | null = null;
+    const candidates = [priceBeforeDiscount, priceMinBeforeDiscount, priceMax].filter(p => p > 0);
+    if (candidates.length > 0) {
+      const maxOrig = Math.max(...candidates);
+      if (maxOrig > price * 1.01) originalPrice = maxOrig;
+    }
+
+    console.log(`[Shopee Sync API] item=${itemId} price=${price} original=${originalPrice}`);
+    return { price, originalPrice };
+  } catch (err) {
+    console.warn(`[Shopee Sync API] Error for ${itemId}:`, err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
 // --- Extração de preços via Cheerio ---
 function parseBRLPrice(text: string): number[] {
   const prices: number[] = [];
@@ -308,22 +396,34 @@ Deno.serve(async (req) => {
           let newPrice = 0;
           let newOriginalPrice: number | null = null;
           let source = "none";
+          const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
 
-          // === TENTATIVA 1: WEB SCRAPING ===
           if (scraperConfig) {
-            const html = await fetchHtmlViaScraper(scraperConfig, productUrl);
-            if (html && html.length > 1000) {
-              const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
-              const scraped = extractPricesFromHtml(html, currentPrice);
-              if (scraped.price > 0) {
-                newPrice = scraped.price;
-                newOriginalPrice = scraped.originalPrice;
-                source = "scraping";
+            // === TENTATIVA 1: API INTERNA VIA PROXY (sem JS, mais rápido/barato) ===
+            try {
+              const apiResult = await fetchShopeeInternalApiSync(scraperConfig, shopId, itemId);
+              if (apiResult && apiResult.price > 0) {
+                newPrice = apiResult.price;
+                newOriginalPrice = apiResult.originalPrice;
+                source = "internal_api";
+              }
+            } catch (_e) { /* will try HTML next */ }
+
+            // === TENTATIVA 2: HTML SCRAPING (render_js=true) ===
+            if (newPrice <= 0) {
+              const html = await fetchHtmlViaScraper(scraperConfig, productUrl);
+              if (html && html.length > 1000) {
+                const scraped = extractPricesFromHtml(html, currentPrice);
+                if (scraped.price > 0) {
+                  newPrice = scraped.price;
+                  newOriginalPrice = scraped.originalPrice;
+                  source = "html_scraping";
+                }
               }
             }
           }
 
-          // === TENTATIVA 2: FALLBACK API GRAPHQL ===
+          // === TENTATIVA 3: FALLBACK API GRAPHQL ===
           if (newPrice <= 0) {
             try {
               const gqlQuery = `query { productOfferV2(itemId: ${itemId}) { nodes { price priceMin priceMax sales ratingStar } } }`;
@@ -336,7 +436,7 @@ Deno.serve(async (req) => {
 
                 newPrice = rawMin > 0 ? rawMin : rawPrice;
                 newOriginalPrice = rawMax > newPrice ? rawMax : null;
-                source = "api";
+                source = "graphql_api";
               }
             } catch (gqlErr) {
               console.warn(`[Shopee Sync] GraphQL fallback failed for ${itemId}:`, gqlErr);
@@ -349,7 +449,6 @@ Deno.serve(async (req) => {
           }
 
           // Comparar e atualizar
-          const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
           const currentOriginalPrice = Number((product as Record<string, unknown>)?.original_price || 0);
           const updates: Record<string, unknown> = {};
 

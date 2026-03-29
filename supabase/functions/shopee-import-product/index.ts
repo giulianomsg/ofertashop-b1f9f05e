@@ -144,6 +144,153 @@ async function fetchHtmlViaScraper(config: ScraperConfig, targetUrl: string, max
   throw new Error("Falha ao buscar página do produto na Shopee.");
 }
 
+// Build scraper URL WITHOUT render_js (much cheaper, for JSON API calls)
+function buildScraperUrlNoJs(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+// --- Shopee Internal API (via scraper proxy, no JS rendering needed) ---
+interface ShopeeApiPrices {
+  price: number;
+  originalPrice: number | null;
+  description: string | null;
+  galleryUrls: string[];
+  rawApiData?: Record<string, unknown>;
+}
+
+function normalizeMicroPrice(raw: number | undefined | null): number {
+  if (!raw || raw <= 0) return 0;
+  // Shopee stores prices as price * 100000, e.g. 14999000000 = R$149,990.00 — wrong
+  // Actually: 14999000000 / 100000 = 149990 — still wrong
+  // The format is: price in cents * 100000, so 14999000000 / 100000 / 100 = 1499.9 — wrong
+  // Actually Shopee micro-unit: divide by 100000, e.g. 14999000000 / 100000 = 149990 — hmm
+  // Let me check: R$149.99 → stored as 14999000000? No.
+  // R$149.99 → stored as 14999000 (price * 100000)? 14999000 / 100000 = 149.99 ✓
+  if (raw > 10000000) return raw / 100000; // Micro-units: 14999000 → 149.99
+  if (raw > 10000) return raw / 100; // Cents: 14999 → 149.99
+  return raw; // Already in reais
+}
+
+async function fetchShopeeInternalApi(config: ScraperConfig, shopId: string, itemId: string): Promise<ShopeeApiPrices | null> {
+  const apiUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`;
+  
+  try {
+    const proxyUrl = buildScraperUrlNoJs(config, apiUrl);
+    console.log(`[Shopee API] Fetching internal API via ${config.provider} (no JS)`);
+    
+    const res = await fetch(proxyUrl);
+    if (!res.ok) {
+      console.warn(`[Shopee API] HTTP ${res.status}`);
+      return null;
+    }
+
+    let text = await res.text();
+    // Some scrapers wrap response
+    try {
+      const wrapper = JSON.parse(text);
+      if (wrapper && typeof wrapper.content === 'string') text = wrapper.content;
+    } catch (_e) { /* raw response */ }
+
+    const json = JSON.parse(text);
+    const item = json?.data?.item || json?.item || json?.data;
+    
+    if (!item) {
+      console.warn("[Shopee API] No item data in response");
+      return null;
+    }
+
+    // Extract prices (Shopee stores in micro-units)
+    const priceRaw = item.price || 0;
+    const priceMinRaw = item.price_min || item.price || 0;
+    const priceMaxRaw = item.price_max || item.price || 0;
+    const priceBeforeDiscountRaw = item.price_before_discount || item.price_max_before_discount || 0;
+    const priceMinBeforeDiscountRaw = item.price_min_before_discount || 0;
+
+    const price = normalizeMicroPrice(priceMinRaw);
+    const priceMax = normalizeMicroPrice(priceMaxRaw);
+    const priceBeforeDiscount = normalizeMicroPrice(priceBeforeDiscountRaw);
+    const priceMinBeforeDiscount = normalizeMicroPrice(priceMinBeforeDiscountRaw);
+
+    // The actual selling price is the lowest of price_min
+    const finalPrice = price > 0 ? price : normalizeMicroPrice(priceRaw);
+    
+    // Original price = price_before_discount (if higher than current price)
+    let originalPrice: number | null = null;
+    const candidates = [priceBeforeDiscount, priceMinBeforeDiscount, priceMax].filter(p => p > 0);
+    if (candidates.length > 0) {
+      const maxOrig = Math.max(...candidates);
+      if (maxOrig > finalPrice * 1.01) originalPrice = maxOrig;
+    }
+
+    // Description
+    const description = item.description || null;
+
+    // Gallery
+    const galleryUrls: string[] = [];
+    if (item.images && Array.isArray(item.images)) {
+      for (const img of item.images) {
+        if (typeof img === 'string' && galleryUrls.length < 8) {
+          const url = img.startsWith('http') ? img : `https://down-br.img.susercontent.com/file/${img}`;
+          galleryUrls.push(url);
+        }
+      }
+    }
+
+    console.log(`[Shopee API] Prices — min: ${finalPrice}, max: ${priceMax}, beforeDiscount: ${priceBeforeDiscount}, original: ${originalPrice}`);
+
+    return {
+      price: finalPrice,
+      originalPrice,
+      description,
+      galleryUrls,
+      rawApiData: {
+        price: priceRaw, price_min: priceMinRaw, price_max: priceMaxRaw,
+        price_before_discount: priceBeforeDiscountRaw,
+        price_min_before_discount: priceMinBeforeDiscountRaw,
+        stock: item.stock, sold: item.historical_sold || item.sold,
+        name: item.name, brand: item.brand,
+      },
+    };
+  } catch (err) {
+    console.warn("[Shopee API] Error:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
 // --- Extração de preços via Cheerio ---
 function parseBRLPrice(text: string): number[] {
   const prices: number[] = [];
@@ -371,102 +518,99 @@ Deno.serve(async (req) => {
     const shopId = offer.shopId || "0";
     const productLink = offer.productLink || `https://shopee.com.br/product/${shopId}/${offer.itemId}`;
 
-    // === 1. WEB SCRAPING (fonte primária de preço) ===
+    // === 1. SCRAPING: Try internal API first, then HTML ===
     let scrapedPrice = 0;
     let scrapedOriginalPrice: number | null = null;
     let scrapedDescription: string | null = null;
     let scrapedGallery: string[] = [];
-    let priceSource = "api";
+    let priceSource = "graphql_api";
     let debugInfo: Record<string, unknown> | null = null;
 
     try {
       const scraperConfig = await getShopeeScraperConfig(sb);
-      console.log(`[Shopee Import] Scraping ${productLink} via ${scraperConfig.provider} (render_js=true)`);
+      const itemId = String(offer.itemId);
 
-      const html = await fetchHtmlViaScraper(scraperConfig, productLink);
-      console.log(`[Shopee Import] HTML recebido: ${html.length} chars`);
-
-      // Pass API price as reference for sanity-checking scraped prices
-      const apiRefPrice = normalizeShopeePrice(offer.price || offer.priceMin || offer.priceMax);
-      const scraped = extractShopeeData(html, apiRefPrice);
-      console.log(`[Shopee Import] Scraped — price: ${scraped.price}, original: ${scraped.originalPrice}, desc: ${(scraped.description || "").length} chars, gallery: ${scraped.galleryUrls.length} imgs`);
-
-      if (scraped.price > 0) {
-        scrapedPrice = scraped.price;
-        scrapedOriginalPrice = scraped.originalPrice;
-        priceSource = "scraping";
+      // === STRATEGY 1: Shopee Internal JSON API (no JS rendering, cheaper) ===
+      let internalApiResult: ShopeeApiPrices | null = null;
+      try {
+        internalApiResult = await fetchShopeeInternalApi(scraperConfig, shopId, itemId);
+      } catch (e) {
+        console.warn("[Shopee Import] Internal API failed:", e instanceof Error ? e.message : e);
       }
-      if (scraped.description) scrapedDescription = scraped.description;
-      if (scraped.galleryUrls.length > 0) scrapedGallery = scraped.galleryUrls;
 
-      // Build debug info
-      if (debug) {
-        // Extract samples from HTML for diagnosis
-        const htmlHead = html.substring(0, 500);
-        const htmlSize = html.length;
-        const hasBody = html.includes("<body");
-        const hasPrice = html.includes("R$");
-        const hasDehydrated = html.includes("__DEHYDRATED_STATE__") || html.includes("__INITIAL_STATE__");
-        const hasPriceClass = html.includes("pq96Uv") || html.includes("IZPeQz");
-        const hasJsonLd = html.includes("application/ld+json");
-        const hasMicroPrice = /\"price\"\s*:\s*\d{7,15}/.test(html);
+      if (internalApiResult && internalApiResult.price > 0) {
+        scrapedPrice = internalApiResult.price;
+        scrapedOriginalPrice = internalApiResult.originalPrice;
+        priceSource = "internal_api";
+        if (internalApiResult.description) scrapedDescription = internalApiResult.description;
+        if (internalApiResult.galleryUrls.length > 0) scrapedGallery = internalApiResult.galleryUrls;
 
-        // Find all R$ occurrences
-        const rMatches = html.match(/R\$\s?[\d.,]+/g) || [];
-        // Find all micro-unit prices
-        const microMatches = html.match(/"price[^"]*"\s*:\s*\d{7,15}/g) || [];
+        if (debug) {
+          debugInfo = {
+            strategy: "internal_api",
+            scraper: { provider: scraperConfig.provider },
+            internalApiData: internalApiResult.rawApiData,
+            extraction: {
+              scrapedPrice: internalApiResult.price,
+              scrapedOriginalPrice: internalApiResult.originalPrice,
+              descriptionLength: (internalApiResult.description || "").length,
+              galleryCount: internalApiResult.galleryUrls.length,
+            },
+          };
+        }
+      } else {
+        // === STRATEGY 2: HTML Scraping (render_js=true, expensive) ===
+        console.log("[Shopee Import] Internal API returned no prices, trying HTML scraping...");
+        try {
+          const html = await fetchHtmlViaScraper(scraperConfig, productLink);
+          console.log(`[Shopee Import] HTML recebido: ${html.length} chars`);
 
-        debugInfo = {
-          scraper: {
-            provider: scraperConfig.provider,
-            url: productLink,
-            htmlSize,
-            htmlHead,
-          },
-          htmlAnalysis: {
-            hasBody,
-            hasPrice_R$: hasPrice,
-            hasDehydratedState: hasDehydrated,
-            hasPriceCSS: hasPriceClass,
-            hasJsonLd,
-            hasMicroUnitPrices: hasMicroPrice,
-          },
-          foundPrices: {
-            rDollarMatches: rMatches.slice(0, 20),
-            microUnitMatches: microMatches.slice(0, 20),
-          },
-          extraction: {
-            scrapedPrice: scraped.price,
-            scrapedOriginalPrice: scraped.originalPrice,
-            descriptionLength: (scraped.description || "").length,
-            galleryCount: scraped.galleryUrls.length,
-            apiRefPrice: apiRefPrice,
-          },
-          // Extract JSON-LD content for debug
-          jsonLd: (() => {
-            const results: unknown[] = [];
-            const $d = cheerio.load(html);
-            $d('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
-              try { results.push(JSON.parse($d(el).html() || "")); } catch (_e) { /* */ }
-            });
-            return results;
-          })(),
-          // Show what CSS selectors found
-          cssPrices: (() => {
-            const $d = cheerio.load(html);
-            const found: Record<string, string[]> = {};
-            [".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0"].forEach(sel => {
-              const texts: string[] = [];
-              $d(sel).each((_: number, el: cheerio.Element) => { texts.push($d(el).text().trim().substring(0, 50)); });
-              if (texts.length) found[sel] = texts;
-            });
-            return found;
-          })(),
-        };
+          const apiRefPrice = normalizeShopeePrice(offer.price || offer.priceMin || offer.priceMax);
+          const scraped = extractShopeeData(html, apiRefPrice);
+
+          if (scraped.price > 0) {
+            scrapedPrice = scraped.price;
+            scrapedOriginalPrice = scraped.originalPrice;
+            priceSource = "html_scraping";
+          }
+          if (scraped.description) scrapedDescription = scraped.description;
+          if (scraped.galleryUrls.length > 0) scrapedGallery = scraped.galleryUrls;
+
+          if (debug) {
+            const htmlHead = html.substring(0, 500);
+            const rMatches = html.match(/R\$\s?[\d.,]+/g) || [];
+            debugInfo = {
+              strategy: "html_scraping",
+              scraper: { provider: scraperConfig.provider, htmlSize: html.length, htmlHead },
+              htmlAnalysis: {
+                hasBody: html.includes("<body"),
+                hasPrice_R$: html.includes("R$"),
+                hasPriceCSS: html.includes("pq96Uv") || html.includes("IZPeQz"),
+                hasJsonLd: html.includes("application/ld+json"),
+              },
+              foundPrices: { rDollarMatches: rMatches.slice(0, 20) },
+              extraction: {
+                scrapedPrice: scraped.price,
+                scrapedOriginalPrice: scraped.originalPrice,
+                apiRefPrice,
+              },
+              internalApiFailed: internalApiResult === null ? "no_response" : "no_prices",
+            };
+          }
+        } catch (htmlErr) {
+          console.warn("[Shopee Import] HTML scraping also failed:", htmlErr instanceof Error ? htmlErr.message : htmlErr);
+          if (debug) {
+            debugInfo = {
+              strategy: "all_failed",
+              internalApiResult: internalApiResult,
+              htmlError: htmlErr instanceof Error ? htmlErr.message : String(htmlErr),
+            };
+          }
+        }
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
-      console.warn("[Shopee Import] Scraping falhou (usando fallback API):", errMsg);
+      console.warn("[Shopee Import] All scraping failed:", errMsg);
       if (debug) {
         debugInfo = { scraper_error: errMsg };
       }
