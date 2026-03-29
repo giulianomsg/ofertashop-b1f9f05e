@@ -262,23 +262,30 @@ export const useCoupons = () =>
   useQuery({
     queryKey: ["coupons"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("coupons").select("*, platforms(name)").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("coupons").select("*, platforms(name), products(title)").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-export const useActiveCoupons = (platformId?: string | null) =>
+export const useActiveCoupons = (platformId?: string | null, productId?: string | null) =>
   useQuery({
-    queryKey: ["active_coupons", platformId],
+    queryKey: ["active_coupons", platformId, productId],
     queryFn: async () => {
       if (!platformId) return [];
-      const { data, error } = await (supabase as any)
+      let query = (supabase as any)
         .from("coupons")
         .select("*")
         .eq("active", true)
-        .eq("platform_id", platformId)
-        .order("created_at", { ascending: false });
+        .eq("platform_id", platformId);
+        
+      if (productId) {
+        query = query.or(`product_id.is.null,product_id.eq.${productId}`);
+      } else {
+        query = query.is("product_id", null);
+      }
+      
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },

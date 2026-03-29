@@ -3,11 +3,13 @@ import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Link as LinkIcon, Fla
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon, usePlatforms } from "@/hooks/useEntities";
+import { useProducts } from "@/hooks/useProducts";
 import { toast } from "sonner";
 
 const AdminCoupons = () => {
   const { data: coupons = [], isLoading } = useCoupons();
   const { data: platforms = [] } = usePlatforms();
+  const { data: allProducts = [] } = useProducts(true);
   const createCoupon = useCreateCoupon();
   const updateCoupon = useUpdateCoupon();
   const deleteCoupon = useDeleteCoupon();
@@ -35,14 +37,14 @@ const AdminCoupons = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    title: "", code: "", platform_id: "", discount_amount: "",
+    title: "", code: "", platform_id: "", product_id: "", discount_amount: "",
     discount_value: "", subtitle: "", conditions: "",
     is_link_only: false, link_url: "", active: true
   });
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ title: "", code: "", platform_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, link_url: "", active: true });
+    setForm({ title: "", code: "", platform_id: "", product_id: "", discount_amount: "", discount_value: "", subtitle: "", conditions: "", is_link_only: false, link_url: "", active: true });
     setShowModal(true);
   };
 
@@ -52,6 +54,7 @@ const AdminCoupons = () => {
       title: coupon.title || "",
       code: coupon.code || "",
       platform_id: coupon.platform_id || "",
+      product_id: coupon.product_id || "",
       discount_amount: coupon.discount_amount || "",
       discount_value: coupon.discount_value || "",
       subtitle: coupon.subtitle || "",
@@ -73,11 +76,12 @@ const AdminCoupons = () => {
       return;
     }
     try {
+      const payload = { ...form, product_id: form.product_id ? form.product_id : null };
       if (editingId) {
-        await updateCoupon.mutateAsync({ id: editingId, ...form });
+        await updateCoupon.mutateAsync({ id: editingId, ...payload });
         toast.success("Cupom atualizado.");
       } else {
-        await createCoupon.mutateAsync(form);
+        await createCoupon.mutateAsync(payload);
         toast.success("Cupom criado.");
       }
       setShowModal(false);
@@ -128,6 +132,7 @@ const AdminCoupons = () => {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-secondary">
+              <th className="text-left p-4 font-semibold text-foreground">Escopo</th>
               <th className="text-left p-4 font-semibold text-foreground">Plataforma</th>
               <th className="text-left p-4 font-semibold text-foreground">Título</th>
               <th className="text-left p-4 font-semibold text-foreground hidden sm:table-cell">Código</th>
@@ -142,6 +147,16 @@ const AdminCoupons = () => {
               coupons.length === 0 ? <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Nenhum cupom.</td></tr> :
                 coupons.map((c: any) => (
                   <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                    <td className="p-4 text-xs">
+                      {c.product_id && c.products ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="px-2 py-0.5 rounded-sm bg-accent/10 border border-accent/20 text-accent font-semibold inline-block w-fit">Específico</span>
+                          <span className="text-muted-foreground w-32 truncate block" title={c.products.title}>{c.products.title}</span>
+                        </div>
+                      ) : (
+                        <span className="px-2 py-1 rounded bg-secondary text-muted-foreground font-medium inline-block whitespace-nowrap">Global</span>
+                      )}
+                    </td>
                     <td className="p-4 text-muted-foreground">{c.platforms?.name}</td>
                     <td className="p-4 font-medium text-foreground">{c.title}</td>
                     <td className="p-4 font-mono text-xs text-muted-foreground hidden sm:table-cell">
@@ -190,9 +205,25 @@ const AdminCoupons = () => {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-semibold block mb-1">Plataforma</label>
-                <select value={form.platform_id} onChange={(e) => setForm({ ...form, platform_id: e.target.value })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none">
+                <select value={form.platform_id} onChange={(e) => setForm({ ...form, platform_id: e.target.value, product_id: "" })} className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30">
                   <option value="">Selecione...</option>
                   {platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold block mb-1">Produto Específico (Opcional)</label>
+                <select 
+                  value={form.product_id} 
+                  onChange={(e) => setForm({ ...form, product_id: e.target.value })} 
+                  className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30 disabled:opacity-50"
+                  disabled={!form.platform_id}
+                >
+                  <option value="">Global da Plataforma (Todos os produtos)</option>
+                  {allProducts
+                    .filter(p => !form.platform_id || (p as any).platform_id === form.platform_id)
+                    .map(p => (
+                      <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
                 </select>
               </div>
               <div>

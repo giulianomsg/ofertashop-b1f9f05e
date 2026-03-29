@@ -62,7 +62,7 @@ const ProductDetail = () => {
   const priceAnalysis = extra_metadata?.price_analysis || null;
   
   const { data: priceHistory = [] } = usePriceHistory(id || "", productAny?.brand_id, productAny?.model_id);
-  const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id);
+  const { data: coupons = [] } = useActiveCoupons(productAny?.platform_id, id);
 
   const [trustVotes, setTrustVotes] = useState({ sim: 0, nao: 0 });
   const [hasVotedTrust, setHasVotedTrust] = useState<boolean | null>(null); // null = no vote, true = sim, false = nao
