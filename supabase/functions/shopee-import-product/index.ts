@@ -168,49 +168,105 @@ interface ScrapedPrices {
 
 function extractShopeeData(html: string): ScrapedPrices {
   const $ = cheerio.load(html);
-
-  // --- Preço promocional/atual (o menor valor visível) ---
   const allPrices: number[] = [];
+  const originalPrices: number[] = [];
+  let description: string | null = null;
+  const galleryUrls: string[] = [];
 
-  // Seletores primários de preço
+  // ====================================================
+  // STRATEGY 1: CSS Selectors (preço visual renderizado)
+  // ====================================================
   const priceSelectors = [
-    ".pq96Uv", ".IZPeQz", "._44q_F",  // containers de preço conhecidos
-    "[class*='price']",                   // qualquer classe com 'price'
+    ".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0",
+    "[class*='price']",
   ];
   for (const sel of priceSelectors) {
-    $(sel).each((_, el) => {
+    $(sel).each((_: number, el: cheerio.Element) => {
       allPrices.push(...parseBRLPrice($(el).text()));
     });
   }
 
-  // Fallback: regex em todo o HTML para R$ xxx,xx
-  if (allPrices.length === 0) {
-    allPrices.push(...parseBRLPrice($("body").text()));
-  }
-
-  // --- Preço original (tachado / line-through) ---
-  let originalPrice: number | null = null;
-  const originalSelectors = [
-    ".v97vId", ".G2799_",               // classes conhecidas de preço tachado
-    "del",                                // tag HTML de deletado
-    "[style*='line-through']",           // inline style
-  ];
-  for (const sel of originalSelectors) {
-    $(sel).each((_, el) => {
-      const prices = parseBRLPrice($(el).text());
-      for (const p of prices) {
-        if (p > 0) originalPrice = Math.max(originalPrice || 0, p);
-      }
+  // Preço original (tachado)
+  const origSelectors = [".v97vId", ".G2799_", "del", "[style*='line-through']"];
+  for (const sel of origSelectors) {
+    $(sel).each((_: number, el: cheerio.Element) => {
+      originalPrices.push(...parseBRLPrice($(el).text()));
     });
   }
 
-  // --- Descrição ---
-  let description: string | null = null;
-  const descSelectors = [
-    ".f7AU53",                             // container de descrição conhecido
-    "[class*='product-detail']",
-    "[class*='description']",
-  ];
+  // ====================================================
+  // STRATEGY 2: JSON-LD (application/ld+json)
+  // ====================================================
+  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
+    try {
+      const json = JSON.parse($(el).html() || "");
+      if (json?.offers?.price) {
+        allPrices.push(Number(json.offers.price));
+      }
+      if (json?.offers?.lowPrice) {
+        allPrices.push(Number(json.offers.lowPrice));
+      }
+      if (json?.offers?.highPrice) {
+        originalPrices.push(Number(json.offers.highPrice));
+      }
+    } catch (_e) { /* ignore */ }
+  });
+
+  // ====================================================
+  // STRATEGY 3: Shopee SSR data (__DEHYDRATED_STATE__ / __INITIAL_STATE__)
+  // ====================================================
+  $("script").each((_: number, el: cheerio.Element) => {
+    const content = $(el).html() || "";
+    
+    // Look for price patterns in script content
+    // Shopee stores prices as integers (price * 100000)
+    const microPricePatterns = [
+      /"price"\s*:\s*(\d{7,15})/g,           // "price": 14999000000
+      /"price_min"\s*:\s*(\d{7,15})/g,        // "price_min": 14250000000
+      /"price_max"\s*:\s*(\d{7,15})/g,        // "price_max": 20769000000
+      /"price_before_discount"\s*:\s*(\d{7,15})/g,
+      /"price_min_before_discount"\s*:\s*(\d{7,15})/g,
+      /"price_max_before_discount"\s*:\s*(\d{7,15})/g,
+    ];
+    
+    for (const pattern of microPricePatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const raw = parseInt(match[1]);
+        if (raw > 100000) {
+          const normalized = raw / 100000;
+          if (normalized > 0.5 && normalized < 1000000) {
+            // Classify: "before_discount" and "max" go to originalPrices
+            if (match[0].includes("before_discount") || match[0].includes("price_max")) {
+              originalPrices.push(normalized);
+            } else {
+              allPrices.push(normalized);
+            }
+          }
+        }
+      }
+    }
+
+    // Also look for display prices like "R$142,50" in script content
+    if (content.includes("R$") || content.includes("R\\u0024")) {
+      const decoded = content.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
+      allPrices.push(...parseBRLPrice(decoded));
+    }
+  });
+
+  // ====================================================
+  // STRATEGY 4: Regex on full HTML (aggressive fallback)
+  // ====================================================
+  if (allPrices.length === 0) {
+    // Search the entire HTML for R$ patterns
+    const htmlText = html.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
+    allPrices.push(...parseBRLPrice(htmlText));
+  }
+
+  // ====================================================
+  // DESCRIPTION
+  // ====================================================
+  const descSelectors = [".f7AU53", "[class*='product-detail']", "[class*='description']"];
   for (const sel of descSelectors) {
     const text = $(sel).first().text().trim();
     if (text && text.length > 20) {
@@ -219,24 +275,33 @@ function extractShopeeData(html: string): ScrapedPrices {
     }
   }
 
-  // --- Galeria de imagens ---
-  const galleryUrls: string[] = [];
-  $("img[src*='susercontent.com']").each((_, el) => {
+  // ====================================================
+  // GALLERY
+  // ====================================================
+  $("img[src*='susercontent.com']").each((_: number, el: cheerio.Element) => {
     const src = $(el).attr("src");
-    if (src && !galleryUrls.includes(src) && galleryUrls.length < 8) {
-      // Converter thumbnails para full size
+    if (src && galleryUrls.length < 8) {
       const fullSrc = src.replace(/_tn$/, "").replace(/\?.*$/, "");
       if (!galleryUrls.includes(fullSrc)) galleryUrls.push(fullSrc);
     }
   });
 
-  // --- Calcular preço final (menor entre todos encontrados) ---
-  // Filtrar preços muito pequenos (< 0.50) que podem ser artefatos
-  const validPrices = allPrices.filter(p => p >= 0.50);
-  const price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  // ====================================================
+  // CALCULATE FINAL PRICES
+  // ====================================================
+  // Filter valid prices (> 0.50, < 1000000)
+  const validPrices = allPrices.filter(p => p >= 0.50 && p < 1000000);
+  const validOriginals = originalPrices.filter(p => p >= 0.50 && p < 1000000);
 
-  // Se original é menor ou igual ao price, não faz sentido
-  if (originalPrice !== null && originalPrice <= price) originalPrice = null;
+  // price = the LOWEST valid price found (promotional/Pix/flash sale)
+  const price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  
+  // originalPrice = the HIGHEST price found that is greater than price
+  const allCandidates = [...validPrices, ...validOriginals];
+  const maxCandidate = allCandidates.length > 0 ? Math.max(...allCandidates) : 0;
+  const originalPrice = maxCandidate > price * 1.01 ? maxCandidate : null; // 1% threshold
+
+  console.log(`[Shopee Extract] Found ${validPrices.length} prices: [${validPrices.join(", ")}], ${validOriginals.length} originals: [${validOriginals.join(", ")}] → price=${price}, original=${originalPrice}`);
 
   return { price, originalPrice, description, galleryUrls };
 }

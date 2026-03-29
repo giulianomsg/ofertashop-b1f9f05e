@@ -151,30 +151,76 @@ function parseBRLPrice(text: string): number[] {
 
 function extractPricesFromHtml(html: string): { price: number; originalPrice: number | null } {
   const $ = cheerio.load(html);
-
   const allPrices: number[] = [];
-  const priceSelectors = [".pq96Uv", ".IZPeQz", "._44q_F", "[class*='price']"];
+  const originalPrices: number[] = [];
+
+  // STRATEGY 1: CSS Selectors
+  const priceSelectors = [".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0", "[class*='price']"];
   for (const sel of priceSelectors) {
-    $(sel).each((_, el) => { allPrices.push(...parseBRLPrice($(el).text())); });
-  }
-  if (allPrices.length === 0) {
-    allPrices.push(...parseBRLPrice($("body").text()));
+    $(sel).each((_: number, el: cheerio.Element) => { allPrices.push(...parseBRLPrice($(el).text())); });
   }
 
-  let originalPrice: number | null = null;
   const origSelectors = [".v97vId", ".G2799_", "del", "[style*='line-through']"];
   for (const sel of origSelectors) {
-    $(sel).each((_, el) => {
-      const prices = parseBRLPrice($(el).text());
-      for (const p of prices) {
-        if (p > 0) originalPrice = Math.max(originalPrice || 0, p);
-      }
-    });
+    $(sel).each((_: number, el: cheerio.Element) => { originalPrices.push(...parseBRLPrice($(el).text())); });
   }
 
-  const validPrices = allPrices.filter(p => p >= 0.50);
+  // STRATEGY 2: JSON-LD
+  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
+    try {
+      const json = JSON.parse($(el).html() || "");
+      if (json?.offers?.price) allPrices.push(Number(json.offers.price));
+      if (json?.offers?.lowPrice) allPrices.push(Number(json.offers.lowPrice));
+      if (json?.offers?.highPrice) originalPrices.push(Number(json.offers.highPrice));
+    } catch (_e) { /* ignore */ }
+  });
+
+  // STRATEGY 3: SSR micro-unit prices in script tags
+  $("script").each((_: number, el: cheerio.Element) => {
+    const content = $(el).html() || "";
+    const microPatterns = [
+      /"price"\s*:\s*(\d{7,15})/g,
+      /"price_min"\s*:\s*(\d{7,15})/g,
+      /"price_max"\s*:\s*(\d{7,15})/g,
+      /"price_before_discount"\s*:\s*(\d{7,15})/g,
+      /"price_min_before_discount"\s*:\s*(\d{7,15})/g,
+      /"price_max_before_discount"\s*:\s*(\d{7,15})/g,
+    ];
+    for (const pattern of microPatterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const raw = parseInt(match[1]);
+        if (raw > 100000) {
+          const normalized = raw / 100000;
+          if (normalized > 0.5 && normalized < 1000000) {
+            if (match[0].includes("before_discount") || match[0].includes("price_max")) {
+              originalPrices.push(normalized);
+            } else {
+              allPrices.push(normalized);
+            }
+          }
+        }
+      }
+    }
+    if (content.includes("R$") || content.includes("R\\u0024")) {
+      const decoded = content.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
+      allPrices.push(...parseBRLPrice(decoded));
+    }
+  });
+
+  // STRATEGY 4: Full HTML regex fallback
+  if (allPrices.length === 0) {
+    const htmlText = html.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
+    allPrices.push(...parseBRLPrice(htmlText));
+  }
+
+  // Calculate
+  const validPrices = allPrices.filter(p => p >= 0.50 && p < 1000000);
+  const validOriginals = originalPrices.filter(p => p >= 0.50 && p < 1000000);
   const price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-  if (originalPrice !== null && originalPrice <= price) originalPrice = null;
+  const allCandidates = [...validPrices, ...validOriginals];
+  const maxCandidate = allCandidates.length > 0 ? Math.max(...allCandidates) : 0;
+  const originalPrice = maxCandidate > price * 1.01 ? maxCandidate : null;
 
   return { price, originalPrice };
 }
