@@ -32,6 +32,7 @@ interface ShopeeOffer {
   shopType?: number;
   sellerCommissionRate?: number;
   shopeeCommissionRate?: number;
+  priceMin_scraped?: number;
 }
 
 const AdminShopee = () => {
@@ -82,7 +83,7 @@ const AdminShopee = () => {
     },
   });
 
-  const handleSearch = async (page = 1, overrideSort?: number) => {
+  const handleSearch = async (page = 1, overrideSort?: number, deepScrape = false) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
       return;
@@ -91,7 +92,7 @@ const AdminShopee = () => {
     const currentSort = overrideSort !== undefined ? overrideSort : sortType;
     try {
       const { data, error } = await supabase.functions.invoke("shopee-search-offers", {
-        body: { keyword: keyword.trim(), page, limit: 20, sortType: currentSort },
+        body: { keyword: keyword.trim(), page, limit: 20, sortType: currentSort, deepScrape },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -183,22 +184,32 @@ const AdminShopee = () => {
   };
 
   const formatPrice = (offer: ShopeeOffer) => {
-    // Try price first, then priceMin, then priceMax
+    if (offer.priceMin_scraped && offer.priceMin_scraped > 0) {
+       return `R$ ${offer.priceMin_scraped.toFixed(2).replace(".", ",")}`;
+    }
     const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
-    // Shopee API may return price in micro-units (divide by 100000) or in cents (divide by 100) or as-is
-    // Detect format: if value > 100000, likely micro-units; if > 1000, likely cents; otherwise as-is
     let price = rawPrice;
     if (rawPrice > 100000) {
       price = rawPrice / 100000;
     } else if (rawPrice > 0 && rawPrice < 1) {
-      price = rawPrice; // already in reais
+      price = rawPrice; 
     }
     return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "Consultar";
   };
 
   const formatOriginalPrice = (offer: ShopeeOffer) => {
-    const rawMax = Number(offer.priceMax) || 0;
-    const rawMin = Number(offer.price) || Number(offer.priceMin) || 0;
+    let rawMax = Number(offer.priceMax) || 0;
+    let rawMin = Number(offer.price) || Number(offer.priceMin) || 0;
+    
+    if (offer.priceMin_scraped && offer.priceMin_scraped > 0) {
+       let scrapedP = offer.priceMin_scraped;
+       let apiP = rawMax > 100000 ? rawMax / 100000 : rawMax;
+       let apiMin = rawMin > 100000 ? rawMin / 100000 : rawMin;
+       let original = apiP > 0 ? apiP : apiMin;
+       if (original > scrapedP) return `R$ ${original.toFixed(2).replace(".", ",")}`;
+       return null;
+    }
+
     if (rawMax <= rawMin || rawMax === 0) return null;
     let price = rawMax;
     if (rawMax > 100000) {
@@ -300,8 +311,8 @@ const AdminShopee = () => {
             <input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
-              placeholder="Buscar ofertas na Shopee... (ex: fone bluetooth, smartwatch)"
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(1, undefined, false)}
+              placeholder="Nome do produto ou cole um Link da Shopee..."
               className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
           </div>
@@ -310,7 +321,7 @@ const AdminShopee = () => {
             onChange={(e) => {
               const val = Number(e.target.value);
               setSortType(val);
-              if (keyword.trim()) handleSearch(1, val);
+              if (keyword.trim()) handleSearch(1, val, false);
             }}
             className="h-10 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none bg-background cursor-pointer hover:bg-secondary transition-colors font-medium border"
           >
@@ -321,14 +332,26 @@ const AdminShopee = () => {
             <option value={5}>Maior Preço</option>
             <option value={6}>Melhor Avaliação</option>
           </select>
-          <button
-            onClick={() => handleSearch(1)}
-            disabled={searching}
-            className="h-10 px-5 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-          >
-            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            Buscar
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSearch(1, undefined, false)}
+              disabled={searching}
+              className="h-10 px-4 rounded-lg bg-accent/10 border-accent/20 border text-accent text-sm font-semibold hover:bg-accent hover:text-accent-foreground disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              title="Busca rápida usando apenas os dados da API Oficial"
+            >
+              {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              Rápida
+            </button>
+            <button
+              onClick={() => handleSearch(1, undefined, true)}
+              disabled={searching}
+              className="h-10 px-4 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              title="Extrai preços com desconto em tempo real navegando internamente nas páginas."
+            >
+              {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+              Profunda
+            </button>
+          </div>
         </div>
       </div>
 
