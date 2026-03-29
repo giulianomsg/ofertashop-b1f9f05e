@@ -181,6 +181,17 @@ function normalizeMicroPrice(raw: number | undefined | null): number {
   return raw;
 }
 
+// --- Calcular preço PIX com subsídio da Shopee (Política 2026) ---
+function calculateShopeePixPrice(price: number): { pixPrice: number; pixDiscount: number } {
+  if (price < 80) return { pixPrice: price, pixDiscount: 0 };
+  if (price < 500) {
+    const pixPrice = Math.round(price * 0.95 * 100) / 100;
+    return { pixPrice, pixDiscount: 5 };
+  }
+  const pixPrice = Math.round(price * 0.92 * 100) / 100;
+  return { pixPrice, pixDiscount: 8 };
+}
+
 async function fetchShopeeInternalApiSync(config: ScraperConfig, shopId: string, itemId: string): Promise<{ price: number; originalPrice: number | null } | null> {
   const apiUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`;
   try {
@@ -393,8 +404,8 @@ Deno.serve(async (req) => {
         const productUrl = (mapping.shopee_product_url as string) || `https://shopee.com.br/product/${shopId}/${itemId}`;
 
         try {
-          let newPrice = 0;
-          let newOriginalPrice: number | null = null;
+          let basePrice = 0;
+          let baseOriginalPrice: number | null = null;
           let source = "none";
           const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
 
@@ -403,20 +414,20 @@ Deno.serve(async (req) => {
             try {
               const apiResult = await fetchShopeeInternalApiSync(scraperConfig, shopId, itemId);
               if (apiResult && apiResult.price > 0) {
-                newPrice = apiResult.price;
-                newOriginalPrice = apiResult.originalPrice;
+                basePrice = apiResult.price;
+                baseOriginalPrice = apiResult.originalPrice;
                 source = "internal_api";
               }
             } catch (_e) { /* will try HTML next */ }
 
             // === TENTATIVA 2: HTML SCRAPING (render_js=true) ===
-            if (newPrice <= 0) {
+            if (basePrice <= 0) {
               const html = await fetchHtmlViaScraper(scraperConfig, productUrl);
               if (html && html.length > 1000) {
                 const scraped = extractPricesFromHtml(html, currentPrice);
                 if (scraped.price > 0) {
-                  newPrice = scraped.price;
-                  newOriginalPrice = scraped.originalPrice;
+                  basePrice = scraped.price;
+                  baseOriginalPrice = scraped.originalPrice;
                   source = "html_scraping";
                 }
               }
@@ -424,7 +435,7 @@ Deno.serve(async (req) => {
           }
 
           // === TENTATIVA 3: FALLBACK API GRAPHQL ===
-          if (newPrice <= 0) {
+          if (basePrice <= 0) {
             try {
               const gqlQuery = `query { productOfferV2(itemId: ${itemId}) { nodes { price priceMin priceMax sales ratingStar } } }`;
               const gqlData = await shopeeGraphQL<{ productOfferV2: { nodes: Record<string, unknown>[] } }>(gqlQuery);
@@ -434,8 +445,8 @@ Deno.serve(async (req) => {
                 const rawMax = normalizeShopeePrice(node.priceMax as number);
                 const rawPrice = normalizeShopeePrice(node.price as number);
 
-                newPrice = rawMin > 0 ? rawMin : rawPrice;
-                newOriginalPrice = rawMax > newPrice ? rawMax : null;
+                basePrice = rawMin > 0 ? rawMin : rawPrice;
+                baseOriginalPrice = rawMax > basePrice ? rawMax : null;
                 source = "graphql_api";
               }
             } catch (gqlErr) {
@@ -443,9 +454,20 @@ Deno.serve(async (req) => {
             }
           }
 
-          if (newPrice <= 0) {
+          if (basePrice <= 0) {
             syncLogs.push(`[${itemId}] Sem preço (scraping + API falharam).`);
             return;
+          }
+
+          // === APLICAR SUBSÍDIO PIX ===
+          const { pixPrice, pixDiscount } = calculateShopeePixPrice(basePrice);
+          const newPrice = pixPrice;
+          let newOriginalPrice: number | null = null;
+          
+          if (pixDiscount > 0 && basePrice > pixPrice) {
+            newOriginalPrice = basePrice;
+          } else if (baseOriginalPrice && baseOriginalPrice > pixPrice * 1.01) {
+            newOriginalPrice = baseOriginalPrice;
           }
 
           // Comparar e atualizar

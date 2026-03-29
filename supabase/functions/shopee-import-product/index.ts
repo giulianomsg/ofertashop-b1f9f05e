@@ -489,6 +489,21 @@ function normalizeShopeePrice(raw: number | string | undefined | null): number {
   return num;
 }
 
+// --- Calcular preço PIX com subsídio da Shopee (Política 2026) ---
+// Fonte: https://seller.br.shopee.cn/edu/article/26839
+// Até R$79,99: sem desconto PIX
+// R$80 - R$499,99: 5% de subsídio
+// R$500+: 8% de subsídio
+function calculateShopeePixPrice(price: number): { pixPrice: number; pixDiscount: number } {
+  if (price < 80) return { pixPrice: price, pixDiscount: 0 };
+  if (price < 500) {
+    const pixPrice = Math.round(price * 0.95 * 100) / 100;
+    return { pixPrice, pixDiscount: 5 };
+  }
+  const pixPrice = Math.round(price * 0.92 * 100) / 100;
+  return { pixPrice, pixDiscount: 8 };
+}
+
 // --- Handler Principal ---
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -758,27 +773,35 @@ Deno.serve(async (req) => {
       }
     }
 
-    // === 2. FALLBACK: preços da API GraphQL (offer) ===
-    let finalPrice = scrapedPrice;
-    let finalOriginalPrice = scrapedOriginalPrice;
+    // === 2. Determine base price (scraping or API) ===
+    let basePrice = scrapedPrice;
+    let baseOriginalPrice = scrapedOriginalPrice;
 
-    if (finalPrice <= 0) {
+    if (basePrice <= 0) {
       // Usar dados do offer da busca GraphQL
       const rawPriceMin = normalizeShopeePrice(offer.priceMin || offer.pricePromotional);
       const rawPriceMax = normalizeShopeePrice(offer.priceMax || offer.price);
       const rawPrice = normalizeShopeePrice(offer.price);
 
-      finalPrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
-      finalOriginalPrice = rawPriceMax > finalPrice ? rawPriceMax : null;
-      priceSource = "api";
+      basePrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
+      baseOriginalPrice = rawPriceMax > basePrice ? rawPriceMax : null;
+      priceSource = "graphql_api";
     }
 
-    // Se não tem promoção, original_price = null
-    if (finalOriginalPrice !== null && finalOriginalPrice <= finalPrice) {
-      finalOriginalPrice = null;
+    // === 3. Apply Shopee PIX subsidy (Política 2026) ===
+    const { pixPrice, pixDiscount } = calculateShopeePixPrice(basePrice);
+    const finalPrice = pixPrice;
+    let finalOriginalPrice: number | null = null;
+
+    // original_price = the base price (before PIX discount) if PIX discount applies
+    if (pixDiscount > 0 && basePrice > pixPrice) {
+      finalOriginalPrice = basePrice;
+    } else if (baseOriginalPrice && baseOriginalPrice > pixPrice * 1.01) {
+      // If there was already an original price from scraping/API, keep the highest
+      finalOriginalPrice = baseOriginalPrice;
     }
 
-    console.log(`[Shopee Import] Final — price: ${finalPrice}, original: ${finalOriginalPrice}, source: ${priceSource}`);
+    console.log(`[Shopee Import] Base: ${basePrice}, PIX(${pixDiscount}%): ${pixPrice}, Original: ${finalOriginalPrice}, Source: ${priceSource}`);
 
     // === DEBUG MODE: retorna diagnóstico sem importar ===
     if (debug) {
@@ -786,6 +809,8 @@ Deno.serve(async (req) => {
         debug: true,
         finalPrice,
         finalOriginalPrice,
+        basePrice,
+        pixDiscount,
         priceSource,
         offerPrices: {
           price: offer.price,

@@ -55,6 +55,17 @@ function normalizeShopeePrice(raw: number | string | undefined | null): number {
   return num;
 }
 
+// --- Calcular preço PIX com subsídio da Shopee (Política 2026) ---
+function calculateShopeePixPrice(price: number): { pixPrice: number; pixDiscount: number } {
+  if (price < 80) return { pixPrice: price, pixDiscount: 0 };
+  if (price < 500) {
+    const pixPrice = Math.round(price * 0.95 * 100) / 100;
+    return { pixPrice, pixDiscount: 5 };
+  }
+  const pixPrice = Math.round(price * 0.92 * 100) / 100;
+  return { pixPrice, pixDiscount: 8 };
+}
+
 // --- Mapear sortType numérico para o sortType da API GraphQL ---
 function mapSortType(sortType: number): number {
   // API Shopee Affiliate: 1=relevância, 2=comissão, 3=vendas, 4=preço asc, 5=preço desc, 6=avaliação
@@ -143,22 +154,31 @@ Deno.serve(async (req) => {
       const rawPriceMin = normalizeShopeePrice(o.priceMin as number);
       const rawPriceMax = normalizeShopeePrice(o.priceMax as number);
 
-      // priceMin = preço promocional/atual, priceMax = preço original (sem desconto)
-      const pricePromotional = rawPriceMin > 0 ? rawPriceMin : rawPrice;
-      const priceOriginal = rawPriceMax > 0 ? rawPriceMax : rawPrice;
+      // priceMin = preço da API (antes do PIX), priceMax = preço original (sem desconto)
+      const basePrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
+      const baseOriginalPrice = rawPriceMax > basePrice ? rawPriceMax : basePrice;
+
+      // Aplicar subsídio PIX
+      const { pixPrice, pixDiscount } = calculateShopeePixPrice(basePrice);
+      const finalPrice = pixPrice;
+      let finalOriginalPrice = baseOriginalPrice;
+
+      if (pixDiscount > 0 && basePrice > pixPrice) {
+        finalOriginalPrice = basePrice;
+      }
 
       return {
         ...o,
         // Preço exibido (atual/promocional)
-        price: priceOriginal,
-        priceMin: pricePromotional,
-        priceMax: priceOriginal,
-        pricePromotional: pricePromotional,
+        price: finalPrice,
+        priceMin: finalPrice,
+        priceMax: finalOriginalPrice,
+        pricePromotional: finalPrice,
         // Calcular desconto
-        discount: priceOriginal > pricePromotional && priceOriginal > 0
-          ? Math.round(((priceOriginal - pricePromotional) / priceOriginal) * 100)
+        discount: finalOriginalPrice && finalOriginalPrice > finalPrice && finalOriginalPrice > 0
+          ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)
           : null,
-      };
+      } as Record<string, unknown>;
     });
 
     // 3. Marcar já importados
