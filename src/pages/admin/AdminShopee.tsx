@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +56,25 @@ const AdminShopee = () => {
   // Batch sync state
   const [syncing, setSyncing] = useState(false);
   const [syncDetails, setSyncDetails] = useState<{ title?: string; status?: string; oldPrice?: number; newPrice?: number }[]>([]);
+
+  // Scraper settings state (isolated: shopee_scraper_config)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeProvider, setActiveProvider] = useState("scrapingbee");
+  const [scraperKeys, setScraperKeys] = useState<Record<string, string>>({
+    "scrapingbee": "", "scrape.do": "", "scrapingant": "", "scraperapi": ""
+  });
+  const [savingScraper, setSavingScraper] = useState(false);
+
+  useEffect(() => {
+    (supabase as ReturnType<typeof import("@supabase/supabase-js").createClient>)
+      .from("admin_settings").select("value").eq("key", "shopee_scraper_config").maybeSingle()
+      .then(({ data }: { data: { value: { activeProvider?: string; keys?: Record<string,string> } } | null }) => {
+        if (data?.value) {
+          setActiveProvider(data.value.activeProvider || "scrapingbee");
+          if (data.value.keys) setScraperKeys(data.value.keys);
+        }
+      });
+  }, []);
 
   // Sync logs
   const { data: syncLogs = [] } = useQuery({
@@ -186,6 +205,24 @@ const AdminShopee = () => {
     }
   };
 
+  const handleSaveScraper = async () => {
+    setSavingScraper(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from("admin_settings").upsert({
+          key: "shopee_scraper_config",
+          value: { activeProvider, keys: scraperKeys }
+        }, { onConflict: "key" });
+      if (error) throw error;
+      toast.success("Configuração de Scraper da Shopee salva!");
+      setIsSettingsOpen(false);
+    } catch (err: unknown) {
+      toast.error("Erro ao salvar: " + (err instanceof Error ? err.message : "Falha"));
+    } finally {
+      setSavingScraper(false);
+    }
+  };
+
   const formatPrice = (offer: ShopeeOffer) => {
     const price = offer.pricePromotional || offer.priceMin || offer.price || 0;
     return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "Consultar";
@@ -231,8 +268,70 @@ const AdminShopee = () => {
             {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             {syncing ? "Sincronizando..." : "Sincronizar Preços"}
           </button>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-zinc-900 text-white border border-zinc-700 hover:bg-zinc-800 transition-colors"
+          >
+            <Settings className="w-4 h-4" /> Proxy Scraper
+          </button>
         </div>
       </div>
+
+      {/* Scraper Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border shadow-lg rounded-xl p-6 w-full max-w-lg relative animate-in fade-in zoom-in-95 duration-200">
+            <button onClick={() => setIsSettingsOpen(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2"><Settings className="w-5 h-5" /> Scraper Shopee</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Configuração exclusiva da Shopee. Não afeta Amazon, Mercado Livre ou Natura.
+              A Shopee requer <strong>render_js=true</strong> (renderização de JavaScript).
+            </p>
+            <div className="space-y-4">
+              <div className="bg-secondary/50 p-3 rounded-lg border">
+                <label className="text-sm font-semibold mb-2 block">1. Provedor Ativo</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['scrapingbee', 'scrape.do', 'scrapingant', 'scraperapi'] as const).map((prov) => (
+                    <label key={prov} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${activeProvider === prov ? 'bg-primary/5 border-primary text-primary font-medium' : 'bg-background hover:bg-secondary/80'}`}>
+                      <input type="radio" name="shopee_provider" value={prov} checked={activeProvider === prov} onChange={() => setActiveProvider(prov)} className="accent-primary w-4 h-4" />
+                      <span className="capitalize text-sm">{prov.replace('.do', '.DO').replace('api', 'API').replace('ant', 'Ant').replace('bee', 'Bee')}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-3 pt-2">
+                <label className="text-sm font-semibold">2. Chaves de API (exclusivas Shopee)</label>
+                {[
+                  { id: "scrapingbee", label: "ScrapingBee (api_key)" },
+                  { id: "scrape.do", label: "Scrape.do (token)" },
+                  { id: "scrapingant", label: "ScrapingAnt (x-api-key)" },
+                  { id: "scraperapi", label: "ScraperAPI (api_key)" }
+                ].map((svc) => (
+                  <div key={svc.id} className="flex flex-col gap-1.5">
+                    <label className="text-xs text-muted-foreground font-medium">{svc.label}</label>
+                    <input
+                      type="password"
+                      value={scraperKeys[svc.id] || ""}
+                      onChange={e => setScraperKeys(prev => ({ ...prev, [svc.id]: e.target.value.trim() }))}
+                      placeholder={`Cole a chave do ${svc.id} aqui...`}
+                      className={`w-full h-9 px-3 rounded-md bg-background border text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 ${activeProvider === svc.id ? 'border-primary shadow-sm' : 'border-border'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                className="w-full mt-4 h-11 rounded-lg bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                onClick={handleSaveScraper}
+                disabled={savingScraper || !scraperKeys[activeProvider]}
+              >
+                {savingScraper ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Salvar e Aplicar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Detailed Sync Results */}
       {syncDetails.length > 0 && (
