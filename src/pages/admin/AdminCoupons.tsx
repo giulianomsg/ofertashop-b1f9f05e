@@ -6,6 +6,14 @@ import { useCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon, usePlatf
 import { useProducts } from "@/hooks/useProducts";
 import { toast } from "sonner";
 
+const toLocalDatetimeLocal = (dateString: string) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const AdminCoupons = () => {
   const { data: coupons = [], isLoading } = useCoupons();
   const { data: platforms = [] } = usePlatforms();
@@ -62,7 +70,7 @@ const AdminCoupons = () => {
       is_link_only: coupon.is_link_only || false,
       link_url: coupon.link_url || "",
       active: coupon.active !== undefined ? coupon.active : true,
-      expires_at: coupon.expires_at ? new Date(coupon.expires_at).toISOString().slice(0, 16) : ""
+      expires_at: coupon.expires_at ? toLocalDatetimeLocal(coupon.expires_at) : ""
     });
     setShowModal(true);
   };
