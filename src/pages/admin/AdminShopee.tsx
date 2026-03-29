@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X, Bot } from "lucide-react";
+import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ interface ShopeeOffer {
   price: number;
   priceMin: number;
   priceMax: number;
+  pricePromotional: number;
   imageUrl: string;
   productLink: string;
   commission: number;
@@ -32,7 +33,7 @@ interface ShopeeOffer {
   shopType?: number;
   sellerCommissionRate?: number;
   shopeeCommissionRate?: number;
-  priceMin_scraped?: number;
+  discount?: string | null;
 }
 
 const AdminShopee = () => {
@@ -44,7 +45,7 @@ const AdminShopee = () => {
   const [sortType, setSortType] = useState<number>(2);
   const [searching, setSearching] = useState(false);
   const [offers, setOffers] = useState<ShopeeOffer[]>([]);
-  const [pageInfo, setPageInfo] = useState<any>(null);
+  const [pageInfo, setPageInfo] = useState<{ page?: number; limit?: number; hasNextPage?: boolean } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [localSort, setLocalSort] = useState<string>("default");
 
@@ -54,13 +55,13 @@ const AdminShopee = () => {
 
   // Batch sync state
   const [syncing, setSyncing] = useState(false);
-  const [syncDetails, setSyncDetails] = useState<any[]>([]);
+  const [syncDetails, setSyncDetails] = useState<{ title?: string; status?: string; oldPrice?: number; newPrice?: number }[]>([]);
 
   // Sync logs
   const { data: syncLogs = [] } = useQuery({
     queryKey: ["shopee_sync_logs"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as ReturnType<typeof import("@supabase/supabase-js").createClient>)
         .from("shopee_sync_logs")
         .select("*")
         .order("created_at", { ascending: false })
@@ -74,7 +75,7 @@ const AdminShopee = () => {
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["shopee_mappings_count"],
     queryFn: async () => {
-      const { count, error } = await (supabase as any)
+      const { count, error } = await (supabase as ReturnType<typeof import("@supabase/supabase-js").createClient>)
         .from("shopee_product_mappings")
         .select("id", { count: "exact", head: true })
         .eq("sync_status", "active");
@@ -83,7 +84,7 @@ const AdminShopee = () => {
     },
   });
 
-  const handleSearch = async (page = 1, overrideSort?: number, deepScrape = false) => {
+  const handleSearch = async (page = 1, overrideSort?: number) => {
     if (!keyword.trim()) {
       toast.error("Digite uma palavra-chave para buscar.");
       return;
@@ -92,7 +93,7 @@ const AdminShopee = () => {
     const currentSort = overrideSort !== undefined ? overrideSort : sortType;
     try {
       const { data, error } = await supabase.functions.invoke("shopee-search-offers", {
-        body: { keyword: keyword.trim(), page, limit: 20, sortType: currentSort, deepScrape },
+        body: { keyword: keyword.trim(), page, limit: 20, sortType: currentSort },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -101,26 +102,26 @@ const AdminShopee = () => {
       setPageInfo(data.pageInfo || null);
       setCurrentPage(page);
 
-      // Mark already imported
       const alreadyImported = new Set<string>(
         (data.offers || []).filter((o: ShopeeOffer) => o.already_imported).map((o: ShopeeOffer) => String(o.itemId))
       );
       setImported(alreadyImported);
-    } catch (err: any) {
-      toast.error("Erro na busca: " + (err.message || "Falha"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha";
+      toast.error("Erro na busca: " + message);
     } finally {
       setSearching(false);
     }
   };
 
-  const handleImport = async (offer: ShopeeOffer, forceAI = false) => {
+  const handleImport = async (offer: ShopeeOffer) => {
     const itemId = String(offer.itemId);
     if (importing.has(itemId) || imported.has(itemId)) return;
 
     setImporting((prev) => new Set(prev).add(itemId));
     try {
       const { data, error } = await supabase.functions.invoke("shopee-import-product", {
-        body: { offer, forceAI, userId: user?.id },
+        body: { offer, userId: user?.id },
       });
       if (error) throw error;
       if (data?.error) {
@@ -131,22 +132,14 @@ const AdminShopee = () => {
           throw new Error(data.error);
         }
       } else {
-        const sourceMap = {
-          'OPENROUTER_AI': 'Inteligência Artificial',
-          'OPENROUTER_AI_FALLBACK': 'IA (Fallback Automático)',
-          'DOM_CLASS': 'Raspagem Visual',
-          'SSR_JSON': 'Metadados Ocultos',
-          'API_DEFAULT': 'API Padrão Shopee'
-        };
-        const srcLabel = data?.priceSource ? sourceMap[data.priceSource as keyof typeof sourceMap] || data.priceSource : 'API Padrão Shopee';
-        const priceLabel = data?.scraped_price ? ` R$ ${data.scraped_price}` : '';
-        toast.success(`"${offer.productName?.slice(0, 30)}..." importado via ${srcLabel}!${priceLabel}`);
+        toast.success(`"${offer.productName?.slice(0, 40)}..." importado com sucesso!`);
         setImported((prev) => new Set(prev).add(itemId));
         qc.invalidateQueries({ queryKey: ["products"] });
         qc.invalidateQueries({ queryKey: ["shopee_mappings_count"] });
       }
-    } catch (err: any) {
-      toast.error("Erro ao importar: " + (err.message || "Falha"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha";
+      toast.error("Erro ao importar: " + message);
     } finally {
       setImporting((prev) => {
         const s = new Set(prev);
@@ -179,58 +172,36 @@ const AdminShopee = () => {
       toast.success(
         `Sincronização concluída! ${data.total} processados, ${data.updated} atualizados, ${data.deactivated} desativados.`
       );
-      if (data.details && data.details.length > 0) {
+      if (data.details?.length > 0) {
         setSyncDetails(data.details);
       }
       qc.invalidateQueries({ queryKey: ["shopee_sync_logs"] });
       qc.invalidateQueries({ queryKey: ["shopee_mappings_count"] });
       qc.invalidateQueries({ queryKey: ["products"] });
-    } catch (err: any) {
-      toast.error("Erro na sincronização: " + (err.message || "Falha"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha";
+      toast.error("Erro na sincronização: " + message);
     } finally {
       setSyncing(false);
     }
   };
 
   const formatPrice = (offer: ShopeeOffer) => {
-    if (offer.priceMin_scraped && offer.priceMin_scraped > 0) {
-       return `R$ ${offer.priceMin_scraped.toFixed(2).replace(".", ",")}`;
-    }
-    const rawPrice = Number(offer.price) || Number(offer.priceMin) || 0;
-    let price = rawPrice;
-    if (rawPrice > 100000) {
-      price = rawPrice / 100000;
-    } else if (rawPrice > 0 && rawPrice < 1) {
-      price = rawPrice; 
-    }
+    const price = offer.pricePromotional || offer.priceMin || offer.price || 0;
     return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : "Consultar";
   };
 
   const formatOriginalPrice = (offer: ShopeeOffer) => {
-    let rawMax = Number(offer.priceMax) || 0;
-    let rawMin = Number(offer.price) || Number(offer.priceMin) || 0;
-    
-    if (offer.priceMin_scraped && offer.priceMin_scraped > 0) {
-       let scrapedP = offer.priceMin_scraped;
-       let apiP = rawMax > 100000 ? rawMax / 100000 : rawMax;
-       let apiMin = rawMin > 100000 ? rawMin / 100000 : rawMin;
-       let original = apiP > 0 ? apiP : apiMin;
-       if (original > scrapedP) return `R$ ${original.toFixed(2).replace(".", ",")}`;
-       return null;
+    const original = offer.priceMax || offer.price || 0;
+    const current = offer.pricePromotional || offer.priceMin || 0;
+    if (original > current && original > 0) {
+      return `R$ ${original.toFixed(2).replace(".", ",")}`;
     }
-
-    if (rawMax <= rawMin || rawMax === 0) return null;
-    let price = rawMax;
-    if (rawMax > 100000) {
-      price = rawMax / 100000;
-    }
-    return price > 0 ? `R$ ${price.toFixed(2).replace(".", ",")}` : null;
+    return null;
   };
 
   const formatCommission = (offer: ShopeeOffer) => {
     const rate = Number(offer.commissionRate) || 0;
-    // commissionRate may come as decimal (0.11) or percentage (11)
-    // If < 1, treat as decimal and multiply by 100
     const pct = rate < 1 && rate > 0 ? rate * 100 : rate;
     return pct > 0 ? `${pct.toFixed(1)}%` : null;
   };
@@ -320,7 +291,7 @@ const AdminShopee = () => {
             <input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch(1, undefined, false)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
               placeholder="Nome do produto ou cole um Link da Shopee..."
               className="w-full h-10 pl-10 pr-4 rounded-lg bg-secondary border-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
@@ -330,7 +301,7 @@ const AdminShopee = () => {
             onChange={(e) => {
               const val = Number(e.target.value);
               setSortType(val);
-              if (keyword.trim()) handleSearch(1, val, false);
+              if (keyword.trim()) handleSearch(1, val);
             }}
             className="h-10 px-3 rounded-lg bg-secondary border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 appearance-none bg-background cursor-pointer hover:bg-secondary transition-colors font-medium border"
           >
@@ -341,26 +312,14 @@ const AdminShopee = () => {
             <option value={5}>Maior Preço</option>
             <option value={6}>Melhor Avaliação</option>
           </select>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleSearch(1, undefined, false)}
-              disabled={searching}
-              className="h-10 px-4 rounded-lg bg-accent/10 border-accent/20 border text-accent text-sm font-semibold hover:bg-accent hover:text-accent-foreground disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-              title="Busca rápida usando apenas os dados da API Oficial"
-            >
-              {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              Rápida
-            </button>
-            <button
-              onClick={() => handleSearch(1, undefined, true)}
-              disabled={searching}
-              className="h-10 px-4 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-              title="Extrai preços com desconto em tempo real navegando internamente nas páginas."
-            >
-              {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-              Profunda
-            </button>
-          </div>
+          <button
+            onClick={() => handleSearch(1)}
+            disabled={searching}
+            className="h-10 px-5 rounded-lg bg-accent text-accent-foreground text-sm font-semibold hover:bg-accent/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+          >
+            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+            Buscar
+          </button>
         </div>
       </div>
 
@@ -398,16 +357,8 @@ const AdminShopee = () => {
             <AnimatePresence>
               {[...offers].sort((a, b) => {
                 if (localSort === "maisVendidos") return (b.sales || 0) - (a.sales || 0);
-                if (localSort === "menorPreco") {
-                    const priceA = a.price > 100000 ? a.price / 100000 : (a.price > 0 && a.price < 1) ? a.price : a.price;
-                    const priceB = b.price > 100000 ? b.price / 100000 : (b.price > 0 && b.price < 1) ? b.price : b.price;
-                    return priceA - priceB;
-                }
-                if (localSort === "maiorPreco") {
-                    const priceA = a.price > 100000 ? a.price / 100000 : (a.price > 0 && a.price < 1) ? a.price : a.price;
-                    const priceB = b.price > 100000 ? b.price / 100000 : (b.price > 0 && b.price < 1) ? b.price : b.price;
-                    return priceB - priceA;
-                }
+                if (localSort === "menorPreco") return (a.pricePromotional || a.price) - (b.pricePromotional || b.price);
+                if (localSort === "maiorPreco") return (b.pricePromotional || b.price) - (a.pricePromotional || a.price);
                 if (localSort === "melhorAvaliacao") return (b.ratingStar || 0) - (a.ratingStar || 0);
                 return 0;
               }).map((offer) => {
@@ -445,6 +396,11 @@ const AdminShopee = () => {
                               {formatOriginalPrice(offer)}
                             </span>
                           )}
+                          {offer.discount && (
+                            <span className="text-xs bg-destructive/10 text-destructive px-1.5 py-0.5 rounded font-semibold">
+                              -{offer.discount}%
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           {formatCommission(offer) && (
@@ -466,7 +422,7 @@ const AdminShopee = () => {
                             <span className="text-xs text-muted-foreground">⭐ {Number(offer.ratingStar).toFixed(1)}</span>
                           )}
                           {offer.sales > 0 && (
-                            <span className="text-xs text-muted-foreground">{offer.sales} vendas</span>
+                            <span className="text-xs text-muted-foreground">{offer.sales.toLocaleString("pt-BR")} vendas</span>
                           )}
                         </div>
                         {offer.periodEndTime ? (
@@ -499,18 +455,6 @@ const AdminShopee = () => {
                             <Download className="w-3.5 h-3.5" /> Importar
                           </>
                         )}
-                      </button>
-                      <button
-                        onClick={() => handleImport(offer, true)}
-                        disabled={isImporting || isImported}
-                        title="Forçar extração por Inteligência Artificial"
-                        className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-colors ${
-                          isImported
-                            ? "border-border text-muted-foreground cursor-default opacity-50"
-                            : "border-purple-500/30 text-purple-500 hover:bg-purple-500/10 disabled:opacity-50"
-                        }`}
-                      >
-                        <Bot className="w-4 h-4" />
                       </button>
                       {offer.productLink && (
                         <a
@@ -566,9 +510,9 @@ const AdminShopee = () => {
                 </tr>
               </thead>
               <tbody>
-                {syncLogs.map((log: any) => (
-                  <tr key={log.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                    <td className="p-3 capitalize text-foreground">{log.sync_type?.replace("_", " ")}</td>
+                {syncLogs.map((log: Record<string, unknown>) => (
+                  <tr key={String(log.id)} className="border-b border-border last:border-0 hover:bg-secondary/50">
+                    <td className="p-3 capitalize text-foreground">{String(log.sync_type || "").replace("_", " ")}</td>
                     <td className="p-3 text-center">
                       <span
                         className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
@@ -580,14 +524,14 @@ const AdminShopee = () => {
                         }`}
                       >
                         {log.status === "error" && <AlertTriangle className="w-3 h-3" />}
-                        {log.status}
+                        {String(log.status)}
                       </span>
                     </td>
-                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{log.items_processed || 0}</td>
-                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{log.items_updated || 0}</td>
-                    <td className="p-3 text-center text-muted-foreground hidden md:table-cell">{log.items_deactivated || 0}</td>
+                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{Number(log.items_processed) || 0}</td>
+                    <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">{Number(log.items_updated) || 0}</td>
+                    <td className="p-3 text-center text-muted-foreground hidden md:table-cell">{Number(log.items_deactivated) || 0}</td>
                     <td className="p-3 text-right text-xs text-muted-foreground">
-                      {new Date(log.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                      {new Date(String(log.created_at)).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                     </td>
                   </tr>
                 ))}
