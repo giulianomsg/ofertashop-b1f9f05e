@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
 
         // 3.2 Extract Promotional Price explicitly from DOM (if SSR failed)
         if (!scrapedFinalPrice) {
-          const domPriceText = $(".pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
+          const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
           if (domPriceText) {
              const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
              if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
@@ -324,15 +324,17 @@ Deno.serve(async (req) => {
 
     // === 4. MERGE DATA ===
     if (scrapedFinalPrice && scrapedFinalPrice > 0) {
-       // if scraped price is different and lower, we use it as final
-       // because API often misses dynamic/flash discounts
-       if (scrapedFinalPrice < finalPrice || finalPrice <= 0.01) {
-          if (!finalOriginalPrice || finalPrice > scrapedFinalPrice) {
-             finalOriginalPrice = finalPrice > 0.01 ? finalPrice : finalOriginalPrice;
-          }
-          finalPrice = scrapedFinalPrice;
-          console.log(`[Shopee Merged] Price overridden by Scraper: ${finalPrice}`);
-       }
+      // Force API logic to be original_price, and scraped to be final selling price
+      const apiPrice = finalPrice > 0 ? finalPrice : (priceMax > 0 ? priceMax : 0);
+      
+      if (apiPrice > scrapedFinalPrice) {
+        finalOriginalPrice = apiPrice;
+      } else if (priceMax > scrapedFinalPrice) {
+        finalOriginalPrice = priceMax; 
+      }
+      
+      finalPrice = scrapedFinalPrice;
+      console.log(`[Shopee Merged] Price forced by Web Scraper: ${finalPrice} (Old API was ${apiPrice})`);
     }
 
     const mergedRating = scrapedRating !== null && scrapedRating > 0 ? scrapedRating : (Number(offer.ratingStar) || 0);

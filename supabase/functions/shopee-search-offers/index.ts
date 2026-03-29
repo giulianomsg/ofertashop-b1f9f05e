@@ -191,49 +191,7 @@ Deno.serve(async (req) => {
       pageInfo = data?.productOfferV2?.pageInfo || {};
     }
 
-    // 3. Deep Scraping (Optional)
-    if (deepScrape && offers.length > 0) {
-      console.log(`[Shopee Search] Executing deep scrape for ${offers.length} items`);
-      try {
-        const scraperConfig = await getActiveScraperConfig(sb);
-        const scrapePromises = offers.map(async (offer: any) => {
-           try {
-             const url = offer.productLink || offer.offerLink;
-             if (!url) return;
-             const proxyUrl = buildScraperUrl(scraperConfig, url);
-             const html = await fetchWithRetry(proxyUrl, 1);
-             const $ = cheerio.load(html);
-             
-             let scrapedFinalPrice: number | null = null;
-             $('script').each((_: any, el: any) => {
-               const scriptContent = $(el).html() || '';
-               if (!scrapedFinalPrice) {
-                 const priceMatch = scriptContent.match(/"price":\s*(\d{4,9})/);
-                 if (priceMatch) {
-                    const rawP = parseInt(priceMatch[1], 10);
-                    if (rawP > 100000) scrapedFinalPrice = rawP / 100000;
-                 }
-               }
-             });
-             
-             if (!scrapedFinalPrice) {
-                const domPriceText = $(".pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
-                if (domPriceText) {
-                   const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
-                   if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
-                }
-             }
-             if (scrapedFinalPrice && scrapedFinalPrice > 0) {
-                offer.priceMin_scraped = scrapedFinalPrice;
-             }
-           } catch(e) { } // ignore individual failure
-        });
-        await Promise.allSettled(scrapePromises);
-      } catch(configErr) {
-        console.warn("Could not setup deepScrape", configErr);
-      }
-    }
-
+    // Deep Scraping was removed for performance. Uses pure Affiliate API.
     const itemIds = offers.map((o: any) => String(o.itemId));
     const { data: existingMappings } = await sb
       .from("shopee_product_mappings")

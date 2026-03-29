@@ -1,6 +1,5 @@
-// Edge Function: shopee-batch-sync (standalone)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+import * as cheerio from "https://esm.sh/cheerio@1.0.0-rc.12";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -45,6 +44,85 @@ async function shopeeGraphQL<T = any>(query: string, variables: Record<string, a
     throw new Error(`Shopee GraphQL error: ${json.errors.map((e: any) => e.message).join(", ")}`);
   }
   return json.data as T;
+}
+
+// --- MULTI-SCRAPER ABSTRACTION ---
+interface ScraperConfig {
+  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
+  apiKey: string;
+}
+
+function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
+  const { provider, apiKey } = config;
+  if (provider === 'scrapingbee') {
+    const api = new URL("https://app.scrapingbee.com/api/v1");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("render_js", "false");
+    api.searchParams.append("premium_proxy", "true");
+    api.searchParams.append("country_code", "br");
+    return api.toString();
+  }
+  if (provider === 'scrape.do') {
+    const api = new URL("https://api.scrape.do");
+    api.searchParams.append("token", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("geoCode", "br");
+    return api.toString();
+  }
+  if (provider === 'scrapingant') {
+    const api = new URL("https://api.scrapingant.com/v2/general");
+    api.searchParams.append("x-api-key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("proxy_country", "BR");
+    api.searchParams.append("browser", "false");
+    api.searchParams.append("proxy_type", "residential");
+    return api.toString();
+  }
+  if (provider === 'scraperapi') {
+    const api = new URL("https://api.scraperapi.com/");
+    api.searchParams.append("api_key", apiKey);
+    api.searchParams.append("url", targetUrl);
+    api.searchParams.append("country_code", "br");
+    api.searchParams.append("premium", "true");
+    return api.toString();
+  }
+  throw new Error(`Scraper provider desconhecido: ${provider}`);
+}
+
+async function getActiveScraperConfig(sb: any): Promise<ScraperConfig> {
+  try {
+    const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
+    if (data?.value?.activeProvider && data?.value?.keys) {
+      const provider = data.value.activeProvider;
+      const apiKey = data.value.keys[provider];
+      if (apiKey) return { provider, apiKey };
+    }
+  } catch (e) { /* ignore */ }
+
+  const defaultKey = Deno.env.get("SCRAPINGBEE_API_KEY");
+  if (defaultKey) return { provider: "scrapingbee", apiKey: defaultKey };
+  throw new Error("Nenhum serviço de Web Scraper configurado.");
+}
+
+async function fetchWithRetry(url: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        let finalHtml = await res.text();
+        try {
+          const json = JSON.parse(finalHtml);
+          if (json && typeof json.content === 'string') finalHtml = json.content;
+        } catch (e) { /* raw html */ }
+        return finalHtml;
+      }
+    } catch (err: any) {
+      if (i === maxRetries - 1) throw err;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -96,7 +174,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    const scraperConfig = await getActiveScraperConfig(sb);
     const BATCH_SIZE = 20;
+    const CONCURRENCY = 5;
     let totalUpdated = 0;
     let totalDeactivated = 0;
     const details: any[] = [];
@@ -164,9 +244,12 @@ Deno.serve(async (req) => {
 
       const shopeeMap = new Map(shopeeItems.map((item: any) => [String(item.itemId), item]));
 
-      for (const mapping of batch) {
-        const shopeeItem = shopeeMap.get(mapping.shopee_item_id);
-        const product = (mapping as any).products;
+      for (let j = 0; j < batch.length; j += CONCURRENCY) {
+        const subBatch = batch.slice(j, j + CONCURRENCY);
+        
+        await Promise.all(subBatch.map(async (mapping: any) => {
+          const shopeeItem = shopeeMap.get(mapping.shopee_item_id);
+          const product = (mapping as any).products;
 
         if (!shopeeItem) {
           if (product?.is_active) {
@@ -177,7 +260,7 @@ Deno.serve(async (req) => {
             totalDeactivated++;
             details.push({ id: mapping.product_id, title: (product as any)?.title || "Produto Desconhecido", status: "deactivated" });
           }
-          continue;
+          return;
         }
 
         // Normalize Shopee micro-units
@@ -197,6 +280,34 @@ Deno.serve(async (req) => {
           finalPrice = priceMax > 0 ? priceMax : (priceMin > 0 ? priceMin : 0.01);
           finalOriginalPrice = null;
         }
+
+        // ================= SCRAPING HIBRIDO DIRETO =================
+        let scrapedFinalPrice: number | null = null;
+        try {
+          const url = product?.affiliate_url || `https://shopee.com.br/product/x/${mapping.shopee_item_id}`; 
+          const proxyUrl = buildScraperUrl(scraperConfig, url);
+          const html = await fetchWithRetry(proxyUrl, 1);
+          if (html) {
+             const $ = cheerio.load(html);
+             const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
+             if (domPriceText) {
+                const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
+                if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
+             }
+          }
+        } catch (err) { }
+
+        if (scrapedFinalPrice && scrapedFinalPrice > 0) {
+           const apiPrice = finalPrice > 0 ? finalPrice : (priceMax > 0 ? priceMax : 0);
+           if (apiPrice > scrapedFinalPrice) {
+             finalOriginalPrice = apiPrice;
+           } else if (priceMax > scrapedFinalPrice) {
+             finalOriginalPrice = priceMax; 
+           }
+           finalPrice = scrapedFinalPrice;
+           debug_info.push({ event: "scraper_overrode_price", product_id: mapping.product_id, apiPrice, scrapedFinalPrice });
+        }
+        // ===========================================================
 
         const updates: Record<string, any> = {};
         
@@ -292,6 +403,7 @@ Deno.serve(async (req) => {
           offer_valid_to: validTo,
           shopee_extra_data: shopee_extra_data
         }).eq("id", mapping.id);
+       }));
       }
     }
 
