@@ -516,9 +516,10 @@ Deno.serve(async (req) => {
     }
 
     const shopId = offer.shopId || "0";
-    const productLink = offer.productLink || `https://shopee.com.br/product/${shopId}/${offer.itemId}`;
+    const itemId = String(offer.itemId);
+    const productLink = offer.productLink || `https://shopee.com.br/product/${shopId}/${itemId}`;
 
-    // === 1. SCRAPING: Try internal API first, then HTML ===
+    // === PRICE EXTRACTION (4 strategies, first success wins) ===
     let scrapedPrice = 0;
     let scrapedOriginalPrice: number | null = null;
     let scrapedDescription: string | null = null;
@@ -526,11 +527,98 @@ Deno.serve(async (req) => {
     let priceSource = "graphql_api";
     let debugInfo: Record<string, unknown> | null = null;
 
+    // --- STRATEGY 0: Direct call to Shopee internal API (no proxy, from Edge Function) ---
+    const directApiDebug: Record<string, unknown> = {};
     try {
-      const scraperConfig = await getShopeeScraperConfig(sb);
-      const itemId = String(offer.itemId);
+      const endpoints = [
+        `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`,
+        `https://shopee.com.br/api/v4/pdp/get_pc?shop_id=${shopId}&item_id=${itemId}`,
+      ];
 
-      // === STRATEGY 1: Shopee Internal JSON API (no JS rendering, cheaper) ===
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Accept": "application/json",
+              "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+              "Referer": "https://shopee.com.br/",
+              "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120"',
+              "sec-ch-ua-platform": '"Windows"',
+              "x-shopee-language": "pt-BR",
+              "x-requested-with": "XMLHttpRequest",
+              "x-api-source": "pc",
+            },
+          });
+
+          const endpointName = endpoint.includes("pdp/get_pc") ? "pdp_get_pc" : "item_get";
+          directApiDebug[endpointName] = { status: res.status };
+
+          if (res.ok) {
+            const json = await res.json();
+            const item = json?.data?.item || json?.data || json?.item;
+
+            if (item) {
+              const priceMinRaw = item.price_min || item.price || 0;
+              const priceMaxRaw = item.price_max || item.price || 0;
+              const priceBeforeDiscountRaw = item.price_before_discount || item.price_max_before_discount || 0;
+              const priceMinBeforeDiscountRaw = item.price_min_before_discount || 0;
+
+              const price = normalizeMicroPrice(priceMinRaw);
+              const priceMax = normalizeMicroPrice(priceMaxRaw);
+              const priceBeforeDiscount = normalizeMicroPrice(priceBeforeDiscountRaw);
+              const priceMinBeforeDiscount = normalizeMicroPrice(priceMinBeforeDiscountRaw);
+
+              if (price > 0) {
+                scrapedPrice = price;
+                priceSource = `direct_${endpointName}`;
+
+                // Original price
+                const origCandidates = [priceBeforeDiscount, priceMinBeforeDiscount, priceMax].filter(p => p > 0);
+                if (origCandidates.length > 0) {
+                  const maxOrig = Math.max(...origCandidates);
+                  if (maxOrig > scrapedPrice * 1.01) scrapedOriginalPrice = maxOrig;
+                }
+
+                // Description & gallery
+                if (item.description) scrapedDescription = item.description;
+                if (item.images && Array.isArray(item.images)) {
+                  for (const img of item.images) {
+                    if (typeof img === 'string' && scrapedGallery.length < 8) {
+                      scrapedGallery.push(img.startsWith('http') ? img : `https://down-br.img.susercontent.com/file/${img}`);
+                    }
+                  }
+                }
+
+                directApiDebug[endpointName] = {
+                  status: res.status,
+                  success: true,
+                  rawPrices: { price_min: priceMinRaw, price_max: priceMaxRaw, price_before_discount: priceBeforeDiscountRaw },
+                  normalizedPrices: { price, priceMax, priceBeforeDiscount },
+                  name: item.name,
+                  stock: item.stock,
+                  sold: item.historical_sold || item.sold,
+                };
+
+                console.log(`[Shopee Direct API] ✓ ${endpointName}: price=${price}, original=${scrapedOriginalPrice}`);
+                break; // Success — stop trying endpoints
+              }
+            }
+          } else {
+            directApiDebug[endpointName] = { status: res.status, error: "non-ok" };
+          }
+        } catch (endpointErr) {
+          const eName = endpoint.includes("pdp/get_pc") ? "pdp_get_pc" : "item_get";
+          directApiDebug[eName] = { error: endpointErr instanceof Error ? endpointErr.message : String(endpointErr) };
+        }
+      }
+    } catch (_e) { /* non-critical */ }
+
+    // --- STRATEGIES 1-2: Via scraper proxy (only if direct API didn't work) ---
+    if (scrapedPrice <= 0) try {
+      const scraperConfig = await getShopeeScraperConfig(sb);
+
+      // === STRATEGY 1: Shopee Internal JSON API via proxy ===
       let internalApiResult: ShopeeApiPrices | null = null;
       try {
         internalApiResult = await fetchShopeeInternalApi(scraperConfig, shopId, itemId);
@@ -651,6 +739,7 @@ Deno.serve(async (req) => {
           priceMax: offer.priceMax,
           pricePromotional: offer.pricePromotional,
         },
+        directApi: directApiDebug,
         ...debugInfo,
       }, null, 2), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
