@@ -1,4 +1,4 @@
-// Edge Function: shopee-batch-sync — Refatorado: API Interna JSON para preços reais
+// Edge Function: shopee-batch-sync — API Oficial GraphQL + fallback scraper
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -6,88 +6,52 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// --- Multi-Scraper Proxy ---
-interface ScraperConfig {
-  provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
-  apiKey: string;
+// --- Shopee Affiliate GraphQL ---
+function bufferToHex(buffer: ArrayBuffer): string {
+  return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
-  const { provider, apiKey } = config;
-  if (provider === 'scrapingbee') {
-    const api = new URL("https://app.scrapingbee.com/api/v1");
-    api.searchParams.append("api_key", apiKey);
-    api.searchParams.append("url", targetUrl);
-    api.searchParams.append("render_js", "false");
-    api.searchParams.append("country_code", "br");
-    return api.toString();
-  }
-  if (provider === 'scrape.do') {
-    const api = new URL("https://api.scrape.do");
-    api.searchParams.append("token", apiKey);
-    api.searchParams.append("url", targetUrl);
-    api.searchParams.append("geoCode", "br");
-    return api.toString();
-  }
-  if (provider === 'scrapingant') {
-    const api = new URL("https://api.scrapingant.com/v2/general");
-    api.searchParams.append("x-api-key", apiKey);
-    api.searchParams.append("url", targetUrl);
-    api.searchParams.append("proxy_country", "BR");
-    api.searchParams.append("browser", "false");
-    api.searchParams.append("proxy_type", "residential");
-    return api.toString();
-  }
-  if (provider === 'scraperapi') {
-    const api = new URL("https://api.scraperapi.com/");
-    api.searchParams.append("api_key", apiKey);
-    api.searchParams.append("url", targetUrl);
-    api.searchParams.append("country_code", "br");
-    return api.toString();
-  }
-  throw new Error(`Scraper provider desconhecido: ${provider}`);
+async function sha256Hex(message: string): Promise<string> {
+  const data = new TextEncoder().encode(message);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return bufferToHex(hash);
 }
 
-async function getActiveScraperConfig(sb: ReturnType<typeof createClient>): Promise<ScraperConfig> {
-  try {
-    const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
-    if (data?.value?.activeProvider && data?.value?.keys) {
-      const provider = data.value.activeProvider;
-      const apiKey = data.value.keys[provider];
-      if (apiKey) return { provider, apiKey };
-    }
-  } catch (_e) { /* ignore */ }
+async function shopeeGraphQL<T = unknown>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  const appId = Deno.env.get("SHOPEE_APP_ID");
+  const appSecret = Deno.env.get("SHOPEE_APP_SECRET");
+  if (!appId || !appSecret) throw new Error("SHOPEE_APP_ID e SHOPEE_APP_SECRET devem estar definidas.");
 
-  const defaultKey = Deno.env.get("SCRAPINGBEE_API_KEY");
-  if (defaultKey) return { provider: "scrapingbee", apiKey: defaultKey };
-  throw new Error("Nenhum serviço de Web Scraper configurado.");
-}
+  const payloadStr = JSON.stringify({ query, variables });
+  const timestamp = Math.floor(Date.now() / 1000);
+  const factor = `${appId}${timestamp}${payloadStr}${appSecret}`;
+  const sign = await sha256Hex(factor);
 
-async function fetchJsonViaScraper(scraperConfig: ScraperConfig, targetUrl: string, maxRetries = 2): Promise<unknown | null> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const proxyUrl = buildScraperUrl(scraperConfig, targetUrl);
-      const res = await fetch(proxyUrl);
-      if (res.ok) {
-        let text = await res.text();
-        try {
-          const wrapper = JSON.parse(text);
-          if (wrapper && typeof wrapper.content === 'string') text = wrapper.content;
-        } catch (_e) { /* raw response */ }
-        return JSON.parse(text);
-      }
-    } catch (err) {
-      if (i === maxRetries - 1) throw err;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
+  const shopeeHost = Deno.env.get("SHOPEE_API_BASE_URL") ?? "https://open-api.affiliate.shopee.com.br";
+  const url = `${shopeeHost}/graphql`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `SHA256 Credential=${appId},Timestamp=${timestamp},Signature=${sign}`,
+      "Content-Type": "application/json",
+    },
+    body: new TextEncoder().encode(payloadStr),
+  });
+
+  const json = await res.json();
+  if (json.errors?.length > 0) {
+    throw new Error(`Shopee GraphQL error: ${json.errors.map((e: { message: string }) => e.message).join(", ")}`);
   }
-  return null;
+  return json.data as T;
 }
 
-function normalizeShopeePrice(raw: number): number {
-  if (!raw || raw <= 0) return 0;
-  if (raw > 100000) return raw / 100000;
-  return raw;
+// --- Normalizar preço Shopee (vem em micro-unidades: valor * 100000) ---
+function normalizeShopeePrice(raw: number | string | undefined | null): number {
+  const num = Number(raw);
+  if (!num || num <= 0) return 0;
+  if (num > 100000) return num / 100000;
+  return num;
 }
 
 // --- Handler Principal ---
@@ -131,64 +95,80 @@ Deno.serve(async (req) => {
       });
     }
 
-    const scraperConfig = await getActiveScraperConfig(sb);
-    const CONCURRENCY = 3;
     let totalUpdated = 0;
     let totalDeactivated = 0;
     const details: { id: string; title: string; status: string; oldPrice?: number; newPrice?: number }[] = [];
     const syncLogs: string[] = [];
 
-    // Processar em batches com concorrência limitada
-    for (let i = 0; i < mappings.length; i += CONCURRENCY) {
-      const batch = mappings.slice(i, i + CONCURRENCY);
+    // Processar em batches de 10 via API GraphQL (busca por itemId)
+    const BATCH_SIZE = 10;
 
-      await Promise.all(batch.map(async (mapping: Record<string, unknown>) => {
-        const itemId = mapping.shopee_item_id as string;
-        const shopId = (mapping.shopee_shop_id as string) || "0";
-        const product = mapping.products as Record<string, unknown> | null;
+    for (let i = 0; i < mappings.length; i += BATCH_SIZE) {
+      const batch = mappings.slice(i, i + BATCH_SIZE);
 
-        try {
-          // Buscar dados via API Interna
-          const itemUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`;
-          const itemData = await fetchJsonViaScraper(scraperConfig, itemUrl) as { data?: Record<string, unknown> } | null;
-          const item = itemData?.data || null;
+      try {
+        // Montar query GraphQL para buscar todos os itens do batch
+        const aliasQueries = batch.map((m: Record<string, unknown>, idx: number) => {
+          const itemId = m.shopee_item_id as string;
+          return `item_${idx}: productOfferV2(itemId: ${itemId}) {
+            nodes {
+              itemId shopId productName price priceMin priceMax sales ratingStar
+            }
+          }`;
+        }).join("\n");
 
-          if (!item) {
-            syncLogs.push(`[${itemId}] Falha ao buscar dados.`);
-            return;
+        const batchData = await shopeeGraphQL<Record<string, { nodes: Record<string, unknown>[] }>>(`query { ${aliasQueries} }`);
+
+        // Mapear resultados por itemId
+        const resultMap = new Map<string, Record<string, unknown>>();
+        for (const [, val] of Object.entries(batchData || {})) {
+          const nodes = val?.nodes || [];
+          for (const node of nodes) {
+            resultMap.set(String(node.itemId), node);
           }
+        }
 
-          // Verificar se fora de estoque
-          const stock = Number(item.stock) || 0;
-          const status = Number(item.status) || 0;
-          const isOutOfStock = stock === 0 || status !== 1;
+        // Processar cada mapping do batch
+        for (const mapping of batch) {
+          const itemId = mapping.shopee_item_id as string;
+          const product = mapping.products as Record<string, unknown> | null;
+          const shopeeItem = resultMap.get(itemId);
 
-          if (isOutOfStock && (product as Record<string, unknown>)?.is_active) {
-            await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id as string);
-            await sb.from("shopee_product_mappings").update({
-              sync_status: "unavailable", last_synced_at: new Date().toISOString(),
-            }).eq("id", mapping.id as string);
-            totalDeactivated++;
-            details.push({
-              id: mapping.product_id as string,
-              title: (product as Record<string, unknown>)?.title as string || "Produto Desconhecido",
-              status: "deactivated",
-            });
-            return;
+          if (!shopeeItem) {
+            // Item não retornado pela API — possivelmente fora do ar
+            syncLogs.push(`[${itemId}] Sem dados da API.`);
+            continue;
           }
 
           // Calcular preços
-          const newPrice = normalizeShopeePrice(Number(item.price) || Number(item.price_min) || 0);
-          const priceBeforeDiscount = normalizeShopeePrice(
-            Number(item.price_before_discount) || Number(item.price_max_before_discount) || 0
-          );
+          const rawPriceMin = normalizeShopeePrice(shopeeItem.priceMin as number);
+          const rawPriceMax = normalizeShopeePrice(shopeeItem.priceMax as number);
+          const rawPrice = normalizeShopeePrice(shopeeItem.price as number);
+
+          // priceMin = preço atual/promocional, priceMax = preço original
+          const newPrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
+          const newOriginalPrice = rawPriceMax > newPrice ? rawPriceMax : null;
 
           if (newPrice <= 0) {
-            syncLogs.push(`[${itemId}] Preço zero ou inválido.`);
-            return;
+            // Preço zero = produto possivelmente indisponível
+            if ((product as Record<string, unknown>)?.is_active) {
+              await sb.from("products").update({ is_active: false }).eq("id", mapping.product_id as string);
+              await sb.from("shopee_product_mappings").update({
+                sync_status: "unavailable", last_synced_at: new Date().toISOString(),
+              }).eq("id", mapping.id as string);
+              totalDeactivated++;
+              details.push({
+                id: mapping.product_id as string,
+                title: (product as Record<string, unknown>)?.title as string || "?",
+                status: "deactivated",
+              });
+            }
+            syncLogs.push(`[${itemId}] Preço zero — desativado.`);
+            continue;
           }
 
           const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
+          const currentOriginalPrice = Number((product as Record<string, unknown>)?.original_price || 0);
           const updates: Record<string, unknown> = {};
 
           // Atualizar preço
@@ -197,8 +177,6 @@ Deno.serve(async (req) => {
           }
 
           // Atualizar preço original
-          const newOriginalPrice = priceBeforeDiscount > newPrice ? priceBeforeDiscount : null;
-          const currentOriginalPrice = Number((product as Record<string, unknown>)?.original_price || 0);
           if (newOriginalPrice !== null && Math.abs(newOriginalPrice - currentOriginalPrice) > 0.01) {
             updates.original_price = newOriginalPrice;
           } else if (newOriginalPrice === null && currentOriginalPrice > 0) {
@@ -206,14 +184,13 @@ Deno.serve(async (req) => {
           }
 
           // Atualizar vendas
-          const newSales = Number(item.historical_sold) || Number(item.sold) || 0;
+          const newSales = Number(shopeeItem.sales) || 0;
           if (newSales > 0 && newSales !== Number((product as Record<string, unknown>)?.sales_count || 0)) {
             updates.sales_count = newSales;
           }
 
           // Atualizar rating
-          const itemRating = item.item_rating as Record<string, unknown> | null;
-          const newRating = Number(itemRating?.rating_star || 0);
+          const newRating = Number(shopeeItem.ratingStar) || 0;
           if (newRating > 0 && newRating !== Number((product as Record<string, unknown>)?.rating || 0)) {
             updates.rating = newRating;
           }
@@ -232,7 +209,6 @@ Deno.serve(async (req) => {
               resultStatus = updates.price !== undefined ? "price_changed" : "updated";
 
               if (updates.price !== undefined) {
-                // Registrar no histórico de preços
                 await sb.from("price_history").insert({
                   product_id: mapping.product_id,
                   old_price: currentPrice,
@@ -243,7 +219,7 @@ Deno.serve(async (req) => {
 
               details.push({
                 id: mapping.product_id as string,
-                title: (product as Record<string, unknown>)?.title as string || "Produto Desconhecido",
+                title: (product as Record<string, unknown>)?.title as string || "?",
                 status: resultStatus,
                 oldPrice: currentPrice,
                 newPrice: (updates.price as number) || currentPrice,
@@ -257,11 +233,12 @@ Deno.serve(async (req) => {
           }).eq("id", mapping.id as string);
 
           syncLogs.push(`[${itemId}] ${resultStatus} — R$${currentPrice.toFixed(2)} → R$${newPrice.toFixed(2)}`);
-        } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : String(e);
-          syncLogs.push(`[${itemId}] Erro: ${msg}`);
         }
-      }));
+      } catch (batchErr) {
+        const msg = batchErr instanceof Error ? batchErr.message : String(batchErr);
+        syncLogs.push(`[Batch ${i}] Erro: ${msg}`);
+        console.error(`[Shopee Sync] Batch error:`, batchErr);
+      }
     }
 
     // Atualizar log

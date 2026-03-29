@@ -1,4 +1,4 @@
-// Edge Function: shopee-import-product — Refatorado: API Interna JSON + API Oficial para link de afiliado
+// Edge Function: shopee-import-product — API Oficial GraphQL + scraper apenas para enriquecimento
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -46,7 +46,7 @@ async function shopeeGraphQL<T = unknown>(query: string, variables: Record<strin
   return json.data as T;
 }
 
-// --- Multi-Scraper Proxy ---
+// --- Multi-Scraper Proxy (usado apenas para enriquecimento de descrição/galeria) ---
 interface ScraperConfig {
   provider: 'scrapingbee' | 'scrape.do' | 'scrapingant' | 'scraperapi';
   apiKey: string;
@@ -90,7 +90,7 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string): string {
   throw new Error(`Scraper provider desconhecido: ${provider}`);
 }
 
-async function getActiveScraperConfig(sb: ReturnType<typeof createClient>): Promise<ScraperConfig> {
+async function getActiveScraperConfig(sb: ReturnType<typeof createClient>): Promise<ScraperConfig | null> {
   try {
     const { data } = await sb.from("admin_settings").select("value").eq("key", "scraper_config").maybeSingle();
     if (data?.value?.activeProvider && data?.value?.keys) {
@@ -102,59 +102,36 @@ async function getActiveScraperConfig(sb: ReturnType<typeof createClient>): Prom
 
   const defaultKey = Deno.env.get("SCRAPINGBEE_API_KEY");
   if (defaultKey) return { provider: "scrapingbee", apiKey: defaultKey };
-  throw new Error("Nenhum serviço de Web Scraper configurado.");
+  return null;
 }
 
-async function fetchJsonViaScraper(scraperConfig: ScraperConfig, targetUrl: string, maxRetries = 3): Promise<unknown> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const proxyUrl = buildScraperUrl(scraperConfig, targetUrl);
-      const res = await fetch(proxyUrl);
-      if (res.ok) {
-        let text = await res.text();
-        try {
-          const wrapper = JSON.parse(text);
-          if (wrapper && typeof wrapper.content === 'string') text = wrapper.content;
-        } catch (_e) { /* raw response */ }
-        return JSON.parse(text);
-      }
-    } catch (err) {
-      if (i === maxRetries - 1) throw err;
+async function tryFetchItemDetail(scraperConfig: ScraperConfig | null, shopId: string, itemId: string): Promise<Record<string, unknown> | null> {
+  if (!scraperConfig) return null;
+  try {
+    const targetUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${itemId}`;
+    const proxyUrl = buildScraperUrl(scraperConfig, targetUrl);
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      let text = await res.text();
+      try {
+        const wrapper = JSON.parse(text);
+        if (wrapper && typeof wrapper.content === 'string') text = wrapper.content;
+      } catch (_e) { /* raw */ }
+      const json = JSON.parse(text);
+      return json?.data || null;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
+  } catch (e) {
+    console.warn("[Shopee Import] API interna falhou (normal):", e instanceof Error ? e.message : e);
   }
-  throw new Error("Falha ao buscar dados do produto na Shopee.");
+  return null;
 }
 
-function normalizeShopeePrice(raw: number): number {
-  if (!raw || raw <= 0) return 0;
-  if (raw > 100000) return raw / 100000;
-  return raw;
-}
-
-// --- Tipagem dos dados da API interna ---
-interface ShopeeItemDetail {
-  itemid: number;
-  shopid: number;
-  name: string;
-  description: string;
-  price: number;
-  price_min: number;
-  price_max: number;
-  price_before_discount: number;
-  price_min_before_discount: number;
-  price_max_before_discount: number;
-  image: string;
-  images: string[];
-  item_rating: { rating_star: number; rating_count: number[] };
-  sold: number;
-  historical_sold: number;
-  shop_name: string;
-  liked_count: number;
-  stock: number;
-  status: number;
-  brand: string;
-  categories: { catid: number; display_name: string }[];
+// --- Normalizar preço Shopee ---
+function normalizeShopeePrice(raw: number | string | undefined | null): number {
+  const num = Number(raw);
+  if (!num || num <= 0) return 0;
+  if (num > 100000) return num / 100000;
+  return num;
 }
 
 // --- Handler Principal ---
@@ -181,43 +158,65 @@ Deno.serve(async (req) => {
       });
     }
 
-    const scraperConfig = await getActiveScraperConfig(sb);
     const shopId = offer.shopId || "0";
 
-    // 1. Buscar dados reais do produto via API Interna
-    const itemUrl = `https://shopee.com.br/api/v4/item/get?shopid=${shopId}&itemid=${offer.itemId}`;
-    console.log(`[Shopee Import] Buscando dados via API interna: ${itemUrl}`);
+    // 1. Preços vêm do offer (que já veio da API GraphQL com micro-unidades normalizadas pela search)
+    const rawPriceMin = normalizeShopeePrice(offer.priceMin || offer.pricePromotional);
+    const rawPriceMax = normalizeShopeePrice(offer.priceMax || offer.price);
+    const rawPrice = normalizeShopeePrice(offer.price);
 
-    let itemDetail: ShopeeItemDetail | null = null;
-    try {
-      const itemData = await fetchJsonViaScraper(scraperConfig, itemUrl) as { data: ShopeeItemDetail };
-      itemDetail = itemData?.data || null;
-    } catch (e) {
-      console.warn("[Shopee Import] Falha ao buscar API interna, usando dados do offer:", e);
-    }
+    // priceMin = preço atual/promocional, priceMax = preço original
+    let finalPrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
+    let finalOriginalPrice: number | null = rawPriceMax > finalPrice ? rawPriceMax : null;
 
-    // 2. Calcular preços
-    let finalPrice: number;
-    let finalOriginalPrice: number | null = null;
+    console.log(`[Shopee Import] Preços do offer — price: ${finalPrice}, original: ${finalOriginalPrice}`);
+
+    // 2. Tentar enriquecer com dados da API Interna (descrição, galeria, etc.)
+    const scraperConfig = await getActiveScraperConfig(sb);
+    const itemDetail = await tryFetchItemDetail(scraperConfig, shopId, offer.itemId);
+
+    let description: string | null = null;
+    let galleryUrls: string[] = [];
+    let imageUrl = offer.imageUrl || "";
+    let salesCount = Number(offer.sales) || 0;
+    let rating = Number(offer.ratingStar) || 0;
+    let storeName = offer.shopName || "Shopee";
+    let brand: string | null = null;
 
     if (itemDetail) {
-      const price = normalizeShopeePrice(itemDetail.price);
-      const priceMin = normalizeShopeePrice(itemDetail.price_min);
-      const priceBeforeDiscount = normalizeShopeePrice(itemDetail.price_before_discount || itemDetail.price_max_before_discount || 0);
+      console.log("[Shopee Import] API interna retornou dados extras.");
+      description = (itemDetail.description as string) || null;
 
-      finalPrice = price > 0 ? price : priceMin;
-      if (priceBeforeDiscount > 0 && priceBeforeDiscount > finalPrice) {
-        finalOriginalPrice = priceBeforeDiscount;
+      // Galeria
+      const images = itemDetail.images as string[] | null;
+      if (images?.length) {
+        galleryUrls = images.slice(0, 8).map((img: string) => `https://down-br.img.susercontent.com/file/${img}`);
+        imageUrl = galleryUrls[0] || imageUrl;
+      } else if (itemDetail.image) {
+        imageUrl = `https://down-br.img.susercontent.com/file/${itemDetail.image}`;
       }
 
-      console.log(`[Shopee Import] Preços da API interna — price: ${finalPrice}, original: ${finalOriginalPrice}`);
-    } else {
-      // Fallback: usar dados do offer (que vieram da busca)
-      const rawPrice = Number(offer.pricePromotional) || Number(offer.priceMin) || Number(offer.price) || 0;
-      const rawOriginal = Number(offer.priceMax) || Number(offer.price) || 0;
-      finalPrice = normalizeShopeePrice(rawPrice);
-      finalOriginalPrice = normalizeShopeePrice(rawOriginal);
-      if (finalOriginalPrice <= finalPrice) finalOriginalPrice = null;
+      // Preços mais precisos da API interna (se disponíveis)
+      const internalPrice = normalizeShopeePrice(itemDetail.price as number);
+      const internalPriceMin = normalizeShopeePrice(itemDetail.price_min as number);
+      const internalOriginal = normalizeShopeePrice(
+        (itemDetail.price_before_discount as number) || (itemDetail.price_max_before_discount as number) || 0
+      );
+
+      if (internalPrice > 0 || internalPriceMin > 0) {
+        finalPrice = internalPriceMin > 0 ? internalPriceMin : internalPrice;
+        if (internalOriginal > finalPrice) {
+          finalOriginalPrice = internalOriginal;
+        }
+        console.log(`[Shopee Import] Preços da API interna — price: ${finalPrice}, original: ${finalOriginalPrice}`);
+      }
+
+      // Metadata
+      salesCount = Number(itemDetail.historical_sold) || Number(itemDetail.sold) || salesCount;
+      const itemRating = itemDetail.item_rating as Record<string, unknown> | null;
+      rating = Number(itemRating?.rating_star) || rating;
+      storeName = (itemDetail.shop_name as string) || storeName;
+      brand = (itemDetail.brand as string) || null;
     }
 
     // 3. Gerar link de afiliado via API Oficial
@@ -249,38 +248,24 @@ Deno.serve(async (req) => {
 
     // 5. Resolver categoria
     let resolvedCategoryId = categoryId || null;
-    if (!resolvedCategoryId && itemDetail?.categories?.length) {
-      const catName = itemDetail.categories[itemDetail.categories.length - 1]?.display_name;
-      if (catName) {
-        const { data: cat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
-        if (cat) resolvedCategoryId = cat.id;
+    if (!resolvedCategoryId && itemDetail) {
+      const cats = itemDetail.categories as { display_name: string }[] | null;
+      if (cats?.length) {
+        const catName = cats[cats.length - 1]?.display_name;
+        if (catName) {
+          const { data: cat } = await sb.from("categories").select("id").ilike("name", catName).maybeSingle();
+          if (cat) resolvedCategoryId = cat.id;
+        }
       }
     }
 
-    // 6. Montar dados de imagem e galeria
-    let imageUrl = offer.imageUrl || "";
-    let galleryUrls: string[] = [];
-    if (itemDetail?.images?.length) {
-      galleryUrls = itemDetail.images.slice(0, 8).map((img: string) => `https://down-br.img.susercontent.com/file/${img}`);
-      imageUrl = galleryUrls[0] || imageUrl;
-    } else if (itemDetail?.image) {
-      imageUrl = `https://down-br.img.susercontent.com/file/${itemDetail.image}`;
-    }
-
-    // 7. Outros dados
-    const description = itemDetail?.description || null;
-    const rating = itemDetail?.item_rating?.rating_star || Number(offer.ratingStar) || 0;
-    const salesCount = itemDetail?.historical_sold || itemDetail?.sold || Number(offer.sales) || 0;
-    const storeName = itemDetail?.shop_name || offer.shopName || "Shopee";
-    const brand = itemDetail?.brand || null;
-
-    // Comissão
+    // 6. Comissão
     const rate = Number(offer.commissionRate) || 0;
     const commissionPct = rate < 1 && rate > 0 ? rate * 100 : rate;
 
-    // 8. Inserir produto
+    // 7. Inserir produto
     const { data: product, error: productErr } = await sb.from("products").insert({
-      title: itemDetail?.name || offer.productName || "Produto Shopee",
+      title: offer.productName || "Produto Shopee",
       price: finalPrice > 0 ? finalPrice : 0.01,
       original_price: finalOriginalPrice,
       description,
@@ -301,13 +286,12 @@ Deno.serve(async (req) => {
         shopee_itemid: offer.itemId,
         shopee_shopid: shopId,
         brand,
-        stock: itemDetail?.stock,
       },
     }).select().single();
 
     if (productErr) throw productErr;
 
-    // 9. Criar mapping
+    // 8. Criar mapping
     const shopeeExtraData = {
       appExistRate: offer.appExistRate,
       appNewRate: offer.appNewRate,
@@ -340,7 +324,7 @@ Deno.serve(async (req) => {
 
     if (mappingErr) console.error("Mapping insert error:", mappingErr);
 
-    // 10. Log
+    // 9. Log
     await sb.from("shopee_sync_logs").insert({
       sync_type: "import",
       status: "success",
