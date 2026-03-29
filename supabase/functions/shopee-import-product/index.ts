@@ -251,28 +251,31 @@ Deno.serve(async (req) => {
         const html = await fetchWithRetry(proxyUrl);
         const $ = cheerio.load(html);
 
-        // 3.1 Try to extract deep JSON states (Next.js/Shopee SSR) for precise price
-        try {
-          // Shopee often stores the initial state in a script tag containing "window.__NUXT__" or "window.SHOP..."
-          $('script').each((_: any, el: any) => {
-            const scriptContent = $(el).html() || '';
-            if (!scrapedFinalPrice) {
-              const priceMatch = scriptContent.match(/"price":\s*(\d{4,9})/);
-              if (priceMatch) {
-                 const rawP = parseInt(priceMatch[1], 10);
-                 if (rawP > 100000) scrapedFinalPrice = rawP / 100000;
-              }
-            }
-          });
-        } catch (e) { /* ignore ssr regex error */ }
+        // 3.1 Extract Promotional Price explicitly from DOM FIRST (Visual Source of Truth)
+        const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
+        if (domPriceText) {
+           const pricesMatched = [...domPriceText.replace(/\./g,'').replace(',','.').matchAll(/(\d+\.\d+)/g)];
+           if (pricesMatched.length > 0) {
+              scrapedFinalPrice = parseFloat(pricesMatched[0][0]);
+           }
+        }
 
-        // 3.2 Extract Promotional Price explicitly from DOM (if SSR failed)
+        // 3.2 Try to extract deep JSON states (Next.js/Shopee SSR) ONLY IF DOM FAILS
         if (!scrapedFinalPrice) {
-          const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
-          if (domPriceText) {
-             const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
-             if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
-          }
+          try {
+            $('script').each((_: any, el: any) => {
+               const scriptContent = $(el).html() || '';
+               if (!scrapedFinalPrice) {
+                 const priceMatch = scriptContent.match(/"price":\s*(\d{4,12})/);
+                 if (priceMatch) {
+                    const rawP = parseInt(priceMatch[1], 10);
+                    // Handle micro-units robustly
+                    if (rawP > 1000000000) scrapedFinalPrice = rawP / 10000000; // 10^7 format
+                    else if (rawP > 100000) scrapedFinalPrice = rawP / 100000;  // 10^5 format
+                 }
+               }
+            });
+          } catch (e) { /* ignore */ }
         }
 
         // 3.3 Extract Images (Gallery)

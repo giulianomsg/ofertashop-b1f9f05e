@@ -289,13 +289,31 @@ Deno.serve(async (req) => {
           const html = await fetchWithRetry(proxyUrl, 1);
           if (html) {
              const $ = cheerio.load(html);
+             
+             // 1. Prioridade DOM Visual
              const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
              if (domPriceText) {
-                const numericMatch = domPriceText.replace(/\./g,'').replace(',','.').match(/\d+\.\d+/);
-                if (numericMatch) scrapedFinalPrice = parseFloat(numericMatch[0]);
+                const pricesMatched = [...domPriceText.replace(/\./g,'').replace(',','.').matchAll(/(\d+\.\d+)/g)];
+                if (pricesMatched.length > 0) {
+                   scrapedFinalPrice = parseFloat(pricesMatched[0][0]);
+                }
+             }
+
+             // 2. Fallback SSR
+             if (!scrapedFinalPrice) {
+               $('script').each((_: any, el: any) => {
+                 if (!scrapedFinalPrice) {
+                   const priceMatch = ($(el).html() || '').match(/"price":\s*(\d{4,12})/);
+                   if (priceMatch) {
+                      const rawP = parseInt(priceMatch[1], 10);
+                      if (rawP > 1000000000) scrapedFinalPrice = rawP / 10000000;
+                      else if (rawP > 100000) scrapedFinalPrice = rawP / 100000;
+                   }
+                 }
+               });
              }
           }
-        } catch (err) { }
+        } catch (err) { /* ignore */ }
 
         if (scrapedFinalPrice && scrapedFinalPrice > 0) {
            const apiPrice = finalPrice > 0 ? finalPrice : (priceMax > 0 ? priceMax : 0);
