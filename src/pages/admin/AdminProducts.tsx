@@ -70,8 +70,22 @@ const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
+  const [linkStatusFilter, setLinkStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+
+  const isAffiliateLinkValid = (url: string = "", platformId: string) => {
+    if (!url) return false;
+    const platformName = platforms.find((p) => p.id === platformId)?.name?.toLowerCase() || "";
+    
+    if (platformName.includes("amazon")) return url.startsWith("https://amzn.to/");
+    if (platformName.includes("shopee")) return url.startsWith("https://s.shopee.com.br/");
+    if (platformName.includes("mercado livre") || platformName.includes("mercadolivre")) return url.startsWith("https://meli.la/");
+    if (platformName.includes("natura") || platformName.includes("avon")) return url.includes("consultoria=ofertashop");
+    
+    // Se a plataforma não for uma das conhecidas, apenas verifica se a URL básica existe
+    return url.length > 5;
+  };
 
   // Social Copy & Price Comparator modals
   const [socialCopyProduct, setSocialCopyProduct] = useState<any>(null);
@@ -405,7 +419,14 @@ const AdminProducts = () => {
     const matchesSearch = p.title.toLowerCase().includes(term) || p.store.toLowerCase().includes(term);
     const matchesStatus = statusFilter === "all" ? true : statusFilter === "active" ? p.is_active : !p.is_active;
     const matchesPlatform = platformFilter === "all" ? true : (p as any).platform_id === platformFilter;
-    return matchesSearch && matchesStatus && matchesPlatform;
+    
+    let matchesLinkStatus = true;
+    if (linkStatusFilter !== "all") {
+       const isValid = isAffiliateLinkValid((p as any).affiliate_url, (p as any).platform_id);
+       matchesLinkStatus = linkStatusFilter === "valid" ? isValid : !isValid;
+    }
+
+    return matchesSearch && matchesStatus && matchesPlatform && matchesLinkStatus;
   });
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -440,6 +461,15 @@ const AdminProducts = () => {
             <option value="all">Todos Status</option>
             <option value="active">Ativos</option>
             <option value="inactive">Inativos</option>
+          </select>
+          <select
+            value={linkStatusFilter}
+            onChange={(e) => { setLinkStatusFilter(e.target.value); setCurrentPage(1); }}
+            className="h-10 px-3 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 flex-1 sm:w-40"
+          >
+            <option value="all">Sinc. Link (Todos)</option>
+            <option value="valid">Links OK</option>
+            <option value="invalid">Links Ausentes/Inválidos</option>
           </select>
           <select
             value={platformFilter}
@@ -505,6 +535,12 @@ const AdminProducts = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {!isAffiliateLinkValid((product as any).affiliate_url, (product as any).platform_id) && (
+                        <div className="mr-2 px-2 py-1 rounded bg-destructive/10 text-destructive flex items-center gap-1 group" title="Link de Afiliado Ausente ou Fora do Padrão">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span className="text-[10px] font-bold uppercase hidden xl:inline">Erro de Link</span>
+                        </div>
+                      )}
                       <a href={(product as any).affiliate_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Visitar produto" title="Visitar Produto">
                         <ExternalLink className="w-4 h-4 text-muted-foreground" />
                       </a>
