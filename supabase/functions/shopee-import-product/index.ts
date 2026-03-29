@@ -319,7 +319,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { offer, categoryId, platformId, userId } = await req.json();
+    const body = await req.json();
+    const { offer, categoryId, platformId, userId, debug } = body;
     if (!offer || !offer.itemId) {
       return new Response(JSON.stringify({ error: "offer com itemId é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -328,13 +329,15 @@ Deno.serve(async (req) => {
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Verificar se já importado
-    const { data: existing } = await sb.from("shopee_product_mappings")
-      .select("id, product_id").eq("shopee_item_id", String(offer.itemId)).maybeSingle();
-    if (existing) {
-      return new Response(JSON.stringify({ error: "Produto já importado", product_id: existing.product_id }), {
-        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Verificar se já importado (skip in debug mode)
+    if (!debug) {
+      const { data: existing } = await sb.from("shopee_product_mappings")
+        .select("id, product_id").eq("shopee_item_id", String(offer.itemId)).maybeSingle();
+      if (existing) {
+        return new Response(JSON.stringify({ error: "Produto já importado", product_id: existing.product_id }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const shopId = offer.shopId || "0";
@@ -346,6 +349,7 @@ Deno.serve(async (req) => {
     let scrapedDescription: string | null = null;
     let scrapedGallery: string[] = [];
     let priceSource = "api";
+    let debugInfo: Record<string, unknown> | null = null;
 
     try {
       const scraperConfig = await getShopeeScraperConfig(sb);
@@ -364,8 +368,57 @@ Deno.serve(async (req) => {
       }
       if (scraped.description) scrapedDescription = scraped.description;
       if (scraped.galleryUrls.length > 0) scrapedGallery = scraped.galleryUrls;
+
+      // Build debug info
+      if (debug) {
+        // Extract samples from HTML for diagnosis
+        const htmlHead = html.substring(0, 500);
+        const htmlSize = html.length;
+        const hasBody = html.includes("<body");
+        const hasPrice = html.includes("R$");
+        const hasDehydrated = html.includes("__DEHYDRATED_STATE__") || html.includes("__INITIAL_STATE__");
+        const hasPriceClass = html.includes("pq96Uv") || html.includes("IZPeQz");
+        const hasJsonLd = html.includes("application/ld+json");
+        const hasMicroPrice = /\"price\"\s*:\s*\d{7,15}/.test(html);
+
+        // Find all R$ occurrences
+        const rMatches = html.match(/R\$\s?[\d.,]+/g) || [];
+        // Find all micro-unit prices
+        const microMatches = html.match(/"price[^"]*"\s*:\s*\d{7,15}/g) || [];
+
+        debugInfo = {
+          scraper: {
+            provider: scraperConfig.provider,
+            url: productLink,
+            htmlSize,
+            htmlHead,
+          },
+          htmlAnalysis: {
+            hasBody,
+            hasPrice_R$: hasPrice,
+            hasDehydratedState: hasDehydrated,
+            hasPriceCSS: hasPriceClass,
+            hasJsonLd,
+            hasMicroUnitPrices: hasMicroPrice,
+          },
+          foundPrices: {
+            rDollarMatches: rMatches.slice(0, 20),
+            microUnitMatches: microMatches.slice(0, 20),
+          },
+          extraction: {
+            scrapedPrice: scraped.price,
+            scrapedOriginalPrice: scraped.originalPrice,
+            descriptionLength: (scraped.description || "").length,
+            galleryCount: scraped.galleryUrls.length,
+          },
+        };
+      }
     } catch (e) {
-      console.warn("[Shopee Import] Scraping falhou (usando fallback API):", e instanceof Error ? e.message : e);
+      const errMsg = e instanceof Error ? e.message : String(e);
+      console.warn("[Shopee Import] Scraping falhou (usando fallback API):", errMsg);
+      if (debug) {
+        debugInfo = { scraper_error: errMsg };
+      }
     }
 
     // === 2. FALLBACK: preços da API GraphQL (offer) ===
@@ -389,6 +442,25 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[Shopee Import] Final — price: ${finalPrice}, original: ${finalOriginalPrice}, source: ${priceSource}`);
+
+    // === DEBUG MODE: retorna diagnóstico sem importar ===
+    if (debug) {
+      return new Response(JSON.stringify({
+        debug: true,
+        finalPrice,
+        finalOriginalPrice,
+        priceSource,
+        offerPrices: {
+          price: offer.price,
+          priceMin: offer.priceMin,
+          priceMax: offer.priceMax,
+          pricePromotional: offer.pricePromotional,
+        },
+        ...debugInfo,
+      }, null, 2), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // === 3. GERAR LINK DE AFILIADO ===
     let shortLink = offer.offerLink || productLink;

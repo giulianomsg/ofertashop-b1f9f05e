@@ -179,6 +179,44 @@ const AdminShopee = () => {
     }
   };
 
+  const handleDebugImport = async (offer: ShopeeOffer) => {
+    const itemId = String(offer.itemId);
+    setImporting((prev) => new Set(prev).add(itemId));
+    try {
+      const { data, error } = await supabase.functions.invoke("shopee-import-product", {
+        body: { offer, userId: user?.id, debug: true },
+      });
+      if (error) throw error;
+
+      console.group("=== SHOPEE IMPORT DEBUG ===");
+      console.log(JSON.stringify(data, null, 2));
+      console.groupEnd();
+
+      const summary = [
+        `Source: ${data?.priceSource}`,
+        `Final Price: R$${data?.finalPrice?.toFixed(2)}`,
+        `Original Price: ${data?.finalOriginalPrice ? 'R$' + data.finalOriginalPrice.toFixed(2) : 'null'}`,
+        `HTML Size: ${data?.scraper?.htmlSize || 'N/A'}`,
+        `Has Body: ${data?.htmlAnalysis?.hasBody}`,
+        `Has R$: ${data?.htmlAnalysis?.hasPrice_R$}`,
+        `Has CSS Price: ${data?.htmlAnalysis?.hasPriceCSS}`,
+        `Has Micro Prices: ${data?.htmlAnalysis?.hasMicroUnitPrices}`,
+        `R$ matches: ${(data?.foundPrices?.rDollarMatches || []).join(', ')}`,
+        `Micro matches: ${(data?.foundPrices?.microUnitMatches || []).join(', ')}`,
+      ].join('\n');
+
+      toast.info(`Debug — ${offer.productName?.slice(0, 30)}...`, {
+        description: summary,
+        duration: 30000,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Falha";
+      toast.error("Debug erro: " + message);
+    } finally {
+      setImporting((prev) => { const s = new Set(prev); s.delete(itemId); return s; });
+    }
+  };
+
   const handleBatchSync = async () => {
     setSyncing(true);
     try {
@@ -561,10 +599,19 @@ const AdminShopee = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="h-9 w-9 rounded-lg border border-border flex items-center justify-center hover:bg-secondary transition-colors"
+                          title="Ver na Shopee"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
                         </a>
                       )}
+                      <button
+                        onClick={() => handleDebugImport(offer)}
+                        disabled={isImporting}
+                        className="h-9 w-9 rounded-lg border border-border flex items-center justify-center hover:bg-yellow-500/10 transition-colors disabled:opacity-50"
+                        title="Debug: ver dados do scraper (console)"
+                      >
+                        <Search className="w-3.5 h-3.5 text-yellow-600" />
+                      </button>
                     </div>
                   </motion.div>
                 );
