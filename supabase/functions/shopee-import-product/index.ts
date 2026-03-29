@@ -166,23 +166,62 @@ interface ScrapedPrices {
   galleryUrls: string[];
 }
 
-function extractShopeeData(html: string): ScrapedPrices {
+function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
   const $ = cheerio.load(html);
-  const allPrices: number[] = [];
-  const originalPrices: number[] = [];
   let description: string | null = null;
   const galleryUrls: string[] = [];
 
+  // Collect prices in priority tiers (higher priority = more trusted)
+  const tier1Prices: number[] = [];  // JSON-LD (most reliable structured data)
+  const tier2Prices: number[] = [];  // Specific Shopee CSS selectors
+  const tier3Prices: number[] = [];  // SSR script data
+  const originalPrices: number[] = [];
+
   // ====================================================
-  // STRATEGY 1: CSS Selectors (preço visual renderizado)
+  // TIER 1: JSON-LD (most reliable — structured data)
   // ====================================================
-  const priceSelectors = [
-    ".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0",
-    "[class*='price']",
+  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
+    try {
+      const json = JSON.parse($(el).html() || "");
+      if (json?.offers?.price) {
+        tier1Prices.push(Number(json.offers.price));
+      }
+      if (json?.offers?.lowPrice) {
+        tier1Prices.push(Number(json.offers.lowPrice));
+      }
+      if (json?.offers?.highPrice) {
+        originalPrices.push(Number(json.offers.highPrice));
+      }
+      // Also check for array of offers
+      if (Array.isArray(json?.offers)) {
+        for (const off of json.offers) {
+          if (off?.price) tier1Prices.push(Number(off.price));
+          if (off?.lowPrice) tier1Prices.push(Number(off.lowPrice));
+          if (off?.highPrice) originalPrices.push(Number(off.highPrice));
+        }
+      }
+    } catch (_e) { /* ignore */ }
+  });
+
+  // ====================================================
+  // TIER 2: Specific Shopee CSS selectors ONLY
+  // (NOT generic [class*='price'] — that captures shipping!)
+  // ====================================================
+  // Main product price container (the big red/orange number)
+  const specificPriceSelectors = [
+    ".pq96Uv",    // main price container
+    ".IZPeQz",    // alternative price container
+    "._44q_F",    // flash sale price
+    ".B67UQ0",    // observed alternative
   ];
-  for (const sel of priceSelectors) {
+  for (const sel of specificPriceSelectors) {
     $(sel).each((_: number, el: cheerio.Element) => {
-      allPrices.push(...parseBRLPrice($(el).text()));
+      // Exclude if it's inside a shipping/frete section
+      const parentText = $(el).parents().slice(0, 5).text().toLowerCase();
+      const isShipping = parentText.includes("frete") || parentText.includes("entrega") || parentText.includes("envio");
+      if (!isShipping) {
+        tier2Prices.push(...parseBRLPrice($(el).text()));
+      }
     });
   }
 
@@ -195,35 +234,16 @@ function extractShopeeData(html: string): ScrapedPrices {
   }
 
   // ====================================================
-  // STRATEGY 2: JSON-LD (application/ld+json)
-  // ====================================================
-  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
-    try {
-      const json = JSON.parse($(el).html() || "");
-      if (json?.offers?.price) {
-        allPrices.push(Number(json.offers.price));
-      }
-      if (json?.offers?.lowPrice) {
-        allPrices.push(Number(json.offers.lowPrice));
-      }
-      if (json?.offers?.highPrice) {
-        originalPrices.push(Number(json.offers.highPrice));
-      }
-    } catch (_e) { /* ignore */ }
-  });
-
-  // ====================================================
-  // STRATEGY 3: Shopee SSR data (__DEHYDRATED_STATE__ / __INITIAL_STATE__)
+  // TIER 3: SSR micro-unit prices in script tags
   // ====================================================
   $("script").each((_: number, el: cheerio.Element) => {
     const content = $(el).html() || "";
+    if (content.length < 100) return; // skip tiny scripts
     
-    // Look for price patterns in script content
-    // Shopee stores prices as integers (price * 100000)
     const microPricePatterns = [
-      /"price"\s*:\s*(\d{7,15})/g,           // "price": 14999000000
-      /"price_min"\s*:\s*(\d{7,15})/g,        // "price_min": 14250000000
-      /"price_max"\s*:\s*(\d{7,15})/g,        // "price_max": 20769000000
+      /"price"\s*:\s*(\d{7,15})/g,
+      /"price_min"\s*:\s*(\d{7,15})/g,
+      /"price_max"\s*:\s*(\d{7,15})/g,
       /"price_before_discount"\s*:\s*(\d{7,15})/g,
       /"price_min_before_discount"\s*:\s*(\d{7,15})/g,
       /"price_max_before_discount"\s*:\s*(\d{7,15})/g,
@@ -236,32 +256,16 @@ function extractShopeeData(html: string): ScrapedPrices {
         if (raw > 100000) {
           const normalized = raw / 100000;
           if (normalized > 0.5 && normalized < 1000000) {
-            // Classify: "before_discount" and "max" go to originalPrices
             if (match[0].includes("before_discount") || match[0].includes("price_max")) {
               originalPrices.push(normalized);
             } else {
-              allPrices.push(normalized);
+              tier3Prices.push(normalized);
             }
           }
         }
       }
     }
-
-    // Also look for display prices like "R$142,50" in script content
-    if (content.includes("R$") || content.includes("R\\u0024")) {
-      const decoded = content.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
-      allPrices.push(...parseBRLPrice(decoded));
-    }
   });
-
-  // ====================================================
-  // STRATEGY 4: Regex on full HTML (aggressive fallback)
-  // ====================================================
-  if (allPrices.length === 0) {
-    // Search the entire HTML for R$ patterns
-    const htmlText = html.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
-    allPrices.push(...parseBRLPrice(htmlText));
-  }
 
   // ====================================================
   // DESCRIPTION
@@ -287,21 +291,45 @@ function extractShopeeData(html: string): ScrapedPrices {
   });
 
   // ====================================================
-  // CALCULATE FINAL PRICES
+  // CALCULATE FINAL PRICES (priority-based)
   // ====================================================
-  // Filter valid prices (> 0.50, < 1000000)
-  const validPrices = allPrices.filter(p => p >= 0.50 && p < 1000000);
-  const validOriginals = originalPrices.filter(p => p >= 0.50 && p < 1000000);
+  // Use the highest-priority tier that has valid prices
+  const filterValid = (arr: number[]) => arr.filter(p => p >= 1.0 && p < 1000000);
 
-  // price = the LOWEST valid price found (promotional/Pix/flash sale)
-  const price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const v1 = filterValid(tier1Prices);
+  const v2 = filterValid(tier2Prices);
+  const v3 = filterValid(tier3Prices);
+  const vOrig = filterValid(originalPrices);
+
+  // If we have an API reference price, use it to sanity-check scraped prices
+  // Reject prices that are less than 10% of the API price (likely shipping/frete)
+  const refPrice = apiPrice && apiPrice > 0 ? apiPrice : 0;
+  const sanityFilter = (prices: number[]) => {
+    if (refPrice <= 0) return prices;
+    return prices.filter(p => p >= refPrice * 0.1); // must be at least 10% of API price
+  };
+
+  // Pick from highest-priority tier first
+  let candidatePrices: number[] = [];
+  if (v1.length > 0) {
+    candidatePrices = sanityFilter(v1);
+  }
+  if (candidatePrices.length === 0 && v2.length > 0) {
+    candidatePrices = sanityFilter(v2);
+  }
+  if (candidatePrices.length === 0 && v3.length > 0) {
+    candidatePrices = sanityFilter(v3);
+  }
+
+  const price = candidatePrices.length > 0 ? Math.min(...candidatePrices) : 0;
   
-  // originalPrice = the HIGHEST price found that is greater than price
-  const allCandidates = [...validPrices, ...validOriginals];
-  const maxCandidate = allCandidates.length > 0 ? Math.max(...allCandidates) : 0;
-  const originalPrice = maxCandidate > price * 1.01 ? maxCandidate : null; // 1% threshold
+  // Original price = highest across all sources
+  const allForMax = [...candidatePrices, ...vOrig];
+  const maxCandidate = allForMax.length > 0 ? Math.max(...allForMax) : 0;
+  const originalPrice = maxCandidate > price * 1.01 ? maxCandidate : null;
 
-  console.log(`[Shopee Extract] Found ${validPrices.length} prices: [${validPrices.join(", ")}], ${validOriginals.length} originals: [${validOriginals.join(", ")}] → price=${price}, original=${originalPrice}`);
+  console.log(`[Shopee Extract] Tier1(JSON-LD): [${v1.join(",")}], Tier2(CSS): [${v2.join(",")}], Tier3(SSR): [${v3.join(",")}], Originals: [${vOrig.join(",")}]`);
+  console.log(`[Shopee Extract] After sanity (ref=${refPrice}): candidates=[${candidatePrices.join(",")}] → price=${price}, original=${originalPrice}`);
 
   return { price, originalPrice, description, galleryUrls };
 }
@@ -358,7 +386,9 @@ Deno.serve(async (req) => {
       const html = await fetchHtmlViaScraper(scraperConfig, productLink);
       console.log(`[Shopee Import] HTML recebido: ${html.length} chars`);
 
-      const scraped = extractShopeeData(html);
+      // Pass API price as reference for sanity-checking scraped prices
+      const apiRefPrice = normalizeShopeePrice(offer.price || offer.priceMin || offer.priceMax);
+      const scraped = extractShopeeData(html, apiRefPrice);
       console.log(`[Shopee Import] Scraped — price: ${scraped.price}, original: ${scraped.originalPrice}, desc: ${(scraped.description || "").length} chars, gallery: ${scraped.galleryUrls.length} imgs`);
 
       if (scraped.price > 0) {
@@ -410,7 +440,28 @@ Deno.serve(async (req) => {
             scrapedOriginalPrice: scraped.originalPrice,
             descriptionLength: (scraped.description || "").length,
             galleryCount: scraped.galleryUrls.length,
+            apiRefPrice: apiRefPrice,
           },
+          // Extract JSON-LD content for debug
+          jsonLd: (() => {
+            const results: unknown[] = [];
+            const $d = cheerio.load(html);
+            $d('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
+              try { results.push(JSON.parse($d(el).html() || "")); } catch (_e) { /* */ }
+            });
+            return results;
+          })(),
+          // Show what CSS selectors found
+          cssPrices: (() => {
+            const $d = cheerio.load(html);
+            const found: Record<string, string[]> = {};
+            [".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0"].forEach(sel => {
+              const texts: string[] = [];
+              $d(sel).each((_: number, el: cheerio.Element) => { texts.push($d(el).text().trim().substring(0, 50)); });
+              if (texts.length) found[sel] = texts;
+            });
+            return found;
+          })(),
         };
       }
     } catch (e) {

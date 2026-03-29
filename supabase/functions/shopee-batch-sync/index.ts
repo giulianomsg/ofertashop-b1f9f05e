@@ -149,15 +149,40 @@ function parseBRLPrice(text: string): number[] {
   return prices;
 }
 
-function extractPricesFromHtml(html: string): { price: number; originalPrice: number | null } {
+function extractPricesFromHtml(html: string, refPrice = 0): { price: number; originalPrice: number | null } {
   const $ = cheerio.load(html);
-  const allPrices: number[] = [];
+  const tier1: number[] = [];  // JSON-LD
+  const tier2: number[] = [];  // Specific CSS
+  const tier3: number[] = [];  // SSR micro-units
   const originalPrices: number[] = [];
 
-  // STRATEGY 1: CSS Selectors
-  const priceSelectors = [".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0", "[class*='price']"];
-  for (const sel of priceSelectors) {
-    $(sel).each((_: number, el: cheerio.Element) => { allPrices.push(...parseBRLPrice($(el).text())); });
+  // TIER 1: JSON-LD (most reliable)
+  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
+    try {
+      const json = JSON.parse($(el).html() || "");
+      if (json?.offers?.price) tier1.push(Number(json.offers.price));
+      if (json?.offers?.lowPrice) tier1.push(Number(json.offers.lowPrice));
+      if (json?.offers?.highPrice) originalPrices.push(Number(json.offers.highPrice));
+      if (Array.isArray(json?.offers)) {
+        for (const off of json.offers) {
+          if (off?.price) tier1.push(Number(off.price));
+          if (off?.lowPrice) tier1.push(Number(off.lowPrice));
+          if (off?.highPrice) originalPrices.push(Number(off.highPrice));
+        }
+      }
+    } catch (_e) { /* ignore */ }
+  });
+
+  // TIER 2: Specific Shopee CSS selectors ONLY (no generic [class*='price'])
+  const specificSelectors = [".pq96Uv", ".IZPeQz", "._44q_F", ".B67UQ0"];
+  for (const sel of specificSelectors) {
+    $(sel).each((_: number, el: cheerio.Element) => {
+      const parentText = $(el).parents().slice(0, 5).text().toLowerCase();
+      const isShipping = parentText.includes("frete") || parentText.includes("entrega") || parentText.includes("envio");
+      if (!isShipping) {
+        tier2.push(...parseBRLPrice($(el).text()));
+      }
+    });
   }
 
   const origSelectors = [".v97vId", ".G2799_", "del", "[style*='line-through']"];
@@ -165,19 +190,10 @@ function extractPricesFromHtml(html: string): { price: number; originalPrice: nu
     $(sel).each((_: number, el: cheerio.Element) => { originalPrices.push(...parseBRLPrice($(el).text())); });
   }
 
-  // STRATEGY 2: JSON-LD
-  $('script[type="application/ld+json"]').each((_: number, el: cheerio.Element) => {
-    try {
-      const json = JSON.parse($(el).html() || "");
-      if (json?.offers?.price) allPrices.push(Number(json.offers.price));
-      if (json?.offers?.lowPrice) allPrices.push(Number(json.offers.lowPrice));
-      if (json?.offers?.highPrice) originalPrices.push(Number(json.offers.highPrice));
-    } catch (_e) { /* ignore */ }
-  });
-
-  // STRATEGY 3: SSR micro-unit prices in script tags
+  // TIER 3: SSR micro-unit prices
   $("script").each((_: number, el: cheerio.Element) => {
     const content = $(el).html() || "";
+    if (content.length < 100) return;
     const microPatterns = [
       /"price"\s*:\s*(\d{7,15})/g,
       /"price_min"\s*:\s*(\d{7,15})/g,
@@ -196,30 +212,34 @@ function extractPricesFromHtml(html: string): { price: number; originalPrice: nu
             if (match[0].includes("before_discount") || match[0].includes("price_max")) {
               originalPrices.push(normalized);
             } else {
-              allPrices.push(normalized);
+              tier3.push(normalized);
             }
           }
         }
       }
     }
-    if (content.includes("R$") || content.includes("R\\u0024")) {
-      const decoded = content.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
-      allPrices.push(...parseBRLPrice(decoded));
-    }
   });
 
-  // STRATEGY 4: Full HTML regex fallback
-  if (allPrices.length === 0) {
-    const htmlText = html.replace(/\\u0024/g, "$").replace(/\\u00a0/g, " ");
-    allPrices.push(...parseBRLPrice(htmlText));
-  }
+  // Pick from tiers with sanity filtering
+  const filterValid = (arr: number[]) => arr.filter(p => p >= 1.0 && p < 1000000);
+  const sanityFilter = (prices: number[]) => {
+    if (refPrice <= 0) return prices;
+    return prices.filter(p => p >= refPrice * 0.1);
+  };
 
-  // Calculate
-  const validPrices = allPrices.filter(p => p >= 0.50 && p < 1000000);
-  const validOriginals = originalPrices.filter(p => p >= 0.50 && p < 1000000);
-  const price = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-  const allCandidates = [...validPrices, ...validOriginals];
-  const maxCandidate = allCandidates.length > 0 ? Math.max(...allCandidates) : 0;
+  const v1 = filterValid(tier1);
+  const v2 = filterValid(tier2);
+  const v3 = filterValid(tier3);
+
+  let candidates: number[] = [];
+  if (v1.length > 0) candidates = sanityFilter(v1);
+  if (candidates.length === 0 && v2.length > 0) candidates = sanityFilter(v2);
+  if (candidates.length === 0 && v3.length > 0) candidates = sanityFilter(v3);
+
+  const price = candidates.length > 0 ? Math.min(...candidates) : 0;
+  const vOrig = filterValid(originalPrices);
+  const allForMax = [...candidates, ...vOrig];
+  const maxCandidate = allForMax.length > 0 ? Math.max(...allForMax) : 0;
   const originalPrice = maxCandidate > price * 1.01 ? maxCandidate : null;
 
   return { price, originalPrice };
@@ -293,7 +313,8 @@ Deno.serve(async (req) => {
           if (scraperConfig) {
             const html = await fetchHtmlViaScraper(scraperConfig, productUrl);
             if (html && html.length > 1000) {
-              const scraped = extractPricesFromHtml(html);
+              const currentPrice = Number((product as Record<string, unknown>)?.price || 0);
+              const scraped = extractPricesFromHtml(html, currentPrice);
               if (scraped.price > 0) {
                 newPrice = scraped.price;
                 newOriginalPrice = scraped.originalPrice;
