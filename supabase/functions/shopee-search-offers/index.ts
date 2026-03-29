@@ -174,6 +174,7 @@ Deno.serve(async (req) => {
         priceMin: finalPrice,
         priceMax: finalOriginalPrice,
         pricePromotional: finalPrice,
+        apiBasePrice: basePrice, // Pass base price to avoid double-discount in import
         // Calcular desconto
         discount: finalOriginalPrice && finalOriginalPrice > finalPrice && finalOriginalPrice > 0
           ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)

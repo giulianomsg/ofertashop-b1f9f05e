@@ -779,9 +779,10 @@ Deno.serve(async (req) => {
 
     if (basePrice <= 0) {
       // Usar dados do offer da busca GraphQL
-      const rawPriceMin = normalizeShopeePrice(offer.priceMin || offer.pricePromotional);
+      // 'apiBasePrice' previne duplo desconto PIX caso a busca já tenha aplicado
+      const rawPriceMin = normalizeShopeePrice(offer.apiBasePrice || offer.priceMin || offer.pricePromotional);
       const rawPriceMax = normalizeShopeePrice(offer.priceMax || offer.price);
-      const rawPrice = normalizeShopeePrice(offer.price);
+      const rawPrice = normalizeShopeePrice(offer.apiBasePrice || offer.price);
 
       basePrice = rawPriceMin > 0 ? rawPriceMin : rawPrice;
       baseOriginalPrice = rawPriceMax > basePrice ? rawPriceMax : null;
