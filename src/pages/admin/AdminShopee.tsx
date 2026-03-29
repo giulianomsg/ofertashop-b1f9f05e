@@ -183,6 +183,17 @@ const AdminShopee = () => {
     const itemId = String(offer.itemId);
     setImporting((prev) => new Set(prev).add(itemId));
     try {
+      // 1. Introspection: discover all available GraphQL fields
+      const { data: introData, error: introErr } = await supabase.functions.invoke("shopee-import-product", {
+        body: { offer, userId: user?.id, debug: true, introspect: true },
+      });
+      if (!introErr && introData) {
+        console.group("=== SHOPEE GRAPHQL INTROSPECTION ===");
+        console.log(JSON.stringify(introData, null, 2));
+        console.groupEnd();
+      }
+
+      // 2. Normal debug: test scraping strategies
       const { data, error } = await supabase.functions.invoke("shopee-import-product", {
         body: { offer, userId: user?.id, debug: true },
       });
@@ -196,13 +207,8 @@ const AdminShopee = () => {
         `Source: ${data?.priceSource}`,
         `Final Price: R$${data?.finalPrice?.toFixed(2)}`,
         `Original Price: ${data?.finalOriginalPrice ? 'R$' + data.finalOriginalPrice.toFixed(2) : 'null'}`,
-        `HTML Size: ${data?.scraper?.htmlSize || 'N/A'}`,
-        `Has Body: ${data?.htmlAnalysis?.hasBody}`,
-        `Has R$: ${data?.htmlAnalysis?.hasPrice_R$}`,
-        `Has CSS Price: ${data?.htmlAnalysis?.hasPriceCSS}`,
-        `Has Micro Prices: ${data?.htmlAnalysis?.hasMicroUnitPrices}`,
-        `R$ matches: ${(data?.foundPrices?.rDollarMatches || []).join(', ')}`,
-        `Micro matches: ${(data?.foundPrices?.microUnitMatches || []).join(', ')}`,
+        `Strategy: ${data?.strategy || data?.directApi ? 'direct_api' : 'proxy'}`,
+        `Direct API: ${JSON.stringify(data?.directApi || {})}`,
       ].join('\n');
 
       toast.info(`Debug — ${offer.productName?.slice(0, 30)}...`, {

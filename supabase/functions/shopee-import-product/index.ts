@@ -504,6 +504,60 @@ Deno.serve(async (req) => {
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+    // --- DEBUG: GraphQL introspection to discover all available fields ---
+    if (debug) {
+      let introspectionResult: unknown = null;
+      let expandedOfferResult: unknown = null;
+
+      try {
+        // 1. Introspect the ProductOffer type to see ALL fields
+        const introspectQuery = `{
+          __type(name: "ProductOffer") {
+            name
+            fields {
+              name
+              type { name kind ofType { name kind } }
+            }
+          }
+        }`;
+        introspectionResult = await shopeeGraphQL(introspectQuery);
+      } catch (e) {
+        introspectionResult = { error: e instanceof Error ? e.message : String(e) };
+      }
+
+      try {
+        // 2. Query the product with ALL possible fields (some may not exist)
+        const expandedQuery = `query {
+          productOfferV2(itemId: ${offer.itemId}) {
+            nodes {
+              itemId shopId productName price priceMin priceMax imageUrl productLink
+              commission commissionRate sales ratingStar shopName offerLink
+              periodStartTime periodEndTime
+              appExistRate appNewRate webExistRate webNewRate
+              productCatIds priceDiscountRate shopType
+              sellerCommissionRate shopeeCommissionRate
+            }
+          }
+        }`;
+        expandedOfferResult = await shopeeGraphQL(expandedQuery);
+      } catch (e) {
+        expandedOfferResult = { error: e instanceof Error ? e.message : String(e) };
+      }
+
+      // Return introspection + expanded offer data BEFORE any scraping
+      // This is a separate early return so we can see the API schema
+      if (body.introspect) {
+        return new Response(JSON.stringify({
+          debug: true,
+          introspect: true,
+          schemaFields: introspectionResult,
+          expandedOffer: expandedOfferResult,
+        }, null, 2), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Verificar se já importado (skip in debug mode)
     if (!debug) {
       const { data: existing } = await sb.from("shopee_product_mappings")
