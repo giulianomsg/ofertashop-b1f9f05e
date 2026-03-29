@@ -122,6 +122,86 @@ async function fetchWithRetry(url: string, maxRetries = 3) {
     }
     await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
   }
+  throw new Error("Falha ao buscar página.");
+}
+
+// --- OPENROUTER AI SEMANTIC EXTRACTION ---
+interface OpenRouterConfig {
+  apiKey: string;
+  model: string;
+}
+
+async function getOpenRouterConfig(sb: any): Promise<OpenRouterConfig | null> {
+  try {
+    const { data } = await sb.from("admin_settings").select("value").eq("key", "openrouter_config").maybeSingle();
+    if (data?.value?.apiKey && data?.value?.model) {
+      return { apiKey: data.value.apiKey, model: data.value.model };
+    }
+  } catch (e) { }
+  
+  const envKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (envKey) return { apiKey: envKey, model: "google/gemini-2.0-flash-lite-preview-02-05:free" };
+  
+  return null;
+}
+
+async function extractPricesFromHTML(config: OpenRouterConfig, rawHtml: string): Promise<{ price: number, original_price: number | null } | null> {
+  try {
+    const htmlObj = cheerio.load(rawHtml);
+    let ssrJson = '';
+    htmlObj('script').each((_: any, el: any) => {
+       const htmlC = htmlObj(el).html() || '';
+       if (htmlC.includes('window.__DEHYDRATED_STATE__') || htmlC.includes('"price_before_discount"')) {
+          const matchP = htmlC.match(/"price":\s*(\d{4,12})/);
+          const matchOP = htmlC.match(/"price_before_discount":\s*(\d{4,12})/);
+          ssrJson = `Valores brutos da API na página (provável micro-unidades):\nPrice atual: ${matchP?.[1] || 'n/a'}, Original Price Antigo: ${matchOP?.[1] || 'n/a'}.`;
+       }
+    });
+
+    htmlObj('script, style, link, meta, noscript, svg, img').remove();
+    const cleanText = htmlObj('body').text().replace(/\s+/g, ' ').substring(0, 8000).trim();
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://ofertashop.com",
+        "X-Title": "OfertaShop",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+             role: "system", 
+             content: "Você é um bot extrator de dados ultra-preciso para links de afiliados da Shopee do Brasil. Seu trabalho é dizer extamente qual o PREÇO COM DESCONTO (Ex: por causa do PIX, moedas, ou promoção) que o cliente vai desembolsar para comprar a unidade padrão, e o PREÇO ORIGINAL (riscado). Retorne ESTRITAMENTE um objeto JSON com: {\"price\": <float>, \"original_price\": <float>}. Utilize ponto (.) para as casas decimais. Se não houver price, omita." 
+          },
+          { 
+             role: "user", 
+             content: `O conteúdo da página visível foi removido de tags HTML. Siga as pistas:\n\n${ssrJson}\n\nTexto Visível Desorganizado:\n${cleanText}` 
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) return null;
+
+    const aiResponse = await response.json();
+    const resultText = aiResponse.choices?.[0]?.message?.content || "";
+    
+    const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.price && typeof parsed.price === 'number') {
+        return {
+           price: parsed.price,
+           original_price: parsed.original_price || null
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("AI Semantic Extraction failed:", e);
+  }
   return null;
 }
 
@@ -312,6 +392,23 @@ Deno.serve(async (req) => {
                  }
                });
              }
+
+             // 3. Fallback IA Semântica (OpenRouter) se as duas fallharem em entregar um bom match
+             if (!scrapedFinalPrice) {
+               const aiConfig = await getOpenRouterConfig(sb);
+               if (aiConfig) {
+                  console.log(`[Shopee Batch Sync] Activating AI Semantic Fallback via OpenRouter Model ${aiConfig.model}`);
+                  const aiPrices = await extractPricesFromHTML(aiConfig, html);
+                  if (aiPrices && aiPrices.price > 0) {
+                      scrapedFinalPrice = aiPrices.price;
+                      if (aiPrices.original_price && aiPrices.original_price > aiPrices.price) {
+                          if (aiPrices.original_price > priceMax) priceMax = aiPrices.original_price;
+                      }
+                      console.log(`[Shopee Sync] AI returned Price: ${aiPrices.price}, Original: ${aiPrices.original_price}`);
+                  }
+               }
+             }
+
           }
         } catch (err) { /* ignore */ }
 
