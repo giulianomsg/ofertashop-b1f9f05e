@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { Star, ChevronDown, SlidersHorizontal, Check } from "lucide-react";
+import { Star, ChevronDown, SlidersHorizontal, Check, Home, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link, useLocation } from "react-router-dom";
 
 interface FilterSidebarProps {
-  selectedCategoryId: string;
-  onCategoryChange: (id: string) => void;
-  categories: any[];
-  priceRange: number[];
-  onPriceRangeChange: (range: number[]) => void;
-  minRating: number;
-  onMinRatingChange: (rating: number) => void;
+  hideCategory?: boolean;
+  selectedCategoryId?: string;
+  onCategoryChange?: (id: string) => void;
+  categories?: any[];
+  hidePrice?: boolean;
+  priceRange?: number[];
+  onPriceRangeChange?: (range: number[]) => void;
+  hideRating?: boolean;
+  minRating?: number;
+  onMinRatingChange?: (rating: number) => void;
   availablePlatforms: { id: string, name: string }[];
   selectedPlatforms: string[];
   onPlatformToggle: (platformId: string) => void;
@@ -19,11 +23,14 @@ interface FilterSidebarProps {
 }
 
 const FilterSidebar = ({
+  hideCategory = false,
   selectedCategoryId,
   onCategoryChange,
   categories,
+  hidePrice = false,
   priceRange,
   onPriceRangeChange,
+  hideRating = false,
   minRating,
   onMinRatingChange,
   availablePlatforms,
@@ -34,6 +41,7 @@ const FilterSidebar = ({
   onClose
 }: FilterSidebarProps) => {
   const [openSections, setOpenSections] = useState({ category: true, price: true, rating: true, platform: true });
+  const location = useLocation();
 
   const toggleSection = (key: keyof typeof openSections) =>
     setOpenSections((s) => ({ ...s, [key]: !s[key] }));
@@ -55,7 +63,27 @@ const FilterSidebar = ({
         )}
       </div>
 
+      <div className="space-y-1 mb-4">
+        <Link 
+          to="/" 
+          onClick={onClose}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === '/' ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+        >
+          <Home className="w-4 h-4" /> Ofertas
+        </Link>
+        <Link 
+          to="/cupons" 
+          onClick={onClose}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${location.pathname === '/cupons' ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+        >
+          <Tag className="w-4 h-4" /> Cupons de Desconto
+        </Link>
+      </div>
+
+      <div className="h-px w-full bg-border" />
+
       {/* Categories */}
+      {!hideCategory && categories && onCategoryChange && (
       <div>
         <button onClick={() => toggleSection("category")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
           Categorias
@@ -89,8 +117,10 @@ const FilterSidebar = ({
           )}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Price */}
+      {!hidePrice && priceRange && onPriceRangeChange && (
       <div>
         <button onClick={() => toggleSection("price")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
           Faixa de Preço
@@ -115,8 +145,10 @@ const FilterSidebar = ({
           )}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Rating */}
+      {!hideRating && minRating !== undefined && onMinRatingChange && (
       <div>
         <button onClick={() => toggleSection("rating")} className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-3">
           Avaliação Mínima
@@ -150,6 +182,7 @@ const FilterSidebar = ({
           )}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Platforms */}
       {availablePlatforms.length > 0 && (

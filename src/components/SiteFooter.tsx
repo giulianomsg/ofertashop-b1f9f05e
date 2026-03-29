@@ -41,6 +41,11 @@ const SiteFooter = () => {
                   Início
                 </Link>
               </li>
+              <li>
+                <Link to="/cupons" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm hover:translate-x-1 inline-block duration-200">
+                  Cupons
+                </Link>
+              </li>
               {supportPages.length > 0 ? (
                 supportPages.map((page: any) => (
                   <li key={page.id}>

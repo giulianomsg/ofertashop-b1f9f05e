@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
 import { useQueryDebug } from "@/hooks/useQueryDebug";
 import Index from "./pages/Index";
+import Coupons from "./pages/Coupons";
 import ProductDetail from "./pages/ProductDetail";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -56,6 +57,7 @@ const AppContent = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/cupons" element={<Coupons />} />
             <Route path="/produto/:id" element={<ProductDetail />} />
             <Route path="/especial/:slug" element={<SpecialPage />} />
             <Route path="/p/:slug" element={<InstitutionalPage />} />

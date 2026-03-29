@@ -293,6 +293,22 @@ export const useActiveCoupons = (platformId?: string | null, productId?: string 
     enabled: !!platformId,
   });
 
+export const useGeneralActiveCoupons = () =>
+  useQuery({
+    queryKey: ["all_active_coupons"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("coupons")
+        .select("*, platforms(name)")
+        .eq("active", true)
+        .is("product_id", null)
+        .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
 export const useCreateCoupon = () => {
   const qc = useQueryClient();
   return useMutation({
