@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { offer, categoryId, platformId, userId } = await req.json();
+    const { offer, forceAI, categoryId, platformId, userId } = await req.json();
 
     if (!offer || !offer.itemId) {
       return new Response(JSON.stringify({ error: "offer com itemId é obrigatório" }), {
@@ -321,6 +321,7 @@ Deno.serve(async (req) => {
     let scrapedFinalPrice: number | null = null;
     let scrapedRating: number | null = null;
     let scrapedSales: number | null = null;
+    let priceSource = 'API_DEFAULT';
 
     try {
       const productUrl = offer.productLink || offer.offerLink;
@@ -331,13 +332,34 @@ Deno.serve(async (req) => {
         const html = await fetchWithRetry(proxyUrl);
         const $ = cheerio.load(html);
 
-        // 3.1 Extract Promotional Price explicitly from DOM FIRST (Visual Source of Truth)
-        const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
-        if (domPriceText) {
-           const pricesMatched = [...domPriceText.replace(/\./g,'').replace(',','.').matchAll(/(\d+\.\d+)/g)];
-           if (pricesMatched.length > 0) {
-              scrapedFinalPrice = parseFloat(pricesMatched[0][0]);
+        // 1. Explicit AI Forcing
+        if (forceAI) {
+           const aiConfig = await getOpenRouterConfig(sb);
+           if (aiConfig) {
+               console.log(`[Shopee Scraping] FORCING AI Semantic Fallback via OpenRouter Model ${aiConfig.model}`);
+               const aiPrices = await extractPricesFromHTML(aiConfig, html);
+               if (aiPrices && aiPrices.price > 0) {
+                   scrapedFinalPrice = aiPrices.price;
+                   if (aiPrices.original_price && aiPrices.original_price > aiPrices.price) {
+                       // We update the apiMax if the AI definitively knows the old price was higher than the buggy API
+                       if (aiPrices.original_price > priceMax) priceMax = aiPrices.original_price;
+                   }
+                   priceSource = 'OPENROUTER_AI';
+                   console.log(`[Shopee Scraping - FORCED AI] Price: ${aiPrices.price}, Original: ${aiPrices.original_price}`);
+               }
            }
+        }
+
+        // 3.1 Extract Promotional Price explicitly from DOM FIRST (Visual Source of Truth)
+        if (!scrapedFinalPrice) {
+          const domPriceText = $(".IZPeQz.B67UQ0, .pq5ilO, .pm1p0z, ._045P6p, .G27FPf, .Ou5R\\+P, .price, [class*='price']").first().text().trim();
+          if (domPriceText) {
+             const pricesMatched = [...domPriceText.replace(/\./g,'').replace(',','.').matchAll(/(\d+\.\d+)/g)];
+             if (pricesMatched.length > 0) {
+                scrapedFinalPrice = parseFloat(pricesMatched[0][0]);
+                priceSource = 'DOM_CLASS';
+             }
+          }
         }
 
         // 3.2 Try to extract deep JSON states (Next.js/Shopee SSR) ONLY IF DOM FAILS
@@ -352,6 +374,7 @@ Deno.serve(async (req) => {
                     // Handle micro-units robustly
                     if (rawP > 1000000000) scrapedFinalPrice = rawP / 10000000; // 10^7 format
                     else if (rawP > 100000) scrapedFinalPrice = rawP / 100000;  // 10^5 format
+                    if (scrapedFinalPrice) priceSource = 'SSR_JSON';
                  }
                }
             });
@@ -359,7 +382,7 @@ Deno.serve(async (req) => {
         }
 
         // 3.3 Try Semantic AI Parsing ONLY IF BOTH FAILED
-        if (!scrapedFinalPrice) {
+        if (!scrapedFinalPrice && !forceAI) {
           const aiConfig = await getOpenRouterConfig(sb);
           if (aiConfig) {
              console.log(`[Shopee Scraping] Activating AI Semantic Fallback via OpenRouter Model ${aiConfig.model}`);
@@ -371,6 +394,7 @@ Deno.serve(async (req) => {
                      // We update the apiMax if the AI definitively knows the old price was higher than the buggy API
                      if (aiPrices.original_price > priceMax) priceMax = aiPrices.original_price;
                  }
+                 priceSource = 'OPENROUTER_AI_FALLBACK';
                  console.log(`[Shopee Scraping] AI returned Price: ${aiPrices.price}, Original: ${aiPrices.original_price}`);
              }
           }

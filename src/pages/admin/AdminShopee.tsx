@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X } from "lucide-react";
+import { Search, Download, RefreshCw, Loader2, ExternalLink, Check, Clock, AlertTriangle, Package, X, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -113,14 +113,14 @@ const AdminShopee = () => {
     }
   };
 
-  const handleImport = async (offer: ShopeeOffer) => {
+  const handleImport = async (offer: ShopeeOffer, forceAI = false) => {
     const itemId = String(offer.itemId);
     if (importing.has(itemId) || imported.has(itemId)) return;
 
     setImporting((prev) => new Set(prev).add(itemId));
     try {
       const { data, error } = await supabase.functions.invoke("shopee-import-product", {
-        body: { offer, userId: user?.id },
+        body: { offer, forceAI, userId: user?.id },
       });
       if (error) throw error;
       if (data?.error) {
@@ -131,7 +131,16 @@ const AdminShopee = () => {
           throw new Error(data.error);
         }
       } else {
-        toast.success(`"${offer.productName?.slice(0, 40)}..." importado!`);
+        const sourceMap = {
+          'OPENROUTER_AI': 'Inteligência Artificial',
+          'OPENROUTER_AI_FALLBACK': 'IA (Fallback Automático)',
+          'DOM_CLASS': 'Raspagem Visual',
+          'SSR_JSON': 'Metadados Ocultos',
+          'API_DEFAULT': 'API Padrão Shopee'
+        };
+        const srcLabel = data?.priceSource ? sourceMap[data.priceSource as keyof typeof sourceMap] || data.priceSource : 'API Padrão Shopee';
+        const priceLabel = data?.scraped_price ? ` R$ ${data.scraped_price}` : '';
+        toast.success(`"${offer.productName?.slice(0, 30)}..." importado via ${srcLabel}!${priceLabel}`);
         setImported((prev) => new Set(prev).add(itemId));
         qc.invalidateQueries({ queryKey: ["products"] });
         qc.invalidateQueries({ queryKey: ["shopee_mappings_count"] });
@@ -490,6 +499,18 @@ const AdminShopee = () => {
                             <Download className="w-3.5 h-3.5" /> Importar
                           </>
                         )}
+                      </button>
+                      <button
+                        onClick={() => handleImport(offer, true)}
+                        disabled={isImporting || isImported}
+                        title="Forçar extração por Inteligência Artificial"
+                        className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-colors ${
+                          isImported
+                            ? "border-border text-muted-foreground cursor-default opacity-50"
+                            : "border-purple-500/30 text-purple-500 hover:bg-purple-500/10 disabled:opacity-50"
+                        }`}
+                      >
+                        <Bot className="w-4 h-4" />
                       </button>
                       {offer.productLink && (
                         <a
