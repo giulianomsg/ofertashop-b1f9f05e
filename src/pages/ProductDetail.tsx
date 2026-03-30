@@ -440,9 +440,20 @@ const ProductDetail = () => {
                   <span className="text-lg text-muted-foreground line-through">R$ {Number(product.original_price).toFixed(2).replace(".", ",")}</span>
                 )}
               </div>
-              {product.discount && (
-                <span className="badge-hot"><Flame className="w-3 h-3" /> Economia de {product.discount}%</span>
-              )}
+              <div className="flex gap-2 items-center flex-wrap">
+                {product.discount && (
+                  <span className="badge-hot"><Flame className="w-3 h-3" /> Economia de {product.discount}%</span>
+                )}
+                {platform?.name?.toLowerCase() === 'shopee' && Number(product.original_price || product.price) >= 80 && (
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1.5 w-fit">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2.5L3.5 12L12 21.5L20.5 12L12 2.5Z" fill="currentColor"/>
+                      <path d="M11.5 8.5L8.5 12L11.5 15.5M12.5 8.5L15.5 12L12.5 15.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {Number(product.original_price || product.price) >= 500 ? '8%' : '5%'} OFF Subsídio PIX
+                  </span>
+                )}
+              </div>
               <LowestPriceBadge
                 productId={product.id}
                 currentPrice={Number(product.price)}
