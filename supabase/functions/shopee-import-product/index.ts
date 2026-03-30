@@ -611,8 +611,8 @@ Deno.serve(async (req) => {
       }
     } catch (_e) { /* non-critical */ }
 
-    // --- STRATEGIES 1-2: Via scraper proxy (only if direct API didn't work) ---
-    if (scrapedPrice <= 0) try {
+    // --- STRATEGIES 1-2: Via scraper proxy (se faltar preço ou descrição) ---
+    if (scrapedPrice <= 0 || !scrapedDescription) try {
       const scraperConfig = await getShopeeScraperConfig(sb);
 
       // === STRATEGY 1: Shopee Internal JSON API via proxy ===

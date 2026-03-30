@@ -54,6 +54,7 @@ const emptyForm = {
   model_id: "",
   platform_id: "",
   video_url: "",
+  description: "",
 };
 
 const AdminProducts = () => {
