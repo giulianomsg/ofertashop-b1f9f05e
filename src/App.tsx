@@ -34,6 +34,7 @@ import AdminMercadoLivre from "./pages/admin/AdminMercadoLivre";
 import AdminAmazon from "./pages/admin/AdminAmazon";
 import AdminNatura from "./pages/admin/AdminNatura";
 import AdminAISettings from "./pages/admin/AdminAISettings";
+import AdminAPI from "./pages/admin/AdminAPI";
 import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
@@ -86,6 +87,7 @@ const AppContent = () => {
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
               <Route path="ia" element={<AdminAISettings />} />
+              <Route path="api" element={<AdminAPI />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
