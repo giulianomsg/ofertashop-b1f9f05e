@@ -598,34 +598,15 @@ Deno.serve(async (req) => {
 
                 // Description & gallery
                 if (item.description) scrapedDescription = item.description;
-                if (item.images && Array.isArray(item.images)) {
-                  for (const img of item.images) {
-                    if (typeof img === 'string' && scrapedGallery.length < 8) {
-                      scrapedGallery.push(img.startsWith('http') ? img : `https://down-br.img.susercontent.com/file/${img}`);
-                    }
-                  }
-                }
 
-                directApiDebug[endpointName] = {
-                  status: res.status,
-                  success: true,
-                  rawPrices: { price_min: priceMinRaw, price_max: priceMaxRaw, price_before_discount: priceBeforeDiscountRaw },
-                  normalizedPrices: { price, priceMax, priceBeforeDiscount },
-                  name: item.name,
-                  stock: item.stock,
-                  sold: item.historical_sold || item.sold,
-                };
 
                 console.log(`[Shopee Direct API] ✓ ${endpointName}: price=${price}, original=${scrapedOriginalPrice}`);
                 break; // Success — stop trying endpoints
               }
             }
-          } else {
-            directApiDebug[endpointName] = { status: res.status, error: "non-ok" };
           }
         } catch (endpointErr) {
-          const eName = endpoint.includes("pdp/get_pc") ? "pdp_get_pc" : "item_get";
-          directApiDebug[eName] = { error: endpointErr instanceof Error ? endpointErr.message : String(endpointErr) };
+          console.warn("[Shopee Direct API] Failed endpoint:", endpointErr instanceof Error ? endpointErr.message : String(endpointErr));
         }
       }
     } catch (_e) { /* non-critical */ }

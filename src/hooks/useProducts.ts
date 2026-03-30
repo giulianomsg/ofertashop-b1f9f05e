@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -6,6 +7,48 @@ import { createClient } from "@supabase/supabase-js";
 export type Product = Tables<"products">;
 
 export const useProducts = (activeOnly = true) => {
+  const qc = useQueryClient();
+
+  // Escuta atualizações em tempo real na tabela de produtos
+  useEffect(() => {
+    const channel = supabase
+      .channel("products_realtime")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "products" },
+        (payload) => {
+          qc.setQueryData<Product[]>(["products", activeOnly], (old) => {
+            if (!old) return old;
+            return old.map((p) =>
+              p.id === payload.new.id ? { ...p, ...payload.new } : p
+            );
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "products" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["products"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "products" },
+        (payload) => {
+          qc.setQueryData<Product[]>(["products", activeOnly], (old) => {
+            if (!old) return old;
+            return old.filter((p) => p.id !== payload.old.id);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc, activeOnly]);
+
   return useQuery<Product[]>({
     queryKey: ["products", activeOnly],
     queryFn: async () => {
