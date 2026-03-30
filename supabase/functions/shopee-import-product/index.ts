@@ -87,7 +87,10 @@ function buildScraperUrl(config: ScraperConfig, targetUrl: string, renderJs = tr
     api.searchParams.append("url", targetUrl);
     api.searchParams.append("country_code", "br");
     api.searchParams.append("premium", "true");
-    if (renderJs) api.searchParams.append("render", "true");
+    if (renderJs) {
+      api.searchParams.append("render", "true");
+      api.searchParams.append("device_type", "desktop");
+    }
     return api.toString();
   }
   throw new Error(`Scraper provider desconhecido: ${provider}`);
@@ -628,9 +631,11 @@ Deno.serve(async (req) => {
         scrapedOriginalPrice = internalApiResult.originalPrice;
         priceSource = "internal_api";
         if (internalApiResult.description) scrapedDescription = internalApiResult.description;
-      } else {
+      }
+      
+      if (scrapedPrice <= 0 || !scrapedDescription) {
         // === STRATEGY 2: HTML Scraping (render_js=true, expensive) ===
-        console.log("[Shopee Import] Internal API returned no prices, trying HTML scraping...");
+        console.log("[Shopee Import] Precisamos de HTML scraping (preço ou descrição ausentes)...");
         try {
           const html = await fetchHtmlViaScraper(scraperConfig, productLink);
           console.log(`[Shopee Import] HTML recebido: ${html.length} chars`);
@@ -638,19 +643,19 @@ Deno.serve(async (req) => {
           const apiRefPrice = normalizeShopeePrice(offer.price || offer.priceMin || offer.priceMax);
           const scraped = extractShopeeData(html, apiRefPrice);
 
-          if (scraped.price > 0) {
+          if (scraped.price > 0 && scrapedPrice <= 0) {
             scrapedPrice = scraped.price;
             scrapedOriginalPrice = scraped.originalPrice;
             priceSource = "html_scraping";
           }
           if (scraped.description) scrapedDescription = scraped.description;
         } catch (htmlErr) {
-          console.warn("[Shopee Import] HTML scraping also failed:", htmlErr instanceof Error ? htmlErr.message : htmlErr);
+          console.warn("[Shopee Import] HTML scraping falhou:", htmlErr instanceof Error ? htmlErr.message : htmlErr);
         }
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
-      console.warn("[Shopee Import] All scraping failed:", errMsg);
+      console.warn("[Shopee Import] All proxy scraping failed:", errMsg);
     }
 
     // === 2. Determine base price (scraping or API) ===
