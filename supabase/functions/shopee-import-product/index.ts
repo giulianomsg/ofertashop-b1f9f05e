@@ -408,7 +408,7 @@ function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
   // ====================================================
   // DESCRIPTION
   // ====================================================
-  const descSelectors = [".f_re31", ".f7AU53", ".pdp-description-content", "[class*='product-detail']", "[class*='description']"];
+  const descSelectors = [".f_re31", ".f7AU53", ".pdp-description-content", "[class*='product-detail']", "[class*='description']", "div.e8lZp3", ".e8lZp3"];
   if (!description) {
     // 1. Selector strategy
     for (const sel of descSelectors) {
@@ -518,7 +518,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { offer, categoryId, platformId, userId } = body;
+    const { offer, categoryId, platformId, userId, debug, introspect } = body;
     if (!offer || !offer.itemId) {
       return new Response(JSON.stringify({ error: "offer com itemId é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -718,7 +718,7 @@ Deno.serve(async (req) => {
     const commissionPct = rate < 1 && rate > 0 ? rate * 100 : rate;
 
     // === 7. INSERIR PRODUTO ===
-    const { data: product, error: productErr } = await sb.from("products").insert({
+    const productPayload = {
       title: offer.productName || "Produto Shopee",
       price: finalPrice > 0 ? finalPrice : 0.01,
       original_price: finalOriginalPrice,
@@ -728,20 +728,32 @@ Deno.serve(async (req) => {
       image_url: imageUrl,
       gallery_urls: null,
       category_id: categoryId || null,
+      commission_rate: commissionPct > 0 ? Number(commissionPct.toFixed(2)) : null,
+      brand_id: null,
       platform_id: resolvedPlatformId,
+      badge: null,
+      registered_by: userId || null,
       is_active: true,
       rating: Number(offer.ratingStar) || 0,
-      registered_by: userId || null,
       sales_count: Number(offer.sales) || 0,
-      commission_rate: commissionPct > 0 ? Number(commissionPct.toFixed(2)) : null,
-      badge: null,
-      brand_id: null,
       extra_metadata: {
         shopee_itemid: offer.itemId,
         shopee_shopid: shopId,
         price_source: priceSource,
-      },
-    }).select().single();
+      }
+    };
+
+    if (debug || introspect) {
+      return new Response(JSON.stringify({
+        success: true,
+        debug: true,
+        introspect: introspect || false,
+        product: productPayload,
+        priceSource: priceSource
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const { data: product, error: productErr } = await sb.from("products").insert(productPayload).select().single();
 
     if (productErr) throw productErr;
 
