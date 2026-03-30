@@ -471,33 +471,6 @@ function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
        if (!galleryUrls.includes(cleanSrc) && cleanSrc.startsWith("http")) galleryUrls.push(cleanSrc);
      }
   });
-  $("img, div[style*='background-image']").each((_: number, el: cheerio.Element) => {
-    let src = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("style");
-    if (src && src.includes("susercontent.com") && galleryUrls.length < 8) {
-      if (src.includes("background-image")) {
-        const bgMatch = src.match(/url\(['"]?(.*?)['"]?\)/);
-        if (bgMatch && bgMatch[1]) src = bgMatch[1];
-      }
-      const fullSrc = src.replace(/_tn$/, "").replace(/\?.*$/, "").replace(/_tn\.webp$/, "");
-      const cleanSrc = fullSrc.startsWith("//") ? "https:" + fullSrc : fullSrc;
-      if (!galleryUrls.includes(cleanSrc) && cleanSrc.startsWith("http")) galleryUrls.push(cleanSrc);
-    }
-  });
-
-  // FALLBACK SSR REGEX FOR IMAGES/DESC
-  const imgMatchArr = html.match(/"images"\s*:\s*\[(.*?)\]/);
-  if (imgMatchArr && imgMatchArr[1] && galleryUrls.length < 8) {
-    const urls = imgMatchArr[1].match(/"([^"]+)"/g);
-    if (urls) {
-      urls.forEach(u => {
-        const hash = u.replace(/"/g, '');
-        if (hash.length > 20 && !hash.includes('{')) {
-          const fullSrc = hash.startsWith('http') ? hash : `https://down-br.img.susercontent.com/file/${hash}`;
-          if (!galleryUrls.includes(fullSrc) && galleryUrls.length < 8) galleryUrls.push(fullSrc);
-        }
-      });
-    }
-  }
 
   if (!description) {
     const descMatch = html.match(/"description"\s*:\s*"((?:\\"|[^"])+)"/);
