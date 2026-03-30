@@ -438,12 +438,23 @@ function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
   // Removed GALLERY extraction upon user request
 
   if (!description) {
-    const descMatch = html.match(/"description"\s*:\s*"((?:\\"|[^"])+)"/);
-    if (descMatch && descMatch[1]) {
-      try {
-        description = JSON.parse(`"${descMatch[1]}"`).slice(0, 2000);
-      } catch (e) {
-        description = descMatch[1].slice(0, 2000);
+    // Attempt to extract from SSR scripts and JSON payloads
+    const scriptPatterns = [
+      /"description"\s*:\s*"((?:\\"|[^"])+)"/,               // Raw compressed JSON
+      /"description"\s*:\s*([^,}\]]+)/,                      // Raw uncompressed or boolean/null (will be cleaned)
+      /description\s*:\s*(['"`])((?:(?!\1).)*)\1/,           // JS object literal
+    ];
+    for (const pattern of scriptPatterns) {
+      const descMatch = html.match(pattern);
+      if (descMatch && descMatch[1] && descMatch[1] !== "null" && descMatch[1].length > 20 && !descMatch[1].includes("productOfferV2")) {
+        try {
+          const rawStr = `"${descMatch[1]}"`;
+          description = JSON.parse(rawStr).trim().slice(0, 2000);
+          if (description!.length > 20) break;
+        } catch (e) {
+          description = descMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n').trim().slice(0, 2000);
+          if (description.length > 20) break;
+        }
       }
     }
   }
