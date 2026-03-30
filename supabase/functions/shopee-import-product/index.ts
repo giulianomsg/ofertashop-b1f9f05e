@@ -428,10 +428,12 @@ function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
 
   // ====================================================
   // ====================================================
+  // ====================================================
   // DESCRIPTION
   // ====================================================
-  const descSelectors = [".f7AU53", "[class*='product-detail']", "[class*='description']"];
+  const descSelectors = [".f_re31", ".f7AU53", ".pdp-description-content", "[class*='product-detail']", "[class*='description']"];
   if (!description) {
+    // 1. Selector strategy
     for (const sel of descSelectors) {
       const text = $(sel).first().text().trim();
       if (text && text.length > 20) {
@@ -439,11 +441,36 @@ function extractShopeeData(html: string, apiPrice?: number): ScrapedPrices {
         break;
       }
     }
+    // 2. Next-sibling strategy (very robust on Shopee BR)
+    if (!description) {
+      $("div").each((_: number, el: cheerio.Element) => {
+        if (!description && $(el).text().trim().toLowerCase() === "descrição do produto") {
+           const nextDiv = $(el).next("div");
+           if (nextDiv.length) {
+              const text = nextDiv.text().trim();
+              if (text.length > 20) description = text.slice(0, 2000);
+           }
+        }
+      });
+    }
   }
 
   // ====================================================
   // GALLERY
   // ====================================================
+  // 1. Specific High-Priority Target (Thumbnails and Main Image)
+  $("div.airUhU img, div.pdp-video-placeholder__image, div.pdp-block__main-image img").each((_: number, el: cheerio.Element) => {
+     let src = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("style");
+     if (src && src.includes("susercontent.com") && galleryUrls.length < 8) {
+       if (src.includes("background-image")) {
+         const bgMatch = src.match(/url\(['"]?(.*?)['"]?\)/);
+         if (bgMatch && bgMatch[1]) src = bgMatch[1];
+       }
+       const fullSrc = src.replace(/_tn$/, "").replace(/\?.*$/, "").replace(/_tn\.webp$/, "");
+       const cleanSrc = fullSrc.startsWith("//") ? "https:" + fullSrc : fullSrc;
+       if (!galleryUrls.includes(cleanSrc) && cleanSrc.startsWith("http")) galleryUrls.push(cleanSrc);
+     }
+  });
   $("img, div[style*='background-image']").each((_: number, el: cheerio.Element) => {
     let src = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("style");
     if (src && src.includes("susercontent.com") && galleryUrls.length < 8) {
