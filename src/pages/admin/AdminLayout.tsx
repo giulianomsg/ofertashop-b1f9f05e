@@ -27,6 +27,7 @@ const menuItems = [
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
   { icon: BarChart3, label: "Estatísticas", path: "/admin/estatisticas" },
   { icon: Sparkles, label: "IA / Conteúdo", path: "/admin/ia" },
+  { icon: Sparkles, label: "IA Pro", path: "/admin/ai/dashboard" },
   { icon: Code, label: "API & Integrações", path: "/admin/api" },
 ];
 
