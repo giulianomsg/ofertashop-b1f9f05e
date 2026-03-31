@@ -63,8 +63,14 @@ Deno.serve(async (req) => {
         }),
       });
       if (!testRes.ok) {
+        if (testRes.status === 429) {
+          throw new Error("O modelo selecionado está temporariamente com limite de requisições excedido. Tente novamente mais tarde ou escolha outro modelo gratuito (ex: Gemini).");
+        }
+        if (testRes.status === 402) {
+          throw new Error("Créditos de IA insuficientes no OpenRouter.");
+        }
         const errText = await testRes.text();
-        throw new Error(`OpenRouter retornou ${testRes.status}: ${errText}`);
+        throw new Error(`OpenRouter retornou erro ${testRes.status}: ${errText}`);
       }
       return new Response(JSON.stringify({ success: true, model: config.model }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

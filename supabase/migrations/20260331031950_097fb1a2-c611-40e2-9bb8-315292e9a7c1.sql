@@ -117,36 +117,7 @@ CREATE POLICY "Admin can manage ai_gamification_draws" ON public.ai_gamification
 -- 7. Add ai_content_metadata to products
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS ai_content_metadata jsonb DEFAULT '{}'::jsonb;
 
--- 8. api_clients table (fixing existing AdminAPI build errors)
-CREATE TABLE public.api_clients (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  client_name text NOT NULL,
-  api_key text NOT NULL UNIQUE,
-  webhook_url text,
-  webhook_events text[] DEFAULT '{offer.updated}',
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.api_clients ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin can manage api_clients" ON public.api_clients FOR ALL TO authenticated
-  USING (has_role(auth.uid(), 'admin'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
 
--- 9. webhook_logs table (fixing existing AdminAPI build errors)
-CREATE TABLE public.webhook_logs (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  api_client_id uuid REFERENCES public.api_clients(id) ON DELETE CASCADE NOT NULL,
-  endpoint_url text NOT NULL,
-  payload jsonb DEFAULT '{}'::jsonb,
-  status_code integer,
-  response_body text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.webhook_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin can manage webhook_logs" ON public.webhook_logs FOR ALL TO authenticated
-  USING (has_role(auth.uid(), 'admin'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
 
 -- Triggers for updated_at
 CREATE TRIGGER update_ai_personas_updated_at BEFORE UPDATE ON public.ai_personas
@@ -156,6 +127,4 @@ CREATE TRIGGER update_ai_campaigns_updated_at BEFORE UPDATE ON public.ai_campaig
 CREATE TRIGGER update_ai_ab_tests_updated_at BEFORE UPDATE ON public.ai_ab_tests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER update_ai_gamification_draws_updated_at BEFORE UPDATE ON public.ai_gamification_draws
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER update_api_clients_updated_at BEFORE UPDATE ON public.api_clients
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

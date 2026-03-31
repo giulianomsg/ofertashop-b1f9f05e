@@ -105,7 +105,6 @@ const AppContent = () => {
                 <Route path="personas" element={<AdminAIPersonas />} />
                 <Route path="campaigns" element={<AdminAICampaigns />} />
                 <Route path="automations" element={<AdminAIAutomations />} />
-                <Route path="settings" element={<AdminAISettings />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

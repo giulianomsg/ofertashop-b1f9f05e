@@ -8,7 +8,6 @@ const AI_NAV = [
   { icon: Users, label: "Personas", path: "/admin/ai/personas" },
   { icon: Calendar, label: "Campanhas", path: "/admin/ai/campaigns" },
   { icon: Bot, label: "Automações", path: "/admin/ai/automations" },
-  { icon: Settings, label: "Configurações", path: "/admin/ai/settings" },
 ];
 
 const AdminAILayout = () => {
