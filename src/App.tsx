@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
 import { useQueryDebug } from "@/hooks/useQueryDebug";
@@ -39,16 +39,25 @@ import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
+
+// AI Pro pages
+import AdminAILayout from "./pages/admin/ai/AdminAILayout";
+import AdminAIDashboard from "./pages/admin/ai/AdminAIDashboard";
+import AdminAIGenerator from "./pages/admin/ai/AdminAIGenerator";
+import AdminAIPersonas from "./pages/admin/ai/AdminAIPersonas";
+import AdminAICampaigns from "./pages/admin/ai/AdminAICampaigns";
+import AdminAIAutomations from "./pages/admin/ai/AdminAIAutomations";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // Considera os dados frescos por 5 minutos
+      staleTime: 1000 * 60 * 5,
     },
   },
 });
 
 const AppContent = () => {
-  useQueryDebug();     // Debug para monitorar queries (remover em produção)
+  useQueryDebug();
 
   return (
     <NotificationProvider>
@@ -88,6 +97,16 @@ const AppContent = () => {
               <Route path="newsletters" element={<AdminNewsletters />} />
               <Route path="ia" element={<AdminAISettings />} />
               <Route path="api" element={<AdminAPI />} />
+              {/* AI Pro Module */}
+              <Route path="ai" element={<AdminAILayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<AdminAIDashboard />} />
+                <Route path="generator" element={<AdminAIGenerator />} />
+                <Route path="personas" element={<AdminAIPersonas />} />
+                <Route path="campaigns" element={<AdminAICampaigns />} />
+                <Route path="automations" element={<AdminAIAutomations />} />
+                <Route path="settings" element={<AdminAISettings />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

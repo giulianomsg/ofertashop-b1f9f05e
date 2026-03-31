@@ -64,7 +64,7 @@ const AdminNatura = () => {
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["natura_mappings_count"],
     queryFn: async () => {
-      const { count } = await supabase.from("natura_product_mappings").select("id", { count: "exact", head: true });
+      const { count } = await (supabase as any).from("natura_product_mappings").select("id", { count: "exact", head: true });
       return count || 0;
     },
   });
@@ -72,7 +72,7 @@ const AdminNatura = () => {
   const { data: mappingsList = [], isLoading: loadingMappings } = useQuery({
     queryKey: ["natura_mappings_list"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("natura_product_mappings")
         .select("*, products(id, title, price, original_price, badge, image_url, is_active)")
         .order("created_at", { ascending: false });
