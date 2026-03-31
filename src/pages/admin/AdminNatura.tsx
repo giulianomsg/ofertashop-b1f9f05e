@@ -64,7 +64,7 @@ const AdminNatura = () => {
   const { data: mappingsCount = 0 } = useQuery({
     queryKey: ["natura_mappings_count"],
     queryFn: async () => {
-      const { count } = await supabase.from("natura_product_mappings").select("id", { count: "exact", head: true });
+      const { count } = await (supabase as any).from("natura_product_mappings").select("id", { count: "exact", head: true });
       return count || 0;
     },
   });
