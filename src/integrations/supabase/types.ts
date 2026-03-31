@@ -32,6 +32,234 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_ab_tests: {
+        Row: {
+          created_at: string
+          id: string
+          metrics: Json | null
+          name: string
+          product_id: string | null
+          status: Database["public"]["Enums"]["ai_ab_test_status"]
+          updated_at: string
+          variant_a_id: string | null
+          variant_b_id: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          name: string
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["ai_ab_test_status"]
+          updated_at?: string
+          variant_a_id?: string | null
+          variant_b_id?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          name?: string
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["ai_ab_test_status"]
+          updated_at?: string
+          variant_a_id?: string | null
+          variant_b_id?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_ab_tests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_analytics_events: {
+        Row: {
+          date: string
+          event_type: string
+          id: string
+          metrics: Json | null
+          platform: string
+          product_id: string | null
+        }
+        Insert: {
+          date?: string
+          event_type: string
+          id?: string
+          metrics?: Json | null
+          platform: string
+          product_id?: string | null
+        }
+        Update: {
+          date?: string
+          event_type?: string
+          id?: string
+          metrics?: Json | null
+          platform?: string
+          product_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_analytics_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_campaigns: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          settings: Json | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["ai_campaign_status"]
+          type: Database["public"]["Enums"]["ai_campaign_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          settings?: Json | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ai_campaign_status"]
+          type?: Database["public"]["Enums"]["ai_campaign_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          settings?: Json | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ai_campaign_status"]
+          type?: Database["public"]["Enums"]["ai_campaign_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_competitor_tracking: {
+        Row: {
+          competitor_name: string
+          content_analyzed: string | null
+          detected_trends: Json | null
+          id: string
+          logged_at: string
+          source: string
+        }
+        Insert: {
+          competitor_name: string
+          content_analyzed?: string | null
+          detected_trends?: Json | null
+          id?: string
+          logged_at?: string
+          source: string
+        }
+        Update: {
+          competitor_name?: string
+          content_analyzed?: string | null
+          detected_trends?: Json | null
+          id?: string
+          logged_at?: string
+          source?: string
+        }
+        Relationships: []
+      }
+      ai_gamification_draws: {
+        Row: {
+          created_at: string
+          draw_date: string | null
+          id: string
+          prize: string
+          product_id: string | null
+          rules: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          draw_date?: string | null
+          id?: string
+          prize: string
+          product_id?: string | null
+          rules?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          draw_date?: string | null
+          id?: string
+          prize?: string
+          product_id?: string | null
+          rules?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_gamification_draws_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_personas: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          preferences: Json | null
+          tone: string
+          triggers: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          preferences?: Json | null
+          tone?: string
+          triggers?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          preferences?: Json | null
+          tone?: string
+          triggers?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       amazon_product_mappings: {
         Row: {
           amazon_current_price: number | null
@@ -81,6 +309,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      api_clients: {
+        Row: {
+          api_key: string
+          client_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          webhook_events: string[] | null
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key: string
+          client_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          webhook_events?: string[] | null
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key?: string
+          client_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          webhook_events?: string[] | null
+          webhook_url?: string | null
+        }
+        Relationships: []
       }
       banners: {
         Row: {
@@ -692,6 +953,7 @@ export type Database = {
       products: {
         Row: {
           affiliate_url: string
+          ai_content_metadata: Json | null
           available_quantity: number | null
           badge: string | null
           brand_id: string | null
@@ -726,6 +988,7 @@ export type Database = {
         }
         Insert: {
           affiliate_url: string
+          ai_content_metadata?: Json | null
           available_quantity?: number | null
           badge?: string | null
           brand_id?: string | null
@@ -760,6 +1023,7 @@ export type Database = {
         }
         Update: {
           affiliate_url?: string
+          ai_content_metadata?: Json | null
           available_quantity?: number | null
           badge?: string | null
           brand_id?: string | null
@@ -1147,6 +1411,44 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          api_client_id: string
+          created_at: string
+          endpoint_url: string
+          id: string
+          payload: Json | null
+          response_body: string | null
+          status_code: number | null
+        }
+        Insert: {
+          api_client_id: string
+          created_at?: string
+          endpoint_url: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          api_client_id?: string
+          created_at?: string
+          endpoint_url?: string
+          id?: string
+          payload?: Json | null
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_api_client_id_fkey"
+            columns: ["api_client_id"]
+            isOneToOne: false
+            referencedRelation: "api_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_groups: {
         Row: {
           active: boolean
@@ -1245,6 +1547,20 @@ export type Database = {
       }
     }
     Enums: {
+      ai_ab_test_status: "RUNNING" | "COMPLETED" | "CANCELLED"
+      ai_campaign_status: "ACTIVE" | "DRAFT" | "EXPIRED"
+      ai_campaign_type:
+        | "EASTER"
+        | "MOTHERS_DAY"
+        | "FATHERS_DAY"
+        | "VALENTINES_DAY"
+        | "BLACK_FRIDAY"
+        | "CYBER_MONDAY"
+        | "CHRISTMAS"
+        | "NEW_YEAR"
+        | "CARNIVAL"
+        | "BACK_TO_SCHOOL"
+        | "CUSTOM"
       app_role: "admin" | "editor" | "viewer"
     }
     CompositeTypes: {
@@ -1373,6 +1689,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ai_ab_test_status: ["RUNNING", "COMPLETED", "CANCELLED"],
+      ai_campaign_status: ["ACTIVE", "DRAFT", "EXPIRED"],
+      ai_campaign_type: [
+        "EASTER",
+        "MOTHERS_DAY",
+        "FATHERS_DAY",
+        "VALENTINES_DAY",
+        "BLACK_FRIDAY",
+        "CYBER_MONDAY",
+        "CHRISTMAS",
+        "NEW_YEAR",
+        "CARNIVAL",
+        "BACK_TO_SCHOOL",
+        "CUSTOM",
+      ],
       app_role: ["admin", "editor", "viewer"],
     },
   },
