@@ -66,7 +66,7 @@ async function generateHmacSignature(
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-api-key",
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -82,6 +82,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  if (req.method === "GET") {
+    return jsonResponse({ status: "healthy", message: "Webhook dispatcher is running." });
   }
 
   try {
