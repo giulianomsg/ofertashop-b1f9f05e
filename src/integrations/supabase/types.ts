@@ -545,6 +545,36 @@ export type Database = {
         }
         Relationships: []
       }
+      links: {
+        Row: {
+          id: string
+          title: string
+          url: string
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          url: string
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          url?: string
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       institutional_pages: {
         Row: {
           active: boolean | null

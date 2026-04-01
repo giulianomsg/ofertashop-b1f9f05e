@@ -39,6 +39,8 @@ import SpecialPage from "./pages/SpecialPage";
 import InstitutionalPage from "./pages/InstitutionalPage";
 import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
+import LinksPage from "./pages/LinksPage";
+import AdminLinks from "./pages/admin/AdminLinks";
 
 // AI Pro pages
 import AdminAILayout from "./pages/admin/ai/AdminAILayout";
@@ -72,6 +74,7 @@ const AppContent = () => {
             <Route path="/especial/:slug" element={<SpecialPage />} />
             <Route path="/p/:slug" element={<InstitutionalPage />} />
             <Route path="/perfil" element={<UserProfile />} />
+            <Route path="/links" element={<LinksPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
@@ -95,6 +98,7 @@ const AppContent = () => {
               <Route path="natura" element={<AdminNatura />} />
               <Route path="whatsapp" element={<AdminWhatsApp />} />
               <Route path="newsletters" element={<AdminNewsletters />} />
+              <Route path="links" element={<AdminLinks />} />
               <Route path="ia" element={<AdminAISettings />} />
               <Route path="api" element={<AdminAPI />} />
               {/* AI Pro Module */}

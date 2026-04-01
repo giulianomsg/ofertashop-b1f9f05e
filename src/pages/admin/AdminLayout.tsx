@@ -22,6 +22,7 @@ const menuItems = [
   { icon: ShoppingCart, label: "Natura & Avon", path: "/admin/natura" },
   { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp" },
   { icon: Mail, label: "Newsletters", path: "/admin/newsletters" },
+  { icon: Layers, label: "Links (Linktree)", path: "/admin/links" },
   { icon: Users, label: "Usuários", path: "/admin/usuarios" },
   { icon: MessageSquare, label: "Avaliações", path: "/admin/avaliacoes" },
   { icon: AlertTriangle, label: "Denúncias", path: "/admin/denuncias" },
