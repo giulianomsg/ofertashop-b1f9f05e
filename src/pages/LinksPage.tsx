@@ -114,11 +114,17 @@ const LinksPage = () => {
                   {/* Subtle hover gradient overflow */}
                   <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
                   
-                  <span className="font-semibold text-[15px] z-10 flex-1 text-center font-display pr-6 pl-12 line-clamp-1">
+                  {link.icon_url && (
+                    <div className="absolute left-4 w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-background/80 backdrop-blur-sm border border-border/50">
+                        <img src={link.icon_url} alt="" className="w-full h-full object-contain p-1" />
+                    </div>
+                  )}
+
+                  <span className={`font-semibold text-[15px] z-10 flex-1 text-center font-display pr-6 ${link.icon_url ? "pl-16" : "pl-12"} line-clamp-1`}>
                     {link.title}
                   </span>
                   
-                  <div className="absolute right-5 bg-foreground/5 group-hover:bg-background/20 rounded-full p-1.5 transition-colors">
+                  <div className="absolute right-4 bg-foreground/5 group-hover:bg-background/20 rounded-full p-1.5 transition-colors">
                       <ExternalLink className="w-4 h-4" />
                   </div>
                 </motion.a>
