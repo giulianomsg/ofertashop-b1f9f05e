@@ -14,6 +14,7 @@ export interface LinkType {
   url: string;
   is_active: boolean;
   sort_order: number;
+  icon_url?: string | null;
 }
 
 // Sortable Item Component
@@ -32,6 +33,11 @@ const SortableLink = ({ link, onEdit, onDelete, toggleActive }: { link: LinkType
       <div {...attributes} {...listeners} className="cursor-grab hover:bg-secondary p-1 rounded">
         <GripVertical className="w-5 h-5 text-muted-foreground" />
       </div>
+      {link.icon_url && (
+        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-border bg-secondary flex items-center justify-center p-1">
+          <img src={link.icon_url} alt="" className="w-full h-full object-contain" />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-sm truncate text-foreground">{link.title}</h4>
         <p className="text-xs text-muted-foreground truncate">{link.url}</p>
@@ -61,9 +67,12 @@ const AdminLinks = () => {
   // Form State
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [iconUrl, setIconUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [importingImage, setImportingImage] = useState(false);
+  const [importingIcon, setImportingIcon] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch Logo
   const { data: siteLogo } = useQuery({
@@ -115,16 +124,17 @@ const AdminLinks = () => {
 
   // Create Link
   const createLinkMutation = useMutation({
-    mutationFn: async ({ title, url, sort_order }: { title: string, url: string, sort_order: number }) => {
+    mutationFn: async ({ title, url, sort_order, icon_url }: { title: string, url: string, sort_order: number, icon_url?: string | null }) => {
       const { error } = await supabase
         .from('links')
-        .insert([{ title, url, sort_order }]);
+        .insert([{ title, url, sort_order, icon_url }]);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Link adicionado!");
       setTitle("");
       setUrl("");
+      setIconUrl("");
       queryClient.invalidateQueries({ queryKey: ['adminLinks'] });
     },
     onError: () => toast.error("Erro ao adicionar link")
@@ -144,6 +154,7 @@ const AdminLinks = () => {
       setEditingId(null);
       setTitle("");
       setUrl("");
+      setIconUrl("");
       queryClient.invalidateQueries({ queryKey: ['adminLinks'] });
     },
     onError: () => toast.error("Erro ao atualizar link")
@@ -185,9 +196,9 @@ const AdminLinks = () => {
     }
 
     if (editingId) {
-      updateLinkMutation.mutate({ id: editingId, title: title.trim(), url: finalUrl });
+      updateLinkMutation.mutate({ id: editingId, title: title.trim(), url: finalUrl, icon_url: iconUrl ? iconUrl : null });
     } else {
-      createLinkMutation.mutate({ title: title.trim(), url: finalUrl, sort_order: links.length });
+      createLinkMutation.mutate({ title: title.trim(), url: finalUrl, sort_order: links.length, icon_url: iconUrl ? iconUrl : null });
     }
   };
 
@@ -195,12 +206,14 @@ const AdminLinks = () => {
     setEditingId(link.id);
     setTitle(link.title);
     setUrl(link.url);
+    setIconUrl(link.icon_url || "");
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setTitle("");
     setUrl("");
+    setIconUrl("");
   };
 
   const handleDelete = (id: string) => {
@@ -246,6 +259,41 @@ const AdminLinks = () => {
     } finally {
         setImportingImage(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        toast.error("Selecione um arquivo de imagem.");
+        return;
+    }
+
+    setImportingIcon(true);
+    try {
+        const ext = file.name.split(".").pop() || "png";
+        const fileName = `icon-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from("banners")
+            .upload(fileName, file, { contentType: file.type });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+            .from("banners")
+            .getPublicUrl(fileName);
+
+        setIconUrl(urlData.publicUrl);
+        
+    } catch (err) {
+        console.error(err);
+        toast.error("Erro ao enviar ícone.");
+    } finally {
+        setImportingIcon(false);
+        if (iconInputRef.current) iconInputRef.current.value = "";
     }
   };
 
@@ -361,6 +409,40 @@ const AdminLinks = () => {
                     className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30" 
                     onKeyDown={(e) => e.key === "Enter" && handleCreateOrUpdate()}
                 />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">Ícone do Link (Opcional)</label>
+                <div className="flex gap-4">
+                    {iconUrl && (
+                        <div className="w-10 h-10 rounded-lg shrink-0 border border-border bg-secondary flex items-center justify-center p-1 relative">
+                            <img src={iconUrl} alt="Ícone preview" className="w-full h-full object-contain" />
+                            <button 
+                                onClick={() => setIconUrl("")} 
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm hover:scale-110 transition-transform"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    )}
+                    <div className="flex-1">
+                        <input
+                            ref={iconInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleIconUpload}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => iconInputRef.current?.click()}
+                            disabled={importingIcon}
+                            className="w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50"
+                        >
+                            {importingIcon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                            {importingIcon ? "Enviando ícone..." : "Fazer Upload do Ícone da Plataforma"}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <div className="flex gap-2 justify-end pt-2">
