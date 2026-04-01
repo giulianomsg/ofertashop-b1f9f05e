@@ -57,13 +57,13 @@ const LinksPage = () => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.1, duration: 0.5 }}
-                className="w-24 h-24 mx-auto rounded-full bg-card/80 backdrop-blur border-2 border-accent/30 shadow-[0_0_30px_rgba(var(--accent),0.15)] flex items-center justify-center overflow-hidden p-2"
+                className="w-48 h-48 mx-auto rounded-full bg-card/80 backdrop-blur border-2 border-accent/30 shadow-[0_0_30px_rgba(var(--accent),0.15)] flex items-center justify-center overflow-hidden p-2"
               >
                 <img src={siteLogo} alt="OfertaShop Logo" className="w-full h-full object-contain" />
               </motion.div>
             ) : (
-               <div className="w-24 h-24 mx-auto rounded-full bg-accent/10 flex items-center justify-center border-2 border-accent/20">
-                 <span className="text-3xl font-display font-bold text-accent">OS</span>
+               <div className="w-48 h-48 mx-auto rounded-full bg-accent/10 flex items-center justify-center border-2 border-accent/20">
+                 <span className="text-6xl font-display font-bold text-accent">OS</span>
                </div>
             )}
             
