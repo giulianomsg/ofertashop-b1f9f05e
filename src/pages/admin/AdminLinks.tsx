@@ -1,15 +1,23 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Pencil, Check, X, GripVertical, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Trash2, Pencil, Check, X, GripVertical, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+export interface LinkType {
+  id: string;
+  title: string;
+  url: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
 // Sortable Item Component
-const SortableLink = ({ link, onEdit, onDelete, toggleActive }: any) => {
+const SortableLink = ({ link, onEdit, onDelete, toggleActive }: { link: LinkType, onEdit: (link: LinkType) => void, onDelete: (id: string) => void, toggleActive: (link: LinkType) => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
 
   const style = {
@@ -54,6 +62,8 @@ const AdminLinks = () => {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [importingImage, setImportingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch Logo
   const { data: siteLogo } = useQuery({
@@ -122,7 +132,7 @@ const AdminLinks = () => {
 
   // Update Link
   const updateLinkMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
+    mutationFn: async ({ id, ...updates }: Partial<LinkType> & { id: string }) => {
       const { error } = await supabase
         .from('links')
         .update(updates)
@@ -181,7 +191,7 @@ const AdminLinks = () => {
     }
   };
 
-  const handleEdit = (link: any) => {
+  const handleEdit = (link: LinkType) => {
     setEditingId(link.id);
     setTitle(link.title);
     setUrl(link.url);
@@ -199,8 +209,44 @@ const AdminLinks = () => {
     }
   };
 
-  const toggleActive = (link: any) => {
+  const toggleActive = (link: LinkType) => {
     updateLinkMutation.mutate({ id: link.id, is_active: !link.is_active });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        toast.error("Selecione um arquivo de imagem.");
+        return;
+    }
+
+    setImportingImage(true);
+    try {
+        const ext = file.name.split(".").pop() || "png";
+        const fileName = `logo-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from("banners")
+            .upload(fileName, file, { contentType: file.type });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+            .from("banners")
+            .getPublicUrl(fileName);
+
+        setLogoUrl(urlData.publicUrl);
+        updateLogoMutation.mutate(urlData.publicUrl);
+        
+    } catch (err) {
+        console.error(err);
+        toast.error("Erro ao enviar imagem.");
+    } finally {
+        setImportingImage(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   // Drag and drop setup
@@ -209,7 +255,7 @@ const AdminLinks = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     
@@ -247,27 +293,48 @@ const AdminLinks = () => {
             <ImageIcon className="w-5 h-5 text-accent" />
             Identidade da Página
         </h3>
-        <div className="flex gap-4 items-end">
-            <div className="flex-1 space-y-2">
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-1 space-y-2 w-full">
                 <label className="text-sm font-medium">URL da Logo do Site</label>
-                <input 
-                    value={logoUrl} 
-                    onChange={(e) => setLogoUrl(e.target.value)} 
-                    placeholder="https://exemplo.com/logo.png" 
-                    className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30" 
-                />
+                <div className="flex gap-2">
+                    <input 
+                        value={logoUrl} 
+                        onChange={(e) => setLogoUrl(e.target.value)} 
+                        placeholder="https://exemplo.com/logo.png" 
+                        className="flex-1 h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30" 
+                    />
+                    <button 
+                        onClick={handleLogoUpdate} 
+                        disabled={updateLogoMutation.isPending} 
+                        className="btn-accent h-10 px-4 font-medium text-sm whitespace-nowrap"
+                    >
+                        Salvar
+                    </button>
+                </div>
             </div>
-            <button 
-                onClick={handleLogoUpdate} 
-                disabled={updateLogoMutation.isPending} 
-                className="btn-accent h-10 px-6 font-medium text-sm whitespace-nowrap"
-            >
-                {updateLogoMutation.isPending ? "Salvando..." : "Salvar Logo"}
-            </button>
+            
+            <div className="flex-1 w-full space-y-2">
+                <label className="text-sm font-medium block">Upload de Arquivo</label>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                />
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={importingImage}
+                    className="w-full h-10 rounded-lg border border-dashed border-border bg-secondary/50 text-sm text-muted-foreground flex items-center justify-center gap-2 hover:bg-secondary transition-colors disabled:opacity-50"
+                >
+                    {importingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {importingImage ? "Enviando..." : "Escolher Imagem"}
+                </button>
+            </div>
         </div>
         {logoUrl && (
             <div className="mt-4 p-4 border border-border rounded-lg bg-secondary/30 flex items-center justify-center">
-                <img src={logoUrl} alt="Logo Preview" className="max-h-24 object-contain" />
+                <img src={logoUrl} alt="Logo Preview" className="max-h-24 object-contain rounded-xl shadow-sm" />
             </div>
         )}
       </div>
