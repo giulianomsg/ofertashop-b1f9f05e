@@ -154,8 +154,9 @@ ${jsonStructure}
 7. ${hashtagInstr}
 8. ${ctaInstr}
 9. ${seoInstr}
-10. O roteiro de Reels/TikTok/Shorts deve ter 4-6 cenas com hook forte de retencao nos primeiros 3 segundos focado em curiosidade (focando so no produto).
-11. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney/Stable Diffusion, com aspectos de cor, iluminacao e composicao.`;
+10. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video (Reels/TikTok/Shorts) em multiplas partes ou cenas ate concluir toda a mensagem persuasiva e atingir o objetivo. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS (podem ter de 2 a 3 segundos na maioria das vezes, mas NUNCA passe do limite duro de 8s por cena).
+11. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao e curiosidade.
+12. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney/Stable Diffusion, com aspectos de cor, iluminacao e composicao.`;
 
     const userPrompt = `Gere conteúdo multicanal completo para este produto de afiliado:
 
