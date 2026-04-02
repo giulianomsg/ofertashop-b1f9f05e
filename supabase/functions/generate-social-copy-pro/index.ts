@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
   "stories": { "texto_curto": "texto impactante curto", "enquete": { "pergunta": "pergunta engajadora", "opcao1": "opção 1", "opcao2": "opção 2" } },
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
-  "prompts_visuais": { "feed_background": "prompt em inglês para gerar fundo de feed no Midjourney", "story_background": "prompt em inglês para gerar fundo de story no Midjourney" }
+  "prompts_visuais": { "feed_background": "prompt em inglês para gerar imagem de feed, solicitando explicitamente a inclusão de catchphrases curtas (frases de efeito) e informações do produto escritas na própria imagem", "story_background": "prompt em inglês para gerar imagem de story, solicitando explicitamente a inclusão de catchphrases curtas (frases de efeito) e informações do produto escritas na própria imagem" }
 }`;
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -158,7 +158,7 @@ ${jsonStructure}
 9. ${seoInstr}
 10. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video (Reels/TikTok/Shorts) em multiplas partes ou cenas ate concluir toda a mensagem persuasiva e atingir o objetivo. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS (podem ter de 2 a 3 segundos na maioria das vezes, mas NUNCA passe do limite duro de 8s por cena).
 11. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao e curiosidade.
-12. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney/Stable Diffusion, com aspectos de cor, iluminacao e composicao.`;
+12. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney v6/DALL-E 3, com aspectos de cor, iluminacao e composicao, e devem SEMPRE pedir que a IA escreva textos curtos e em portugues na imagem (frases de efeito / catchphrases) e informacoes chaves do produto.`;
 
     const userPrompt = `Gere conteúdo multicanal completo para este produto de afiliado:
 

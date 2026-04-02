@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone } from "lucide-react";
+import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone, Check, ChevronsUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,9 @@ import CopyBlock from "@/components/admin/ai/CopyBlock";
 import ReelsScriptTable from "@/components/admin/ai/ReelsScriptTable";
 import StoryMockup from "@/components/admin/ai/StoryMockup";
 import GenerationLoader from "@/components/admin/ai/GenerationLoader";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const TONES = [
   { value: "persuasivo", label: "Persuasivo" },
@@ -44,6 +47,7 @@ interface ProContent {
 const AdminAIGenerator = () => {
   const { data: products = [] } = useProducts(false);
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [productSearchOpen, setProductSearchOpen] = useState(false);
   const [tone, setTone] = useState("persuasivo");
   const [trigger, setTrigger] = useState("urgencia");
   const [selectedPersonaId, setSelectedPersonaId] = useState("");
@@ -166,12 +170,51 @@ const AdminAIGenerator = () => {
             {/* Product */}
             <div>
               <label className="text-xs font-semibold text-foreground mb-1.5 block">Produto</label>
-              <select value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className={selectClass}>
-                <option value="">Selecione um produto...</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </select>
+              <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={productSearchOpen}
+                    className="w-full justify-between bg-secondary border-border"
+                  >
+                    <span className="truncate">
+                      {selectedProductId
+                        ? products.find((product) => product.id === selectedProductId)?.title
+                        : "Selecione um produto..."}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar produto..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {products.map((product) => (
+                          <CommandItem
+                            key={product.id}
+                            value={product.title}
+                            onSelect={() => {
+                              setSelectedProductId(product.id === selectedProductId ? "" : product.id);
+                              setProductSearchOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedProductId === product.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {product.title}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Campaign */}
