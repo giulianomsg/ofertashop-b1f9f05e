@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import ProductCard from "@/components/ProductCard";
 
 const LinksPage = () => {
   // Fetch Logo
@@ -31,6 +32,46 @@ const LinksPage = () => {
       if (error) throw error;
       return data || [];
     }
+  });
+
+  // Fetch campaign settings
+  const { data: campaignSettings } = useQuery({
+    queryKey: ['publicLinktreeCampaign'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .in('key', ['links_page_campaign_name', 'links_page_products']);
+      if (error) throw error;
+      
+      const titleObj = data.find(d => d.key === 'links_page_campaign_name');
+      const productsObj = data.find(d => d.key === 'links_page_products');
+      
+      return {
+          title: titleObj?.value ? String(titleObj.value).replace(/^"(.*)"$/, '$1') : "",
+          productIds: productsObj?.value ? JSON.parse(productsObj.value as string) : []
+      };
+    }
+  });
+
+  // Fetch Campaign Products
+  const { data: campaignProducts = [], isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['publicLinktreeProducts', campaignSettings?.productIds],
+    queryFn: async () => {
+      if (!campaignSettings || !campaignSettings.productIds || campaignSettings.productIds.length === 0) return [];
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', campaignSettings.productIds)
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      // Keep original order from settings array
+      return data.sort((a, b) => campaignSettings.productIds.indexOf(a.id) - campaignSettings.productIds.indexOf(b.id));
+    },
+    enabled: !!campaignSettings && campaignSettings.productIds.length > 0
   });
 
   return (
@@ -132,6 +173,32 @@ const LinksPage = () => {
             )}
           </div>
           
+          {/* Campaign Section */}
+          {campaignSettings && campaignSettings.productIds?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="w-full mt-10 p-6 bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 shadow-xl"
+            >
+               {campaignSettings.title && (
+                 <h2 className="text-xl font-display font-bold text-center mb-6 text-foreground">
+                   {campaignSettings.title}
+                 </h2>
+               )}
+               
+               {isLoadingProducts ? (
+                 <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+               ) : (
+                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                   {campaignProducts.map((p, index) => (
+                     <ProductCard key={p.id} product={p as any} index={index} />
+                   ))}
+                 </div>
+               )}
+            </motion.div>
+          )}
+
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 

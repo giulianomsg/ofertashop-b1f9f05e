@@ -3,6 +3,8 @@ import { Plus, Trash2, Pencil, Check, X, GripVertical, Image as ImageIcon, Uploa
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProducts } from "@/hooks/useProducts";
+import { usePlatforms } from "@/hooks/useEntities";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
@@ -88,11 +90,42 @@ const AdminLinks = () => {
     }
   });
 
+  const { data: campaignSettings } = useQuery({
+    queryKey: ['siteSettings', 'linktree_campaign'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('*')
+        .in('key', ['links_page_campaign_name', 'links_page_products']);
+      if (error) throw error;
+      
+      const titleObj = data.find(d => d.key === 'links_page_campaign_name');
+      const productsObj = data.find(d => d.key === 'links_page_products');
+      
+      return {
+          title: titleObj?.value ? String(titleObj.value).replace(/^"(.*)"$/, '$1') : "",
+          products: productsObj?.value ? JSON.parse(productsObj.value as string) : []
+      };
+    }
+  });
+
+  const [campaignName, setCampaignName] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const { data: products = [], isLoading: isLoadingProducts } = useProducts(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
   useEffect(() => {
     if (siteLogo !== undefined) {
       setLogoUrl(siteLogo);
     }
-  }, [siteLogo]);
+    if (campaignSettings) {
+      setCampaignName(campaignSettings.title || "");
+      setSelectedProducts(campaignSettings.products || []);
+    }
+  }, [siteLogo, campaignSettings]);
 
   // Update Logo
   const updateLogoMutation = useMutation({
@@ -107,6 +140,22 @@ const AdminLinks = () => {
       queryClient.invalidateQueries({ queryKey: ['siteSettings', 'site_logo'] });
     },
     onError: () => toast.error("Erro ao atualizar logo")
+  });
+
+  const updateCampaignMutation = useMutation({
+    mutationFn: async () => {
+      const updates = [
+        { key: 'links_page_campaign_name', value: `"${campaignName}"` },
+        { key: 'links_page_products', value: JSON.stringify(selectedProducts) }
+      ];
+      const { error } = await supabase.from('admin_settings').upsert(updates, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Campanha atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['siteSettings', 'linktree_campaign'] });
+    },
+    onError: () => toast.error("Erro ao atualizar campanha")
   });
 
   // Fetch Links
@@ -326,6 +375,18 @@ const AdminLinks = () => {
     updateLogoMutation.mutate(logoUrl);
   };
 
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+      ? prev.filter(id => id !== productId)
+      : [...prev, productId]
+    );
+  };
+
+  const filteredProducts = products.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-12">
       <div className="flex items-center justify-between">
@@ -487,6 +548,95 @@ const AdminLinks = () => {
             </DndContext>
         )}
       </div>
+
+      {/* Campaign / Destaques Card */}
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground">
+              <Plus className="w-5 h-5 text-accent" />
+              Vitrine de Produtos Externos (Campanha)
+          </h3>
+          <p className="text-sm text-muted-foreground">Você pode promover produtos abaixo de seus links. Configure o título da campanha e selecione os cards que aparecerão lá.</p>
+          
+          <div className="flex flex-col sm:flex-row items-end gap-4">
+              <div className="flex-1 space-y-2 w-full">
+                  <label className="text-sm font-medium">Nome da Campanha</label>
+                  <input 
+                      value={campaignName} 
+                      onChange={(e) => setCampaignName(e.target.value)} 
+                      placeholder="Ex: Ofertas Black Friday" 
+                      className="w-full h-10 px-3 rounded-lg bg-secondary border-none text-sm text-foreground focus:ring-2 focus:ring-accent/30" 
+                  />
+              </div>
+              <button onClick={() => setShowProductModal(true)} className="btn-secondary h-10 px-4 whitespace-nowrap">
+                  Selecionar Produtos ({selectedProducts.length})
+              </button>
+              <button 
+                  onClick={() => updateCampaignMutation.mutate()} 
+                  disabled={updateCampaignMutation.isPending}
+                  className="btn-accent h-10 px-6 whitespace-nowrap font-medium text-sm"
+              >
+                  {updateCampaignMutation.isPending ? "Salvando..." : "Salvar Vitrine"}
+              </button>
+          </div>
+      </div>
+
+      {/* Modal Selecionar Produtos */}
+      {showProductModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-card border shadow-lg rounded-xl flex flex-col w-full max-w-4xl max-h-[90vh] relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border shrink-0">
+              <h3 className="font-bold text-lg">Selecionar Produtos para Vitrine</h3>
+              <button onClick={() => setShowProductModal(false)} className="p-2 rounded-lg hover:bg-secondary"><X className="w-5 h-5"/></button>
+            </div>
+            
+            <div className="p-4 sm:p-6 border-b border-border shrink-0 bg-secondary/30">
+              <input
+                type="text"
+                placeholder="Buscar por nome..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="w-full h-10 px-3 rounded-lg bg-background border border-border text-sm focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 min-h-[300px]">
+              {isLoadingProducts ? (
+                 <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+              ) : paginatedProducts.length === 0 ? (
+                 <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg">Nenhum produto encontrado.</div>
+              ) : (
+                paginatedProducts.map(p => {
+                  const isSelected = selectedProducts.includes(p.id);
+                  return (
+                    <div key={p.id} onClick={() => toggleProductSelection(p.id)} className={`cursor-pointer flex items-center gap-4 p-3 rounded-lg border transition-all ${isSelected ? 'bg-accent/5 border-accent/20' : 'bg-background hover:bg-secondary/50'}`}>
+                      <div className="w-10 h-10 bg-white rounded border flex items-center justify-center p-1 shrink-0">
+                        {p.image_url && <img src={p.image_url} className="w-full h-full object-contain" alt=""/>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{p.title}</p>
+                        <p className="text-xs text-muted-foreground">R$ {Number(p.price).toFixed(2).replace('.', ',')}</p>
+                      </div>
+                      <div>
+                        {isSelected ? <div className="bg-accent text-accent-foreground px-3 py-1 rounded text-xs font-bold">Adicionado</div> : <div className="border border-border text-muted-foreground px-3 py-1 rounded text-xs">Adicionar</div>}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {totalPages > 0 && (
+              <div className="p-4 sm:p-6 border-t border-border flex flex-wrap items-center justify-between gap-4 shrink-0 bg-secondary/10">
+                <span className="text-xs text-muted-foreground">Página {currentPage} de {totalPages}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 rounded border bg-background text-xs disabled:opacity-50 hover:bg-secondary">Anterior</button>
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 rounded border bg-background text-xs disabled:opacity-50 hover:bg-secondary">Próxima</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
