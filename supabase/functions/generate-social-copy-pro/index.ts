@@ -147,8 +147,10 @@ REGRAS CRITICAS:
 1. Responda APENAS em JSON valido, sem markdown, sem blocos de codigo.
 2. Siga EXATAMENTE esta estrutura JSON:
 ${jsonStructure}
-3. INCLUA OBRIGATORIAMENTE o link do produto (${productLink}) em TODOS os textos gerados para as plataformas (legendas, roteiros, stories, whatsapp, etc).
-4. Garanta que os textos estejam sempre bem formatados e organizados em linhas e paragrafos.
+3. USO DO LINK DO PRODUTO:
+   - No Whatsapp/Lista de Transmissao: OBRIGATORIO colocar a URL (${productLink}) de forma explicita na mensagem.
+   - Nas Legendas (Instagram, TikTok, etc): NUNCA escreva a URL na legenda, pois la os links nao sao clicaveis! Ao inves disso, faca CTAs de CTA, ex: "Comente QUERO" ou "Link na bio" ou "Direct".
+4. FORMATACAO DE PARAGRAFOS: Utilize ativamente a marcacao de quebra de linha e duplo espaco (\\n\\n) dentro dos textos gerados na sua string JSON para garantir que o resultado final fique com as ideias separadas, criando paragrafos curtos e um texto leve. NUNCA gere paredes solidas e densas de texto.
 5. IMPORTANTE: Os roteiros NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.
 6. IMPORTANTE: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. Isso e por conta de incompatibilidade na geracao de videos. (Ex: escreva "acao", "video", "nao", "voce").
 7. ${hashtagInstr}
