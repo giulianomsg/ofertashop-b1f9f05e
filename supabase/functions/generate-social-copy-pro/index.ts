@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       product.original_price && product.price
         ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
         : 0;
-    const productLink = product.affiliate_url || "";
+    const productLink = product.id ? `https://www.ofertashop.com.br/produto/${product.id}` : (product.affiliate_url || "");
 
     // Build persona instructions
     const personaBlock = settings.persona
