@@ -137,23 +137,25 @@ Deno.serve(async (req) => {
   "prompts_visuais": { "feed_background": "prompt em inglês para gerar fundo de feed no Midjourney", "story_background": "prompt em inglês para gerar fundo de story no Midjourney" }
 }`;
 
-    const systemPrompt = `Você é um copywriter brasileiro especialista em marketing de afiliados, conversão e redes sociais.
+    const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
 ${personaBlock}
 ${toneBlock}
 ${triggerBlock}
 ${campaignBlock}
 
-REGRAS CRÍTICAS:
-1. Responda APENAS em JSON válido, sem markdown, sem blocos de código.
+REGRAS CRITICAS:
+1. Responda APENAS em JSON valido, sem markdown, sem blocos de codigo.
 2. Siga EXATAMENTE esta estrutura JSON:
 ${jsonStructure}
-3. INCLUA o link "${productLink}" em TODAS as legendas do feed, na mensagem de WhatsApp e na versão curta.
-4. ${hashtagInstr}
-5. ${ctaInstr}
-6. ${seoInstr}
-7. O roteiro de Reels deve ter 4-6 cenas com hook forte nos primeiros 3 segundos.
-8. O roteiro TikTok/Shorts deve ter hook de retenção nos primeiros 3s focado em curiosidade.
-9. Os prompts visuais devem ser detalhados em inglês, estilo Midjourney/Stable Diffusion, com aspectos de cor, iluminação e composição.`;
+3. INCLUA OBRIGATORIAMENTE o link do produto (${productLink}) em TODOS os textos gerados para as plataformas (legendas, roteiros, stories, whatsapp, etc).
+4. Garanta que os textos estejam sempre bem formatados e organizados em linhas e paragrafos.
+5. IMPORTANTE: Os roteiros NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.
+6. IMPORTANTE: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. Isso e por conta de incompatibilidade na geracao de videos. (Ex: escreva "acao", "video", "nao", "voce").
+7. ${hashtagInstr}
+8. ${ctaInstr}
+9. ${seoInstr}
+10. O roteiro de Reels/TikTok/Shorts deve ter 4-6 cenas com hook forte de retencao nos primeiros 3 segundos focado em curiosidade (focando so no produto).
+11. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney/Stable Diffusion, com aspectos de cor, iluminacao e composicao.`;
 
     const userPrompt = `Gere conteúdo multicanal completo para este produto de afiliado:
 
