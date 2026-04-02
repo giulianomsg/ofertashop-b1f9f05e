@@ -34,8 +34,8 @@ const SortableLink = ({ link, onEdit, onDelete, toggleActive }: { link: LinkType
         <GripVertical className="w-5 h-5 text-muted-foreground" />
       </div>
       {link.icon_url && (
-        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-border bg-secondary flex items-center justify-center p-1">
-          <img src={link.icon_url} alt="" className="w-full h-full object-contain" />
+        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-border bg-secondary shadow-sm">
+          <img src={link.icon_url} alt="" className="w-full h-full object-cover" />
         </div>
       )}
       <div className="flex-1 min-w-0">
@@ -415,11 +415,11 @@ const AdminLinks = () => {
                 <label className="text-sm font-medium">Ícone do Link (Opcional)</label>
                 <div className="flex gap-4">
                     {iconUrl && (
-                        <div className="w-10 h-10 rounded-lg shrink-0 border border-border bg-secondary flex items-center justify-center p-1 relative">
-                            <img src={iconUrl} alt="Ícone preview" className="w-full h-full object-contain" />
+                        <div className="w-10 h-10 rounded-lg shrink-0 border border-border bg-secondary shadow-sm relative overflow-hidden">
+                            <img src={iconUrl} alt="Ícone preview" className="w-full h-full object-cover" />
                             <button 
                                 onClick={() => setIconUrl("")} 
-                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm hover:scale-110 transition-transform"
+                                className="absolute top-0 right-0 bg-destructive/80 text-destructive-foreground rounded-bl-lg p-0.5 hover:bg-destructive transition-colors"
                             >
                                 <X className="w-3 h-3" />
                             </button>

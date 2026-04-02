@@ -115,8 +115,8 @@ const LinksPage = () => {
                   <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
                   
                   {link.icon_url && (
-                    <div className="absolute left-4 w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-background/80 backdrop-blur-sm border border-border/50">
-                        <img src={link.icon_url} alt="" className="w-full h-full object-contain p-1" />
+                    <div className="absolute left-4 w-10 h-10 rounded-xl overflow-hidden shadow-sm bg-background border border-border/20">
+                        <img src={link.icon_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
 
