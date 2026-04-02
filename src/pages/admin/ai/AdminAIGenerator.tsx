@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +73,37 @@ const AdminAIGenerator = () => {
 
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const selectedPersona = personas.find((p: any) => p.id === selectedPersonaId);
+
+  const lastLoadedProductId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedProductId) {
+      setContent(null);
+      setUsedModel("");
+      lastLoadedProductId.current = null;
+      return;
+    }
+
+    if (selectedProductId !== lastLoadedProductId.current) {
+      const product = products.find((p) => p.id === selectedProductId);
+      if (product) {
+        lastLoadedProductId.current = selectedProductId;
+        if ((product as any).ai_content_metadata?.latest) {
+          setContent((product as any).ai_content_metadata.latest);
+          const hist = (product as any).ai_content_metadata.history;
+          setUsedModel(hist && hist[0] ? hist[0].model + " (Salvo)" : "Recuperado da Base");
+          
+          if (hist && hist[0]?.settings) {
+             if (hist[0].settings.tone) setTone(hist[0].settings.tone);
+             if (hist[0].settings.trigger) setTrigger(hist[0].settings.trigger);
+          }
+        } else {
+          setContent(null);
+          setUsedModel("");
+        }
+      }
+    }
+  }, [selectedProductId, products]);
 
   const handleGenerate = async () => {
     if (!selectedProduct) {
