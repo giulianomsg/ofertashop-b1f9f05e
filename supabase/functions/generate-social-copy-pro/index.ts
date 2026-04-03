@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
       settings.campaignName || settings.campaignType
         ? `Campanha sazonal ativa: ${settings.campaignName || settings.campaignType}. Adapte o conteúdo ao contexto dessa campanha.`
         : "";
-    const hashtagInstr = settings.includeHashtags !== false ? "Inclua 5-10 hashtags relevantes no Feed." : "NÃO inclua hashtags.";
+    const hashtagInstr = settings.includeHashtags !== false ? "Inclua SEMPRE #ofertashop_promo e a menção @ofertashop_promo nos seus textos. Evite tags genéricas." : "NÃO inclua hashtags.";
     const ctaInstr = settings.includeCTA !== false ? 'Inclua CTAs fortes como "Compre agora 👇", "Corre que acaba!", "Aproveite!".' : "";
     const seoInstr = settings.optimizeSEO ? "Otimize textos para SEO: use palavras-chave naturais do produto nos primeiros 100 caracteres." : "";
     const requestedPlatform = settings.platform || "all";
@@ -174,22 +174,23 @@ Deno.serve(async (req) => {
       `2. Siga EXATAMENTE esta estrutura JSON:\n${jsonStructure}`,
       `3. USO DO LINK DO PRODUTO:\n   - No Whatsapp/Lista de Transmissao: OBRIGATORIO colocar a URL (${productLink}) de forma explicita na mensagem.\n   - Nas Legendas (Instagram, TikTok, etc): NUNCA escreva a URL na legenda, pois la os links nao sao clicaveis! Ao inves disso, faca CTAs de CTA, ex: "Comente QUERO".`,
       "4. FORMATACAO DE PARAGRAFOS: Utilize ativamente a marcacao de quebra de linha e duplo espaco (\\\\n\\\\n) dentro dos textos gerados na sua string JSON.",
-      "5. IMPORTANTE: NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.",
-      '6. IMPORTANTE: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. (Ex: escreva "acao", "video", "nao", "voce").'
+      "5. IGNORAR LOJAS TERCEIRAS: IMPORTANTE! NUNCA escreva 'Vendido e entregue por Shopee / Mercado Livre' ou qualquer loja externa. Dê TODA A VISIBILIDADE e créditos exlusivamente para o 'OfertaShop'. O produto pertence e é vendido no OfertaShop.",
+      "6. FOCO NO PRODUTO: NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.",
+      '7. CUIDADO COM ACENTOS NOS VIDEOS: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. (Ex: escreva "acao", "video", "nao", "voce").'
     ];
 
-    if (requestedPlatform === "all" || requestedPlatform === "feed") systemRules.push("7. " + hashtagInstr);
-    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("8. " + ctaInstr);
-    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("9. " + seoInstr);
+    if (requestedPlatform === "all" || requestedPlatform === "feed") systemRules.push("8. " + hashtagInstr);
+    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("9. " + ctaInstr);
+    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("10. " + seoInstr);
 
     if (requestedPlatform === "all" || requestedPlatform === "reels" || requestedPlatform === "tiktok") {
-      systemRules.push("10. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video em multiplas partes ate concluir toda a mensagem. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS.");
-      systemRules.push("11. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao.");
+      systemRules.push("11. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video em multiplas partes ate concluir toda a mensagem. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS.");
+      systemRules.push("12. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao.");
     }
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
-      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve manter a cópia fotorrealista (NÃO insira link de URL no prompt). Adicione em inglês: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após isso, quebre duas linhas usando os caracteres literais \\\\n\\\\n dentro do JSON e insira os Overlays em PT-BR. CADA informação deve ficar em uma linha única e nova usando \\\\n. Estrutura EXATA gerada:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota e/ou Número de Vendas]\\\\nOverlay: Cupom: [Código do Cupom, apenas se houver]. Se não houver preço antigo: "Overlay: Por apenas [Preço]".');
-      systemRules.push('13. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres `\\\\n` literais para representar as novas linhas em todos os prompts visuais e legendas.');
+      systemRules.push('13. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` NÃO DEVE ter link local de imagem. Adicione no final do prompt visual em inglês: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Exija TAMBÉM no prompt em inglês que a imagem inclua a logo do "OfertaShop" (que será enviada futuramente com a foto). Após a tag --ar 9:16, quebre duas linhas LITERIAS `\\\\n\\\\n` e liste os Overlays em PT-BR. CADA dado em uma linha única. Estrutura EXATA:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota/Vendas]\\\\nOverlay: Cupom: [Código, se houver]\\\\nOverlay: Link na Bio.');
+      systemRules.push('14. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres literais `\\\\n` para simular quebras.');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -204,7 +205,6 @@ ${systemRules.join("\n")}`;
     const userPrompt = `Gere conteúdo multicanal completo para este produto de afiliado:
 
 Produto: ${product.title}
-${product.store ? `Loja: ${product.store}` : ""}
 ${priceFormatted ? `Preço atual: ${priceFormatted}` : ""}
 ${originalPriceFormatted ? `Preço original: ${originalPriceFormatted}` : ""}
 ${discount > 0 ? `Desconto: ${discount}%` : ""}
