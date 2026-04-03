@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
   "prompts_visuais": { 
-      "image_generation_prompt": "prompt em inglês fotorrealista... --ar 9:16\\n\\nOverlay: textos em pt-BR"
+      "image_generation_prompt": "prompt em inglês fotorrealista... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]"
    }
 }`;
        platformTasks = "Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.";
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
        jsonStructure = `{ "tiktok_shorts": { "roteiro": "roteiro com hook nos 3s" } }`;
        platformTasks = "Roteiro de TikTok/Shorts.";
     } else if (requestedPlatform === "design") {
-       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt visual da imagem em inglês... --ar 9:16\\n\\nOverlay: textos em pt-BR" } }`;
+       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt visual da imagem em inglês... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]" } }`;
        platformTasks = "Prompts Visuais (Midjourney) com dados de overlay embutidos.";
     }
 
@@ -188,7 +188,8 @@ Deno.serve(async (req) => {
     }
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
-      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve manter a cópia fotorrealista (NÃO insira link de URL no prompt). Adicione em inglês: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após isso, pule uma linha dupla e adicione os Overlays em PORTUGUÊS BRASIL. CADA informação deve ficar em uma linha única e nova iniciando com a palavra "Overlay: ". Estrutura EXATA gerada:\nOverlay: [Nome do Produto]\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\nOverlay: [Nota e/ou Número de Vendas]\nOverlay: Cupom: [Código do Cupom, apenas se houver na descrição]. Se o produto não tiver preço antigo mas tiver atual, faça "Overlay: Por apenas [Preço]".');
+      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve manter a cópia fotorrealista (NÃO insira link de URL no prompt). Adicione em inglês: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após isso, quebre duas linhas usando os caracteres literais \\\\n\\\\n dentro do JSON e insira os Overlays em PT-BR. CADA informação deve ficar em uma linha única e nova usando \\\\n. Estrutura EXATA gerada:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota e/ou Número de Vendas]\\\\nOverlay: Cupom: [Código do Cupom, apenas se houver]. Se não houver preço antigo: "Overlay: Por apenas [Preço]".');
+      systemRules.push('13. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres `\\\\n` literais para representar as novas linhas em todos os prompts visuais e legendas.');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
