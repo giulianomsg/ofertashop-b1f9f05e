@@ -54,8 +54,6 @@ const AdminAIGenerator = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState("");
   const [includeHashtags, setIncludeHashtags] = useState(true);
   const [includeCTA, setIncludeCTA] = useState(true);
-  const [optimizeSEO, setOptimizeSEO] = useState(false);
-  const [optimizeSEO, setOptimizeSEO] = useState(false);
   const [loadingPlatform, setLoadingPlatform] = useState<string>("");
   const [content, setContent] = useState<ProContent | null>(null);
   const [usedModel, setUsedModel] = useState("");
