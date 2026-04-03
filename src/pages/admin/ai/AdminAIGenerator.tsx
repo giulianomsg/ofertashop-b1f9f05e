@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone, Check, ChevronsUpDown, Download, Mic } from "lucide-react";
+import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone, Check, ChevronsUpDown, Download, Mic, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
@@ -62,6 +62,7 @@ const AdminAIGenerator = () => {
   const [content, setContent] = useState<ProContent | null>(null);
   const [usedModel, setUsedModel] = useState("");
   const [prompts, setPrompts] = useState<Record<string, { system: string, user: string }>>({});
+  const galleryScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: personas = [] } = useQuery({
     queryKey: ["ai-personas"],
@@ -414,19 +415,44 @@ const AdminAIGenerator = () => {
                          <Wand2 className="w-3 h-3 mr-1" /> Regerar Design
                        </Button>
                     </div>
-                    {selectedProduct?.image_url && (
-                      <div className="mb-4">
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Imagens de Referência (Clique para baixar/abrir)</p>
-                        <div className="flex gap-2">
-                          <a href={selectedProduct.image_url} target="_blank" download className="block overflow-hidden rounded-md border border-border group relative w-20 h-20 shrink-0">
-                            <img src={selectedProduct.image_url} alt="Referência" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                               <Download className="w-4 h-4 text-white" />
+                    {selectedProduct && (selectedProduct.image_url || (selectedProduct as any).gallery_urls?.length) && (() => {
+                      const allImgs: string[] = [
+                        ...(selectedProduct.image_url ? [selectedProduct.image_url] : []),
+                        ...((selectedProduct as any).gallery_urls || []),
+                      ].filter(Boolean);
+                      const scrollGallery = (dir: number) => {
+                        if (galleryScrollRef.current) {
+                          galleryScrollRef.current.scrollBy({ left: dir * 96, behavior: 'smooth' });
+                        }
+                      };
+                      return (
+                        <div className="mb-4">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">Imagens de Referência — {allImgs.length} foto(s) (clique para baixar)</p>
+                          <div className="relative flex items-center gap-1">
+                            {allImgs.length > 3 && (
+                              <button onClick={() => scrollGallery(-1)} className="shrink-0 w-6 h-6 rounded-full bg-muted hover:bg-accent/30 flex items-center justify-center transition-colors">
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <div ref={galleryScrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1">
+                              {allImgs.map((url, i) => (
+                                <a key={i} href={url} target="_blank" download className="block shrink-0 overflow-hidden rounded-md border border-border group relative w-20 h-20">
+                                  <img src={url} alt={`Ref ${i + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <Download className="w-4 h-4 text-white" />
+                                  </div>
+                                </a>
+                              ))}
                             </div>
-                          </a>
+                            {allImgs.length > 3 && (
+                              <button onClick={() => scrollGallery(1)} className="shrink-0 w-6 h-6 rounded-full bg-muted hover:bg-accent/30 flex items-center justify-center transition-colors">
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {content?.prompts_visuais?.audio_generation_prompt && (
                       <div className="mb-4">
