@@ -36,6 +36,7 @@ interface GenerateRequest {
     includeHashtags?: boolean;
     includeCTA?: boolean;
     optimizeSEO?: boolean;
+    platform?: string; // e.g. "feed", "reels", "stories", "whatsapp", "tiktok", "design", "all"
   };
 }
 
@@ -127,15 +128,40 @@ Deno.serve(async (req) => {
     const hashtagInstr = settings.includeHashtags !== false ? "Inclua 5-10 hashtags relevantes no Feed." : "NÃO inclua hashtags.";
     const ctaInstr = settings.includeCTA !== false ? 'Inclua CTAs fortes como "Compre agora 👇", "Corre que acaba!", "Aproveite!".' : "";
     const seoInstr = settings.optimizeSEO ? "Otimize textos para SEO: use palavras-chave naturais do produto nos primeiros 100 caracteres." : "";
+    const requestedPlatform = settings.platform || "all";
 
-    const jsonStructure = `{
+    let jsonStructure = "";
+    let platformTasks = "";
+
+    if (requestedPlatform === "all") {
+       jsonStructure = `{
   "feed": { "legendas": ["legenda1 com link", "legenda2 com link", "legenda3 com link"] },
   "reels": { "audio_sugerido": "nome da música/áudio trending", "cenas": [{ "cena": 1, "duracao": "0-3s", "acao_visual": "descrição", "texto_sobreposto": "texto", "audio": "narração" }] },
   "stories": { "texto_curto": "texto impactante curto", "enquete": { "pergunta": "pergunta engajadora", "opcao1": "opção 1", "opcao2": "opção 2" } },
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
-  "prompts_visuais": { "feed_background": "prompt em inglês para gerar imagem de feed, solicitando explicitamente a inclusão de catchphrases curtas (frases de efeito) e informações do produto escritas na própria imagem", "story_background": "prompt em inglês para gerar imagem de story, solicitando explicitamente a inclusão de catchphrases curtas (frases de efeito) e informações do produto escritas na própria imagem" }
+  "prompts_visuais": { "feed_background": "prompt em inglês para gerar imagem de feed...", "story_background": "prompt em inglês para gerar imagem de story..." }
 }`;
+       platformTasks = "Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.";
+    } else if (requestedPlatform === "feed") {
+       jsonStructure = `{ "feed": { "legendas": ["legenda1 com link", "legenda2 com link", "legenda3 com link"] } }`;
+       platformTasks = "Feed Instagram (3 legendas).";
+    } else if (requestedPlatform === "reels") {
+       jsonStructure = `{ "reels": { "audio_sugerido": "nome trending", "cenas": [{ "cena": 1, "duracao": "0-3s", "acao_visual": "descrição", "texto_sobreposto": "texto", "audio": "narração" }] } }`;
+       platformTasks = "Roteiro de Reels (4-6 cenas).";
+    } else if (requestedPlatform === "stories" || requestedPlatform === "story") {
+       jsonStructure = `{ "stories": { "texto_curto": "texto", "enquete": { "pergunta": "...", "opcao1": "...", "opcao2": "..." } } }`;
+       platformTasks = "Story com enquete.";
+    } else if (requestedPlatform === "whatsapp") {
+       jsonStructure = `{ "whatsapp": { "mensagem": "mensagem longa", "versao_curta": "versão curta" } }`;
+       platformTasks = "WhatsApp (grupo + lista).";
+    } else if (requestedPlatform === "tiktok") {
+       jsonStructure = `{ "tiktok_shorts": { "roteiro": "roteiro com hook nos 3s" } }`;
+       platformTasks = "Roteiro de TikTok/Shorts.";
+    } else if (requestedPlatform === "design") {
+       jsonStructure = `{ "prompts_visuais": { "feed_background": "prompt feed...", "story_background": "prompt story..." } }`;
+       platformTasks = "Prompts Visuais (Midjourney).";
+    }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
 ${personaBlock}
@@ -171,7 +197,7 @@ ${product.description ? `Descrição: ${product.description.substring(0, 500)}` 
 ${product.rating ? `Avaliação: ${product.rating}/5` : ""}
 Link do produto: ${productLink}
 
-Gere o conteúdo completo para: Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.`;
+Gere o conteúdo completo para: ${platformTasks}`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -228,6 +254,7 @@ Gere o conteúdo completo para: Feed Instagram (3 legendas), Roteiro de Reels (4
       };
     }
 
+    let mergedLatest: Partial<ProContent> = {};
     // Save to product ai_content_metadata
     if (product.id) {
       try {
@@ -239,8 +266,10 @@ Gere o conteúdo completo para: Feed Instagram (3 legendas), Roteiro de Reels (4
 
         const currentMeta = (existing as any)?.ai_content_metadata || {};
         const history = Array.isArray(currentMeta.history) ? currentMeta.history : [];
+        mergedLatest = { ...(currentMeta.latest || {}), ...parsedContent };
+        
         history.unshift({
-          content: parsedContent,
+          content: parsedContent, // só do que salvou
           model: config.model,
           settings,
           generated_at: new Date().toISOString(),
@@ -250,7 +279,7 @@ Gere o conteúdo completo para: Feed Instagram (3 legendas), Roteiro de Reels (4
 
         await sb
           .from("products")
-          .update({ ai_content_metadata: { ...currentMeta, latest: parsedContent, history } })
+          .update({ ai_content_metadata: { ...currentMeta, latest: mergedLatest, history } })
           .eq("id", product.id);
       } catch (e) {
         console.warn("Failed to save ai_content_metadata:", e);
@@ -258,7 +287,15 @@ Gere o conteúdo completo para: Feed Instagram (3 legendas), Roteiro de Reels (4
     }
 
     return new Response(
-      JSON.stringify({ success: true, content: parsedContent, model: config.model }),
+      JSON.stringify({ 
+        success: true, 
+        content: mergedLatest, 
+        model: config.model,
+        promptSent: {
+          system: systemPrompt,
+          user: userPrompt
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {

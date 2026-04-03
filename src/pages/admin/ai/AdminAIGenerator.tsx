@@ -55,9 +55,11 @@ const AdminAIGenerator = () => {
   const [includeHashtags, setIncludeHashtags] = useState(true);
   const [includeCTA, setIncludeCTA] = useState(true);
   const [optimizeSEO, setOptimizeSEO] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [optimizeSEO, setOptimizeSEO] = useState(false);
+  const [loadingPlatform, setLoadingPlatform] = useState<string>("");
   const [content, setContent] = useState<ProContent | null>(null);
   const [usedModel, setUsedModel] = useState("");
+  const [prompts, setPrompts] = useState<Record<string, { system: string, user: string }>>({});
 
   const { data: personas = [] } = useQuery({
     queryKey: ["ai-personas"],
@@ -109,13 +111,12 @@ const AdminAIGenerator = () => {
     }
   }, [selectedProductId, products]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (platform: string = "all") => {
     if (!selectedProduct) {
       toast.error("Selecione um produto.");
       return;
     }
-    setLoading(true);
-    setContent(null);
+    setLoadingPlatform(platform);
     try {
       const { data, error } = await supabase.functions.invoke("generate-social-copy-pro", {
         body: {
@@ -129,26 +130,48 @@ const AdminAIGenerator = () => {
             includeHashtags,
             includeCTA,
             optimizeSEO,
+            platform,
           },
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setContent(data.content);
+      setContent(data.content || null);
       setUsedModel(data.model || "");
-      toast.success("Campanha gerada com sucesso!");
+      if (data.promptSent) {
+        setPrompts((p) => ({ ...p, [platform]: data.promptSent }));
+      }
+      toast.success(platform === "all" ? "Campanha gerada com sucesso!" : "Conteúdo gerado com sucesso!");
     } catch (err: any) {
       toast.error(err.message || "Erro ao gerar conteúdo.");
     } finally {
-      setLoading(false);
+      setLoadingPlatform("");
     }
+  };
+
+  const PromptDisplay = ({ pPlatform }: { pPlatform: string }) => {
+    const pData = prompts[pPlatform] || prompts["all"];
+    if (!pData) return null;
+    return (
+      <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground mb-2 flex items-center gap-2"><Sparkles className="w-3 h-3 text-accent" /> Prompt Utilizado</p>
+        <details className="cursor-pointer mb-2">
+          <summary className="font-medium text-muted-foreground hover:text-foreground">Ver System Prompt (Instruções da IA)</summary>
+          <pre className="mt-2 text-[10px] whitespace-pre-wrap break-words bg-background p-2 rounded border border-border">{pData.system}</pre>
+        </details>
+        <details className="cursor-pointer">
+          <summary className="font-medium text-muted-foreground hover:text-foreground">Ver User Prompt (Dados Enviados)</summary>
+          <pre className="mt-2 text-[10px] whitespace-pre-wrap break-words bg-background p-2 rounded border border-border">{pData.user}</pre>
+        </details>
+      </div>
+    );
   };
 
   const selectClass = "w-full h-10 px-3 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30 transition-colors";
 
   return (
     <div className="space-y-6">
-      <GenerationLoader isLoading={loading} />
+      <GenerationLoader isLoading={loadingPlatform !== ""} />
 
       <div className="flex items-center gap-3">
         <div className="p-2.5 rounded-xl bg-accent/10">
@@ -272,20 +295,20 @@ const AdminAIGenerator = () => {
             </div>
 
             {/* Generate button */}
-            <Button onClick={handleGenerate} disabled={loading || !selectedProductId} className="w-full" size="lg">
+            <Button onClick={() => handleGenerate("all")} disabled={loadingPlatform !== "" || !selectedProductId} className="w-full" size="lg">
               <Wand2 className="w-4 h-4 mr-2" />
-              Criar Campanha com IA
+              Criar Campanha Completa
             </Button>
           </CardContent>
         </Card>
 
         {/* Right: Results */}
         <div className="lg:col-span-3">
-          {!content ? (
+          {!selectedProductId ? (
             <Card className="h-full flex items-center justify-center min-h-[400px]">
               <CardContent className="text-center space-y-3">
                 <Sparkles className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                <p className="text-muted-foreground text-sm">Selecione um produto e clique em "Criar Campanha" para gerar conteúdo multicanal.</p>
+                <p className="text-muted-foreground text-sm">Selecione um produto para gerar conteúdo.</p>
               </CardContent>
             </Card>
           ) : (
@@ -305,41 +328,97 @@ const AdminAIGenerator = () => {
                   <TabsList className="w-full grid grid-cols-6">
                     <TabsTrigger value="feed" className="text-xs"><Instagram className="w-3 h-3 mr-1" />Feed</TabsTrigger>
                     <TabsTrigger value="reels" className="text-xs"><Video className="w-3 h-3 mr-1" />Reels</TabsTrigger>
-                    <TabsTrigger value="story" className="text-xs"><Smartphone className="w-3 h-3 mr-1" />Story</TabsTrigger>
+                    <TabsTrigger value="stories" className="text-xs"><Smartphone className="w-3 h-3 mr-1" />Story</TabsTrigger>
                     <TabsTrigger value="whatsapp" className="text-xs"><MessageCircle className="w-3 h-3 mr-1" />WhatsApp</TabsTrigger>
                     <TabsTrigger value="tiktok" className="text-xs"><Video className="w-3 h-3 mr-1" />TikTok</TabsTrigger>
                     <TabsTrigger value="design" className="text-xs"><Palette className="w-3 h-3 mr-1" />Design</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="feed" className="space-y-3 mt-4">
-                    {content.feed?.legendas?.map((leg, i) => (
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Legendas otimizadas para feed.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("feed")} disabled={loadingPlatform === "feed"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar Feed
+                       </Button>
+                    </div>
+                    {content?.feed?.legendas ? content.feed.legendas.map((leg, i) => (
                       <CopyBlock key={i} label={`Legenda #${i + 1}`} icon={Instagram} content={leg} accentClass="border-l-2 border-accent" />
-                    ))}
+                    )) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum conteúdo de feed gerado ainda.</p>}
+                    <PromptDisplay pPlatform="feed" />
                   </TabsContent>
 
-                  <TabsContent value="reels" className="mt-4">
-                    <ReelsScriptTable scenes={content.reels?.cenas || []} audioSugerido={content.reels?.audio_sugerido} />
+                  <TabsContent value="reels" className="mt-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Roteiro para vídeos curtos.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("reels")} disabled={loadingPlatform === "reels"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar Reels
+                       </Button>
+                    </div>
+                    {content?.reels?.cenas ? (
+                      <ReelsScriptTable scenes={content.reels.cenas} audioSugerido={content.reels.audio_sugerido} />
+                    ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum conteúdo de reels gerado ainda.</p>}
+                    <PromptDisplay pPlatform="reels" />
                   </TabsContent>
 
-                  <TabsContent value="story" className="mt-4">
-                    <StoryMockup
-                      textoCurto={content.stories?.texto_curto || ""}
-                      enquete={content.stories?.enquete || { pergunta: "", opcao1: "", opcao2: "" }}
-                    />
+                  <TabsContent value="stories" className="mt-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Conteúdo rápido para stories com enquete.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("stories")} disabled={loadingPlatform === "stories"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar Story
+                       </Button>
+                    </div>
+                    {content?.stories?.texto_curto ? (
+                      <StoryMockup
+                        textoCurto={content.stories.texto_curto}
+                        enquete={content.stories.enquete}
+                      />
+                    ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum conteúdo de story gerado ainda.</p>}
+                    <PromptDisplay pPlatform="stories" />
                   </TabsContent>
 
                   <TabsContent value="whatsapp" className="space-y-3 mt-4">
-                    <CopyBlock label="Mensagem para Grupo" icon={MessageCircle} content={content.whatsapp?.mensagem || ""} accentClass="border-l-2 border-accent" />
-                    <CopyBlock label="Versão Curta (Lista)" icon={MessageCircle} content={content.whatsapp?.versao_curta || ""} accentClass="border-l-2 border-accent/50" />
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Mensagens diretas persuasivas.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("whatsapp")} disabled={loadingPlatform === "whatsapp"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar WhatsApp
+                       </Button>
+                    </div>
+                    {content?.whatsapp?.mensagem ? (
+                      <>
+                        <CopyBlock label="Mensagem para Grupo" icon={MessageCircle} content={content.whatsapp.mensagem} accentClass="border-l-2 border-accent" />
+                        <CopyBlock label="Versão Curta (Lista)" icon={MessageCircle} content={content.whatsapp.versao_curta} accentClass="border-l-2 border-accent/50" />
+                      </>
+                    ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum conteúdo de WhatsApp gerado ainda.</p>}
+                    <PromptDisplay pPlatform="whatsapp" />
                   </TabsContent>
 
-                  <TabsContent value="tiktok" className="mt-4">
-                    <CopyBlock label="Roteiro TikTok/Shorts" icon={Video} content={content.tiktok_shorts?.roteiro || ""} accentClass="border-l-2 border-accent" />
+                  <TabsContent value="tiktok" className="mt-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Roteiro rápido com hooks fortes.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("tiktok")} disabled={loadingPlatform === "tiktok"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar TikTok
+                       </Button>
+                    </div>
+                    {content?.tiktok_shorts?.roteiro ? (
+                      <CopyBlock label="Roteiro TikTok/Shorts" icon={Video} content={content.tiktok_shorts.roteiro} accentClass="border-l-2 border-accent" />
+                    ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum conteúdo de TikTok gerado ainda.</p>}
+                    <PromptDisplay pPlatform="tiktok" />
                   </TabsContent>
 
                   <TabsContent value="design" className="space-y-3 mt-4">
-                    <CopyBlock label="Prompt: Fundo Feed (Midjourney)" icon={Palette} content={content.prompts_visuais?.feed_background || ""} accentClass="border-l-2 border-accent" />
-                    <CopyBlock label="Prompt: Fundo Story (Midjourney)" icon={Palette} content={content.prompts_visuais?.story_background || ""} accentClass="border-l-2 border-accent/50" />
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-xs text-muted-foreground">Prompts para Midjourney/DALL-E.</p>
+                       <Button variant="outline" size="sm" onClick={() => handleGenerate("design")} disabled={loadingPlatform === "design"} className="h-7 text-xs">
+                         <Wand2 className="w-3 h-3 mr-1" /> Regerar Design
+                       </Button>
+                    </div>
+                    {content?.prompts_visuais?.feed_background ? (
+                      <>
+                        <CopyBlock label="Prompt: Fundo Feed (Midjourney)" icon={Palette} content={content.prompts_visuais.feed_background} accentClass="border-l-2 border-accent" />
+                        <CopyBlock label="Prompt: Fundo Story (Midjourney)" icon={Palette} content={content.prompts_visuais.story_background} accentClass="border-l-2 border-accent/50" />
+                      </>
+                    ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum prompt visual gerado ainda.</p>}
+                    <PromptDisplay pPlatform="design" />
                   </TabsContent>
                 </Tabs>
               </CardContent>

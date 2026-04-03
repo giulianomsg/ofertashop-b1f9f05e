@@ -40,42 +40,77 @@ const AdminAIDashboard = () => {
         .from("ai_analytics_events")
         .select("*")
         .order("date", { ascending: false })
-        .limit(20);
+        .limit(100);
+      return data || [];
+    },
+  });
+
+  const { data: recentClicks = [] } = useQuery({
+    queryKey: ["ai-dash-recent-clicks"],
+    queryFn: async () => {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      const { data } = await supabase
+        .from("product_clicks")
+        .select("created_at")
+        .gte("created_at", d.toISOString());
       return data || [];
     },
   });
 
   const totalClicks = products.reduce((sum: number, p: any) => sum + (p.clicks || 0), 0);
   const activeOffers = products.length;
+  const views7d = recentClicks.length;
 
-  // Mock chart data from real product clicks
+  // Real chart data from product clicks
   const clicksChartData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return {
-      name: d.toLocaleDateString("pt-BR", { weekday: "short" }),
-      cliques: Math.floor(totalClicks / 7 + Math.random() * 50),
-    };
+    const dayStr = d.toLocaleDateString("pt-BR", { weekday: "short" });
+    const clicksOnDay = recentClicks.filter((c) => {
+      const cDate = new Date(c.created_at);
+      return cDate.toDateString() === d.toDateString();
+    }).length;
+    return { name: dayStr, cliques: clicksOnDay };
   });
 
-  const conversionData = [
-    { tipo: "Feed", conversoes: Math.floor(Math.random() * 80 + 20) },
-    { tipo: "Reels", conversoes: Math.floor(Math.random() * 120 + 40) },
-    { tipo: "WhatsApp", conversoes: Math.floor(Math.random() * 60 + 15) },
-    { tipo: "Stories", conversoes: Math.floor(Math.random() * 40 + 10) },
-    { tipo: "TikTok", conversoes: Math.floor(Math.random() * 90 + 25) },
-  ];
+  // Calculate conversions from ai_analytics_events
+  const platformCounts: Record<string, number> = {};
+  recentEvents.forEach((ev: any) => {
+    const p = ev.platform || "Outro";
+    platformCounts[p] = (platformCounts[p] || 0) + 1;
+  });
+  const conversionData = Object.entries(platformCounts).map(([tipo, conversoes]) => ({ tipo, conversoes }));
+  if (conversionData.length === 0) {
+     conversionData.push({ tipo: "Nenhum dado", conversoes: 0 });
+  }
 
-  // Generate heatmap data
-  const heatmapData = HEATMAP_DAYS.map((day) =>
-    HEATMAP_HOURS.map(() => Math.floor(Math.random() * 100)),
-  );
+  // Generate heatmap data from real clicks
+  const heatmapData = HEATMAP_DAYS.map((day, dayIndex) => {
+    // JS Date.getDay(): 0=Sun, 1=Mon... HEATMAP_DAYS: Seg(0), Ter(1)... Dom(6)
+    // So JS day 1 (Mon) maps to 0 in HEATMAP_DAYS. JS day 0 (Sun) maps to 6.
+    const mapJSDayToHeatmap = (jsDay: number) => jsDay === 0 ? 6 : jsDay - 1;
+
+    return HEATMAP_HOURS.map((hourStr) => {
+       const hourNum = parseInt(hourStr.replace("h", ""));
+       // Find clicks that match this day of week and hour range
+       const matches = recentClicks.filter((c) => {
+          const d = new Date(c.created_at);
+          return mapJSDayToHeatmap(d.getDay()) === dayIndex && d.getHours() >= hourNum && d.getHours() < hourNum + 2;
+       }).length;
+       return matches;
+    });
+  });
+
+  const maxHeat = Math.max(1, ...heatmapData.flat());
 
   const getHeatColor = (value: number) => {
-    if (value > 75) return "bg-accent";
-    if (value > 50) return "bg-accent/60";
-    if (value > 25) return "bg-accent/30";
-    return "bg-accent/10";
+    const perc = value / maxHeat;
+    if (perc === 0) return "bg-accent/5";
+    if (perc > 0.75) return "bg-accent";
+    if (perc > 0.50) return "bg-accent/60";
+    if (perc > 0.25) return "bg-accent/30";
+    return "bg-accent/15";
   };
 
   return (
@@ -93,7 +128,7 @@ const AdminAIDashboard = () => {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { label: "Visualizações (7d)", value: (totalClicks * 3).toLocaleString(), icon: Eye, color: "accent" },
+          { label: "Visualizações (7d)", value: views7d.toLocaleString(), icon: Eye, color: "accent" },
           { label: "Ofertas Ativas", value: activeOffers.toString(), icon: ShoppingBag, color: "accent" },
           { label: "Cliques Totais", value: totalClicks.toLocaleString(), icon: TrendingUp, color: "accent" },
           { label: "Eventos IA", value: recentEvents.length.toString(), icon: Activity, color: "accent" },
@@ -173,7 +208,7 @@ const AdminAIDashboard = () => {
                       <td className="p-1 text-muted-foreground font-medium">{day}</td>
                       {heatmapData[di].map((val, hi) => (
                         <td key={hi} className="p-1">
-                          <div className={`w-full h-6 rounded ${getHeatColor(val)}`} title={`${val}% engajamento`} />
+                          <div className={`w-full h-6 rounded ${getHeatColor(val)}`} title={`${val} cliques`} />
                         </td>
                       ))}
                     </tr>
