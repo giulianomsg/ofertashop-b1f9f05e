@@ -139,7 +139,20 @@ const AdminAIGenerator = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setContent(data.content || null);
+
+      if (platform === "all") {
+        // Campanha completa: substitui tudo
+        setContent(data.content || null);
+      } else {
+        // Plataforma específica: mescla apenas a(s) chave(s) retornadas,
+        // preservando o conteúdo das demais abas já gerado em memória.
+        setContent((prev) => {
+          const incoming = data.content || {};
+          if (!prev) return incoming;
+          return { ...prev, ...incoming };
+        });
+      }
+
       setUsedModel(data.model || "");
       if (data.promptSent) {
         setPrompts((p) => ({ ...p, [platform]: data.promptSent }));
