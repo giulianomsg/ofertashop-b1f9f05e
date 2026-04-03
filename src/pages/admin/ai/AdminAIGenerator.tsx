@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone, Check, ChevronsUpDown } from "lucide-react";
+import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Copy, Smartphone, Check, ChevronsUpDown, Download, Mic } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
@@ -43,6 +43,7 @@ interface ProContent {
   tiktok_shorts?: { roteiro: string };
   prompts_visuais?: { 
     image_generation_prompt: string;
+    audio_generation_prompt?: string;
   };
 }
 
@@ -413,6 +414,26 @@ const AdminAIGenerator = () => {
                          <Wand2 className="w-3 h-3 mr-1" /> Regerar Design
                        </Button>
                     </div>
+                    {selectedProduct?.image_url && (
+                      <div className="mb-4">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Imagens de Referência (Clique para baixar/abrir)</p>
+                        <div className="flex gap-2">
+                          <a href={selectedProduct.image_url} target="_blank" download className="block overflow-hidden rounded-md border border-border group relative w-20 h-20 shrink-0">
+                            <img src={selectedProduct.image_url} alt="Referência" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                               <Download className="w-4 h-4 text-white" />
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {content?.prompts_visuais?.audio_generation_prompt && (
+                      <div className="mb-4">
+                        <CopyBlock label="🎙️ Prompt de Áudio Emocional" icon={Mic} content={content.prompts_visuais.audio_generation_prompt} accentClass="border-l-2 border-indigo-500" />
+                      </div>
+                    )}
+                    
                     {content?.prompts_visuais?.image_generation_prompt ? (
                       <CopyBlock label="🤖 Prompt Visual c/ Overlay" icon={Palette} content={content.prompts_visuais.image_generation_prompt} accentClass="border-l-2 border-accent" />
                     ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum prompt visual gerado ainda.</p>}

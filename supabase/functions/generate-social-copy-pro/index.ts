@@ -61,6 +61,7 @@ interface ProContent {
   tiktok_shorts: { roteiro: string };
   prompts_visuais: { 
      image_generation_prompt: string; 
+     audio_generation_prompt?: string;
   };
 }
 
@@ -145,7 +146,8 @@ Deno.serve(async (req) => {
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
   "prompts_visuais": { 
-      "image_generation_prompt": "prompt em inglês fotorrealista... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]"
+      "image_generation_prompt": "prompt em inglês fotorrealista... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]",
+      "audio_generation_prompt": "script emotivo para locução do video e chamada pro link na bio"
    }
 }`;
        platformTasks = "Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.";
@@ -165,8 +167,8 @@ Deno.serve(async (req) => {
        jsonStructure = `{ "tiktok_shorts": { "roteiro": "roteiro com hook nos 3s" } }`;
        platformTasks = "Roteiro de TikTok/Shorts.";
     } else if (requestedPlatform === "design") {
-       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt visual da imagem em inglês... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]" } }`;
-       platformTasks = "Prompts Visuais (Midjourney) com dados de overlay embutidos.";
+       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt visual da imagem em inglês... --ar 9:16\\\\n\\\\nOverlay: [Nome]\\\\nOverlay: [Preços]\\\\nOverlay: [Outros...]", "audio_generation_prompt": "roteiro/script para gerador de voz/audio narrando o produto com forte emoção e CTA para link na bio" } }`;
+       platformTasks = "Prompts Visuais (Midjourney) com dados de overlay embutidos e Roteiro de Narração de Áudio.";
     }
 
     const systemRules = [
@@ -190,7 +192,8 @@ Deno.serve(async (req) => {
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
       systemRules.push('13. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` NÃO DEVE ter link de imagem, mas DEVE instruir a geradora a copiar rigorosamente a imagem que for anexada junto ao prompt. Adicione EXATAMENTE o trecho em inglês no início do prompt: "Use the attached reference image exactly as it is, maintaining physical characteristics, proportions, format, textures, and keeping natural imperfections without any retouch. Visibly integrate the attached OfertaShop logo clearly at the top of the image with a transparent background. Create a visible bounding banner or dark gradient footer at the bottom specifically to highlight the overlay text. Ensure the central product is entirely visible and not covered or obscured by the footer, logo or overlays." Adicione os atributos: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após a tag --ar 9:16, quebre duas linhas LITERAIS usando `\\\\n\\\\n` e liste os Overlays em PT-BR. CADA dado em uma linha única. Estrutura EXATA:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota/Vendas] (Instrução: Representar as estrelas do rating na cor amarela e com preenchimento de acordo com a pontuação)\\\\nOverlay: Cupom: [Código, se houver]\\\\nOverlay (Rodapé com fundo delimitador): Link na Bio.');
-      systemRules.push('14. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres literais `\\\\n` para simular quebras.');
+      systemRules.push('14. PROMPT DE ÁUDIO / NARRAÇÃO: O `audio_generation_prompt` deve descrever rigorosamente um roteiro de locução em PT-BR para uma IA Geradora de Voz (como ElevenLabs). O texto deve descrever a dor ou benefício do produto passando MUITA EMOÇÃO, criar urgência de compra e deve OBRIGATORIAMENTE finalizar com uma forte CTA ("Clique no link da bio", etc). As quebras de linha aqui também usarão os literais `\\\\n`.');
+      systemRules.push('15. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres literais `\\\\n` para simular quebras.');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -257,6 +260,9 @@ Gere o conteúdo completo para: ${platformTasks}`;
         // Fix formatting so UI interprets Linebreaks visually instead of seeing Literal characters '\n'
         if ((parsedContent as any)?.prompts_visuais?.image_generation_prompt) {
           (parsedContent as any).prompts_visuais.image_generation_prompt = (parsedContent as any).prompts_visuais.image_generation_prompt.replace(/\\n/g, "\n");
+        }
+        if ((parsedContent as any)?.prompts_visuais?.audio_generation_prompt) {
+          (parsedContent as any).prompts_visuais.audio_generation_prompt = (parsedContent as any).prompts_visuais.audio_generation_prompt.replace(/\\n/g, "\n");
         }
       } else {
         throw new Error("No JSON found in AI response");
