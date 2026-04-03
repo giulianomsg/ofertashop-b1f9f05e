@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
     }
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
-      systemRules.push('13. OBRIGAÇÕES DO PROMPT DE DESIGN: O valor de `image_generation_prompt` deve INICIAR OBRIGATORIAMENTE com esta exata frase em inglês: "Use the attached image as an exact reference. Do not change its physical characteristics, maintaining original proportions, formats, textures, and keeping natural imperfections without any retouching. Incorporate the attached OfertaShop logo naturally into the scene." Após essa frase, preencha a ambiência visual. No final do texto em inglês, adicione: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Feito isso, adicione o separador `\\\\n\\\\n` e imprima em PT-BR a exata estrutura de linhas a seguir (usando literias `\\\\n`):\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota/Vendas]\\\\nOverlay: Cupom: [Código, se houver]\\\\nOverlay de Rodapé: Link na Bio.');
+      systemRules.push('13. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` NÃO DEVE ter link de imagem, mas DEVE instruir a geradora a copiar rigorosamente a imagem que for anexada junto ao prompt. Adicione EXATAMENTE o trecho em inglês no início do prompt: "Use the attached reference image exactly as it is, maintaining physical characteristics, proportions, format, textures, and keeping natural imperfections without any retouch. Also visibly integrate the attached OfertaShop logo into the scene." Adicione os atributos: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após a tag --ar 9:16, quebre duas linhas LITERAIS usando `\\\\n\\\\n` e liste os Overlays em PT-BR. CADA dado em uma linha única. Estrutura EXATA:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota/Vendas]\\\\nOverlay: Cupom: [Código, se houver]\\\\nOverlay (Rodapé): Link na Bio.');
       systemRules.push('14. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres literais `\\\\n` para simular quebras.');
     }
 
@@ -254,6 +254,10 @@ Gere o conteúdo completo para: ${platformTasks}`;
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedContent = JSON.parse(jsonMatch[0]);
+        // Fix formatting so UI interprets Linebreaks visually instead of seeing Literal characters '\n'
+        if ((parsedContent as any)?.prompts_visuais?.image_generation_prompt) {
+          (parsedContent as any).prompts_visuais.image_generation_prompt = (parsedContent as any).prompts_visuais.image_generation_prompt.replace(/\\n/g, "\n");
+        }
       } else {
         throw new Error("No JSON found in AI response");
       }
