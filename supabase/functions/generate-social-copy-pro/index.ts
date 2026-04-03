@@ -53,13 +53,6 @@ interface ReelsScene {
   audio: string;
 }
 
-interface OverlayData {
-  product_name: string;
-  formatted_price: string;
-  rating: string;
-  sold_amount: string;
-}
-
 interface ProContent {
   feed: { legendas: string[] };
   reels: { audio_sugerido: string; cenas: ReelsScene[] };
@@ -68,7 +61,6 @@ interface ProContent {
   tiktok_shorts: { roteiro: string };
   prompts_visuais: { 
      image_generation_prompt: string; 
-     overlay_data: OverlayData;
   };
 }
 
@@ -153,13 +145,7 @@ Deno.serve(async (req) => {
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
   "prompts_visuais": { 
-      "image_generation_prompt": "prompt em inglês, fotorrealista para produto, ambiente de estúdio simulado, com proporção explícita --ar 9:16. SEM GERAR TEXTO.", 
-      "overlay_data": {
-         "product_name": "nome resumido",
-         "formatted_price": "preço ex: R$ 99,90",
-         "rating": "nota ex: 4.8/5",
-         "sold_amount": "vendas ex: +500 vendidos"
-      }
+      "image_generation_prompt": "prompt em inglês fotorrealista... --ar 9:16\\n\\nOverlay: textos em pt-BR"
    }
 }`;
        platformTasks = "Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.";
@@ -179,8 +165,8 @@ Deno.serve(async (req) => {
        jsonStructure = `{ "tiktok_shorts": { "roteiro": "roteiro com hook nos 3s" } }`;
        platformTasks = "Roteiro de TikTok/Shorts.";
     } else if (requestedPlatform === "design") {
-       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt...", "overlay_data": { "product_name": "...", "formatted_price": "...", "rating": "...", "sold_amount": "..." } } }`;
-       platformTasks = "Prompts Visuais (Clean Backgrounds) e Overlay Data Front-end.";
+       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt visual da imagem em inglês... --ar 9:16\\n\\nOverlay: textos em pt-BR" } }`;
+       platformTasks = "Prompts Visuais (Midjourney) com dados de overlay embutidos.";
     }
 
     const systemRules = [
@@ -202,7 +188,7 @@ Deno.serve(async (req) => {
     }
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
-      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve obrigar o gerador a usar a "Imagem Referência" passada. Instrua gerar EM INGLÊS requerindo que a imagem seja idêntica, sem mudar nenhuma característica física, mantendo as proporções, texturas, mantendo imperfeições naturais, sem retoque. Adicione como OBRIGATÓRIO: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading". Se houver uma Imagem Referência forncecida, COLOQUE A URL EXATA dela no próprio início do texto do prompt. Finalize com: "--ar 9:16". OBRIGATORIAMENTE NÃO peça textos escritos na imagem. Textos ficam EXCLUSIVAMENTE nas chaves de `overlay_data`.');
+      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve manter a cópia fotorrealista (NÃO insira link de URL no prompt). Adicione em inglês: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". Após isso, pule uma linha dupla e adicione os Overlays em PORTUGUÊS BRASIL. CADA informação deve ficar em uma linha única e nova iniciando com a palavra "Overlay: ". Estrutura EXATA gerada:\nOverlay: [Nome do Produto]\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\nOverlay: [Nota e/ou Número de Vendas]\nOverlay: Cupom: [Código do Cupom, apenas se houver na descrição]. Se o produto não tiver preço antigo mas tiver atual, faça "Overlay: Por apenas [Preço]".');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -224,7 +210,6 @@ ${discount > 0 ? `Desconto: ${discount}%` : ""}
 ${product.description ? `Descrição: ${product.description.substring(0, 500)}` : ""}
 ${product.rating ? `Avaliação: ${product.rating}/5` : ""}
 Link do produto: ${productLink}
-${product.image_url ? `Imagem Referência: ${product.image_url}` : ""}
 
 Gere o conteúdo completo para: ${platformTasks}`;
 
@@ -280,8 +265,7 @@ Gere o conteúdo completo para: ${platformTasks}`;
         whatsapp: { mensagem: rawContent, versao_curta: "" },
         tiktok_shorts: { roteiro: "" },
         prompts_visuais: { 
-            image_generation_prompt: "", 
-            overlay_data: { product_name: "", formatted_price: "", rating: "", sold_amount: "" } 
+            image_generation_prompt: ""
         },
       } as any;
     }
