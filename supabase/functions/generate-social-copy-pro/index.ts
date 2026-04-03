@@ -70,14 +70,16 @@ async function getOpenRouterConfig(sb: any): Promise<OpenRouterConfig> {
       .eq("key", "openrouter_config")
       .maybeSingle();
     if (data?.value?.apiKey && data?.value?.model) {
-      return { apiKey: data.value.apiKey, model: data.value.model };
+      const sanitizedKey = data.value.apiKey.toString().replace(/^['"]|['"]$/g, "").trim();
+      return { apiKey: sanitizedKey, model: data.value.model };
     }
   } catch (e) {
     console.warn("Falha ao buscar config OpenRouter:", e);
   }
   const envKey = Deno.env.get("OPENROUTER_API_KEY");
   if (envKey) {
-    return { apiKey: envKey, model: "google/gemini-2.0-flash-exp:free" };
+    const sanitizedEnvKey = envKey.toString().replace(/^['"]|['"]$/g, "").trim();
+    return { apiKey: sanitizedEnvKey, model: "google/gemini-2.0-flash-exp:free" };
   }
   throw new Error("API Key do OpenRouter não configurada. Acesse Administração > IA / Conteúdo para configurar.");
 }
