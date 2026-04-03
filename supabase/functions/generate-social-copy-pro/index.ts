@@ -53,13 +53,23 @@ interface ReelsScene {
   audio: string;
 }
 
+interface OverlayData {
+  product_name: string;
+  formatted_price: string;
+  rating: string;
+  sold_amount: string;
+}
+
 interface ProContent {
   feed: { legendas: string[] };
   reels: { audio_sugerido: string; cenas: ReelsScene[] };
   stories: { texto_curto: string; enquete: { pergunta: string; opcao1: string; opcao2: string } };
   whatsapp: { mensagem: string; versao_curta: string };
   tiktok_shorts: { roteiro: string };
-  prompts_visuais: { feed_background: string; story_background: string };
+  prompts_visuais: { 
+     image_generation_prompt: string; 
+     overlay_data: OverlayData;
+  };
 }
 
 async function getOpenRouterConfig(sb: any): Promise<OpenRouterConfig> {
@@ -142,7 +152,15 @@ Deno.serve(async (req) => {
   "stories": { "texto_curto": "texto impactante curto", "enquete": { "pergunta": "pergunta engajadora", "opcao1": "opção 1", "opcao2": "opção 2" } },
   "whatsapp": { "mensagem": "mensagem longa formatada para grupo com emojis e link", "versao_curta": "versão curta para lista de transmissão com link" },
   "tiktok_shorts": { "roteiro": "roteiro completo com hook nos primeiros 3s" },
-  "prompts_visuais": { "feed_background": "prompt em inglês para gerar imagem de feed...", "story_background": "prompt em inglês para gerar imagem de story..." }
+  "prompts_visuais": { 
+      "image_generation_prompt": "prompt em inglês, fotorrealista para produto, ambiente de estúdio simulado, com proporção explícita --ar 9:16. SEM GERAR TEXTO.", 
+      "overlay_data": {
+         "product_name": "nome resumido",
+         "formatted_price": "preço ex: R$ 99,90",
+         "rating": "nota ex: 4.8/5",
+         "sold_amount": "vendas ex: +500 vendidos"
+      }
+   }
 }`;
        platformTasks = "Feed Instagram (3 legendas), Roteiro de Reels (4-6 cenas), Story com enquete, WhatsApp (grupo + lista), TikTok/Shorts e Prompts Visuais.";
     } else if (requestedPlatform === "feed") {
@@ -161,8 +179,30 @@ Deno.serve(async (req) => {
        jsonStructure = `{ "tiktok_shorts": { "roteiro": "roteiro com hook nos 3s" } }`;
        platformTasks = "Roteiro de TikTok/Shorts.";
     } else if (requestedPlatform === "design") {
-       jsonStructure = `{ "prompts_visuais": { "feed_background": "prompt feed...", "story_background": "prompt story..." } }`;
-       platformTasks = "Prompts Visuais (Midjourney).";
+       jsonStructure = `{ "prompts_visuais": { "image_generation_prompt": "prompt...", "overlay_data": { "product_name": "...", "formatted_price": "...", "rating": "...", "sold_amount": "..." } } }`;
+       platformTasks = "Prompts Visuais (Clean Backgrounds) e Overlay Data Front-end.";
+    }
+
+    const systemRules = [
+      "1. Responda APENAS em JSON valido, sem markdown, sem blocos de codigo.",
+      `2. Siga EXATAMENTE esta estrutura JSON:\n${jsonStructure}`,
+      `3. USO DO LINK DO PRODUTO:\n   - No Whatsapp/Lista de Transmissao: OBRIGATORIO colocar a URL (${productLink}) de forma explicita na mensagem.\n   - Nas Legendas (Instagram, TikTok, etc): NUNCA escreva a URL na legenda, pois la os links nao sao clicaveis! Ao inves disso, faca CTAs de CTA, ex: "Comente QUERO".`,
+      "4. FORMATACAO DE PARAGRAFOS: Utilize ativamente a marcacao de quebra de linha e duplo espaco (\\\\n\\\\n) dentro dos textos gerados na sua string JSON.",
+      "5. IMPORTANTE: NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.",
+      '6. IMPORTANTE: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. (Ex: escreva "acao", "video", "nao", "voce").'
+    ];
+
+    if (requestedPlatform === "all" || requestedPlatform === "feed") systemRules.push("7. " + hashtagInstr);
+    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("8. " + ctaInstr);
+    if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("9. " + seoInstr);
+
+    if (requestedPlatform === "all" || requestedPlatform === "reels" || requestedPlatform === "tiktok") {
+      systemRules.push("10. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video em multiplas partes ate concluir toda a mensagem. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS.");
+      systemRules.push("11. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao.");
+    }
+
+    if (requestedPlatform === "all" || requestedPlatform === "design") {
+      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O image_generation_prompt deve descrever uma cena em inglês perfeitamente ambientada e fotorealista do produto. Deve OBRIGATORIAMENTE conter o sufixo de formato vertical (--ar 9:16). OBRIGATORIAMENTE NÃO PEÇA AO MIDJOURNEY/DALL-E PARA ESCREVER TEXTO NA IMAGEM. Todos os textos como preços, avaliações e vendas devem ser preenchidos EXCLUSIVAMENTE nas chaves de overlay_data.');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -172,21 +212,7 @@ ${triggerBlock}
 ${campaignBlock}
 
 REGRAS CRITICAS:
-1. Responda APENAS em JSON valido, sem markdown, sem blocos de codigo.
-2. Siga EXATAMENTE esta estrutura JSON:
-${jsonStructure}
-3. USO DO LINK DO PRODUTO:
-   - No Whatsapp/Lista de Transmissao: OBRIGATORIO colocar a URL (${productLink}) de forma explicita na mensagem.
-   - Nas Legendas (Instagram, TikTok, etc): NUNCA escreva a URL na legenda, pois la os links nao sao clicaveis! Ao inves disso, faca CTAs de CTA, ex: "Comente QUERO" ou "Link na bio" ou "Direct".
-4. FORMATACAO DE PARAGRAFOS: Utilize ativamente a marcacao de quebra de linha e duplo espaco (\\n\\n) dentro dos textos gerados na sua string JSON para garantir que o resultado final fique com as ideias separadas, criando paragrafos curtos e um texto leve. NUNCA gere paredes solidas e densas de texto.
-5. IMPORTANTE: Os roteiros NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.
-6. IMPORTANTE: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. Isso e por conta de incompatibilidade na geracao de videos. (Ex: escreva "acao", "video", "nao", "voce").
-7. ${hashtagInstr}
-8. ${ctaInstr}
-9. ${seoInstr}
-10. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video (Reels/TikTok/Shorts) em multiplas partes ou cenas ate concluir toda a mensagem persuasiva e atingir o objetivo. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS (podem ter de 2 a 3 segundos na maioria das vezes, mas NUNCA passe do limite duro de 8s por cena).
-11. Os primeiros 3 segundos da primeira cena devem focar em um hook forte de retencao e curiosidade.
-12. Os prompts visuais devem ser detalhados em ingles, estilo Midjourney v6/DALL-E 3, com aspectos de cor, iluminacao e composicao, e devem SEMPRE pedir que a IA escreva textos curtos e em portugues na imagem (frases de efeito / catchphrases) e informacoes chaves do produto.`;
+${systemRules.join("\n")}`;
 
     const userPrompt = `Gere conteúdo multicanal completo para este produto de afiliado:
 
@@ -252,8 +278,11 @@ Gere o conteúdo completo para: ${platformTasks}`;
         stories: { texto_curto: "", enquete: { pergunta: "", opcao1: "", opcao2: "" } },
         whatsapp: { mensagem: rawContent, versao_curta: "" },
         tiktok_shorts: { roteiro: "" },
-        prompts_visuais: { feed_background: "", story_background: "" },
-      };
+        prompts_visuais: { 
+            image_generation_prompt: "", 
+            overlay_data: { product_name: "", formatted_price: "", rating: "", sold_amount: "" } 
+        },
+      } as any;
     }
 
     let mergedLatest: Partial<ProContent> = {};

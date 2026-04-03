@@ -41,7 +41,15 @@ interface ProContent {
   stories?: { texto_curto: string; enquete: { pergunta: string; opcao1: string; opcao2: string } };
   whatsapp?: { mensagem: string; versao_curta: string };
   tiktok_shorts?: { roteiro: string };
-  prompts_visuais?: { feed_background: string; story_background: string };
+  prompts_visuais?: { 
+    image_generation_prompt: string; 
+    overlay_data: {
+      product_name: string;
+      formatted_price: string;
+      rating: string;
+      sold_amount: string;
+    }
+  };
 }
 
 const AdminAIGenerator = () => {
@@ -411,10 +419,32 @@ const AdminAIGenerator = () => {
                          <Wand2 className="w-3 h-3 mr-1" /> Regerar Design
                        </Button>
                     </div>
-                    {content?.prompts_visuais?.feed_background ? (
+                    {content?.prompts_visuais?.image_generation_prompt ? (
                       <>
-                        <CopyBlock label="Prompt: Fundo Feed (Midjourney)" icon={Palette} content={content.prompts_visuais.feed_background} accentClass="border-l-2 border-accent" />
-                        <CopyBlock label="Prompt: Fundo Story (Midjourney)" icon={Palette} content={content.prompts_visuais.story_background} accentClass="border-l-2 border-accent/50" />
+                        <CopyBlock label="🤖 Prompt Visual Vertical (Midjourney/DALL-E)" icon={Palette} content={content.prompts_visuais.image_generation_prompt} accentClass="border-l-2 border-accent" />
+                        
+                        <div className="mt-4 border border-border bg-muted/20 rounded-xl p-4">
+                           <p className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">📦 Dados Fixos para Overlay (CSS/HTML)</p>
+                           <div className="grid grid-cols-2 gap-3 mb-2">
+                             <div className="bg-background rounded px-3 py-2 border border-border">
+                               <p className="text-[10px] text-muted-foreground">Nome de Exibição</p>
+                               <p className="text-xs font-medium text-foreground">{content.prompts_visuais.overlay_data?.product_name}</p>
+                             </div>
+                             <div className="bg-background rounded px-3 py-2 border border-border">
+                               <p className="text-[10px] text-muted-foreground">Preço Formatado</p>
+                               <p className="text-xs font-bold text-green-500">{content.prompts_visuais.overlay_data?.formatted_price}</p>
+                             </div>
+                             <div className="bg-background rounded px-3 py-2 border border-border">
+                               <p className="text-[10px] text-muted-foreground">Avaliação</p>
+                               <p className="text-xs font-medium text-amber-500 text-foreground">⭐ {content.prompts_visuais.overlay_data?.rating}</p>
+                             </div>
+                             <div className="bg-background rounded px-3 py-2 border border-border">
+                               <p className="text-[10px] text-muted-foreground">Vendas (Gatilho)</p>
+                               <p className="text-xs font-medium text-foreground">{content.prompts_visuais.overlay_data?.sold_amount}</p>
+                             </div>
+                           </div>
+                           <p className="text-[10px] text-muted-foreground italic">Dica p/ Frontend: Sobreponha esses dados em caixas flutuantes translúcidas (glassmorphism) sobre partes limpas do topo ou rodapé da imagem gerada.</p>
+                        </div>
                       </>
                     ) : <p className="text-xs text-muted-foreground p-4 bg-muted/30 rounded text-center">Nenhum prompt visual gerado ainda.</p>}
                     <PromptDisplay pPlatform="design" />
