@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
     }
 
     if (requestedPlatform === "all" || requestedPlatform === "design") {
-      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O image_generation_prompt deve descrever uma cena em inglês perfeitamente ambientada e fotorealista do produto. Deve OBRIGATORIAMENTE conter o sufixo de formato vertical (--ar 9:16). OBRIGATORIAMENTE NÃO PEÇA AO MIDJOURNEY/DALL-E PARA ESCREVER TEXTO NA IMAGEM. Todos os textos como preços, avaliações e vendas devem ser preenchidos EXCLUSIVAMENTE nas chaves de overlay_data.');
+      systemRules.push('12. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` deve obrigar o gerador a usar a "Imagem Referência" passada. Instrua gerar EM INGLÊS requerindo que a imagem seja idêntica, sem mudar nenhuma característica física, mantendo as proporções, texturas, mantendo imperfeições naturais, sem retoque. Adicione como OBRIGATÓRIO: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading". Se houver uma Imagem Referência forncecida, COLOQUE A URL EXATA dela no próprio início do texto do prompt. Finalize com: "--ar 9:16". OBRIGATORIAMENTE NÃO peça textos escritos na imagem. Textos ficam EXCLUSIVAMENTE nas chaves de `overlay_data`.');
     }
 
     const systemPrompt = `Voce e um copywriter brasileiro especialista em marketing de afiliados, conversao e redes sociais.
@@ -224,6 +224,7 @@ ${discount > 0 ? `Desconto: ${discount}%` : ""}
 ${product.description ? `Descrição: ${product.description.substring(0, 500)}` : ""}
 ${product.rating ? `Avaliação: ${product.rating}/5` : ""}
 Link do produto: ${productLink}
+${product.image_url ? `Imagem Referência: ${product.image_url}` : ""}
 
 Gere o conteúdo completo para: ${platformTasks}`;
 
