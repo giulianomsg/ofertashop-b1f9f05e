@@ -46,28 +46,23 @@ const OfertaShortsFeed = () => {
     return () => clearTimeout(t);
   }, [fetchNext]);
 
-  // Loop infinito via IntersectionObserver no sentinel
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelCallback = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (observerRef.current) observerRef.current.disconnect();
-      if (!node) return;
-      observerRef.current = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && !loading) {
-            fetchNext();
-          }
-        },
-        { threshold: 0.1 }
-      );
-      observerRef.current.observe(node);
-    },
-    [loading, fetchNext]
-  );
+  // Pré-carregamento (Pre-fetch) via Scroll
+  // Carrega vídeos antes de chegar no fim, estilo TikTok/Reels
+  const handleScroll = () => {
+    const container = containerScrollRef.current;
+    if (!container || loading) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    // Se estivermos a 3 vídeos de distância (3 * window.innerHeight) do final, começa o fetch
+    if (scrollHeight - scrollTop - clientHeight < window.innerHeight * 3) {
+      fetchNext();
+    }
+  };
 
   return (
     <div
       ref={containerScrollRef}
+      onScroll={handleScroll}
       className="relative h-[100dvh] w-full overflow-y-scroll snap-y snap-mandatory bg-black"
     >
       {/* Back button – glassmorphism */}
@@ -92,11 +87,10 @@ const OfertaShortsFeed = () => {
         />
       ))}
 
-      {/* Sentinel — sempre ativo para disparar o loop ao chegar ao fim */}
-      <div
-        ref={sentinelCallback}
-        className="flex h-20 snap-start items-center justify-center"
-      >
+      {/* Fundo do feed (indicador de carregamento)
+          Não deve ter "snap-start" para evitar que o navegador force o usuário
+          a parar nesta área vazia ao invés de no vídeo */}
+      <div className="flex h-20 items-center justify-center pointer-events-none">
         {loading && (
           <Loader2 className="h-6 w-6 animate-spin text-white/60" />
         )}

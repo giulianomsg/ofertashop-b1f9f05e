@@ -55,10 +55,10 @@ export const useOfertaShorts = () => {
         // Reinicia offset e incrementa ciclo para o próximo fetch
         offset.current = 0;
         cycle.current += 1;
-        // Cooldown: bloqueia novos fetches por 2.5s para deixar o DOM atualizar
-        // e o sentinel sair da viewport antes de disparar novamente
+        // Cooldown: bloqueia novos fetches super-rápidos para deixar o DOM atualizar
+        // Reduzido para 500ms pois não dependemos mais do sentinel de IntersectionObserver
         loopCooldown.current = true;
-        setTimeout(() => { loopCooldown.current = false; }, 2500);
+        setTimeout(() => { loopCooldown.current = false; }, 500);
         // hasMore permanece true (loop contínuo)
         setHasMore(true);
       } else {
