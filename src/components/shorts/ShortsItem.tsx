@@ -1,11 +1,12 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause, Music } from "lucide-react";
+import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause, Music, Share2, TrendingUp } from "lucide-react";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { ShortProduct } from "@/hooks/useOfertaShorts";
 import ShortsCommentPanel from "@/components/shorts/ShortsCommentPanel";
+import ShortsInfoPanel from "@/components/shorts/ShortsInfoPanel";
 
 interface Props {
   product: ShortProduct;
@@ -96,6 +97,7 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
   const [isSaved, setIsSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showFeedbackIcon, setShowFeedbackIcon] = useState<"play" | "pause" | null>(null);
   // Para iframes: só monta no DOM enquanto o item está visível (evita áudio em background)
@@ -356,6 +358,28 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
     setShowComments(true);
   };
 
+  const handleInfoClick = () => {
+    setShowInfo(true);
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/produto/${product.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.title,
+          text: "Olha essa oferta que eu encontrei no OfertaShop!",
+          url: url,
+        });
+      } catch (err) {
+        // user aborted or error
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copiado para a área de transferência!");
+    }
+  };
+
   const handleToggleMute = () => {
     const newMuted = !muted;
     onMuteChange(newMuted); // propaga para o feed (afeta próximos vídeos)
@@ -370,12 +394,18 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
       ref={containerRef}
       className="relative h-[100dvh] w-full snap-start flex-shrink-0 overflow-hidden bg-black"
     >
-      {/* Comments panel */}
+      {/* Panels */}
       <ShortsCommentPanel
         productId={product.id}
         productTitle={product.title}
         open={showComments}
         onClose={() => setShowComments(false)}
+      />
+      <ShortsInfoPanel
+        productId={product.id}
+        productTitle={product.title}
+        open={showInfo}
+        onClose={() => setShowInfo(false)}
       />
 
       {/* ── Mídia: Vídeo / Iframe / Carrossel de fotos ── */}
@@ -522,26 +552,40 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
         </div>
       )}
 
-      {/* Action Bar Lateral (Curtir, Comentar, Salvar) */}
-      <div className="absolute right-4 bottom-32 z-20 flex flex-col gap-6 items-center">
+      {/* Action Bar Lateral (Curtir, Comentar, Salvar, Ofertas, Compartilhar) */}
+      <div className="absolute right-4 bottom-32 z-20 flex flex-col gap-5 items-center">
         {/* Like */}
         <button onClick={handleLike} className="group flex flex-col items-center gap-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-lg border transition-all duration-300 bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10 text-white group-hover:bg-white/20 dark:group-hover:bg-black/50">
-            <Heart className={`h-6 w-6 transition-transform ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'scale-100'}`} />
+          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full backdrop-blur-lg border transition-all duration-300 bg-black/40 border-white/10 text-white group-hover:bg-black/60 shadow-lg">
+            <Heart className={`h-5 w-5 transition-transform ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'scale-100'}`} />
           </div>
         </button>
 
         {/* Comment */}
         <button onClick={handleCommentClick} className="group flex flex-col items-center gap-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-lg border transition-colors duration-300 bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10 text-white group-hover:bg-white/20 dark:group-hover:bg-black/50">
-            <MessageCircle className="h-6 w-6" />
+          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full backdrop-blur-lg border transition-colors duration-300 bg-black/40 border-white/10 text-white group-hover:bg-black/60 shadow-lg">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+        </button>
+
+        {/* Info (Preço e Cupons) */}
+        <button onClick={handleInfoClick} className="group flex flex-col items-center gap-1">
+          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full backdrop-blur-lg border transition-colors duration-300 bg-black/40 border-white/10 text-white group-hover:bg-black/60 shadow-lg">
+            <TrendingUp className="h-5 w-5" />
           </div>
         </button>
 
         {/* Save/Bookmark */}
         <button onClick={handleSave} className="group flex flex-col items-center gap-1">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-lg border transition-all duration-300 bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10 text-white group-hover:bg-white/20 dark:group-hover:bg-black/50">
-            <Bookmark className={`h-6 w-6 transition-transform ${isSaved ? 'fill-yellow-400 text-yellow-400 scale-110' : 'scale-100'}`} />
+          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full backdrop-blur-lg border transition-all duration-300 bg-black/40 border-white/10 text-white group-hover:bg-black/60 shadow-lg">
+            <Bookmark className={`h-5 w-5 transition-transform ${isSaved ? 'fill-yellow-400 text-yellow-400 scale-110' : 'scale-100'}`} />
+          </div>
+        </button>
+
+        {/* Share */}
+        <button onClick={handleShare} className="group flex flex-col items-center gap-1">
+          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full backdrop-blur-lg border transition-colors duration-300 bg-black/40 border-white/10 text-white group-hover:bg-black/60 shadow-lg">
+            <Share2 className="h-5 w-5 text-white" />
           </div>
         </button>
       </div>
