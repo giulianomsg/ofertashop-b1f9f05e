@@ -159,7 +159,7 @@ const AdminLinks = () => {
   });
 
   // Fetch Links
-  const { data: links = [], isLoading } = useQuery({
+  const { data: links = [], isLoading } = useQuery<LinkType[]>({
     queryKey: ['adminLinks'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -167,7 +167,7 @@ const AdminLinks = () => {
         .select('*')
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []) as unknown as LinkType[];
     }
   });
 
