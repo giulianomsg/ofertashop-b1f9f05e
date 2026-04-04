@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause, Music } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ interface Props {
   product: ShortProduct;
   muted: boolean;
   onMuteChange: (muted: boolean) => void;
+  onEnd: () => void; // chamado quando o vídeo/slideshow termina
 }
 
 // ---------------------------------------------------------------------------
@@ -40,8 +41,9 @@ function parseVideoUrl(url: string, muted: boolean): VideoInfo {
     if (m) {
       const id = m[1];
       const muteParam = muted ? 1 : 0;
-      // enablejsapi=1 obrigatório para postMessage (pausar via JS)
-      const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&controls=1&enablejsapi=1`;
+      // enablejsapi=1 obrigatório para postMessage (detectar fim do vídeo)
+      // Sem loop=1 para que o vídeo termine e dispare o auto-advance
+      const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&controls=1&enablejsapi=1`;
       return { kind: "youtube", embedUrl, rawUrl: raw };
     }
   }
@@ -51,7 +53,8 @@ function parseVideoUrl(url: string, muted: boolean): VideoInfo {
   if (vimeoMatch) {
     const id = vimeoMatch[1];
     const muteParam = muted ? "1" : "0";
-    const embedUrl = `https://player.vimeo.com/video/${id}?autoplay=1&loop=1&muted=${muteParam}&background=0`;
+    // Sem loop para que o vídeo termine e dispare o auto-advance
+    const embedUrl = `https://player.vimeo.com/video/${id}?autoplay=1&muted=${muteParam}&background=0`;
     return { kind: "vimeo", embedUrl, rawUrl: raw };
   }
 
@@ -80,7 +83,7 @@ const pickRandomTrack = () =>
 
 // ---------------------------------------------------------------------------
 
-const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
+const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -115,6 +118,9 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
 
   // Ref de visibilidade (sem stale closure)
   const isVisibleRef = useRef(false);
+  // Ref para onEnd (evita stale closure nos listeners)
+  const onEndRef = useRef(onEnd);
+  useEffect(() => { onEndRef.current = onEnd; }, [onEnd]);
 
   // Mantém mutedRef sempre atualizado (sem stale closure no observer)
   useEffect(() => { mutedRef.current = muted; }, [muted]);
@@ -172,8 +178,16 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
           // Slideshow de fotos + música de fundo
           if (entry.isIntersecting) {
             setSlideIndex(0);
+            let currentSlide = 0;
             slideTimerRef.current = setInterval(() => {
-              setSlideIndex((i) => (i + 1) % Math.max(allImages.length, 1));
+              currentSlide += 1;
+              if (currentSlide >= allImages.length) {
+                // Último slide exibido — avança para o próximo item
+                clearInterval(slideTimerRef.current!);
+                onEndRef.current();
+              } else {
+                setSlideIndex(currentSlide);
+              }
             }, 3000);
             // Inicia música de fundo
             if (!audioRef.current) {
@@ -214,6 +228,27 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
       else videoEl?.pause();
     };
   }, [hasVideo, isEmbed, allImages.length]);
+
+  // Detecta fim de vídeo em iframes (YouTube state=0, Vimeo 'finish')
+  useEffect(() => {
+    if (!isEmbed) return;
+    const handleMessage = (e: MessageEvent) => {
+      // YouTube IFrame API
+      try {
+        const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+        // YouTube: {event: "onStateChange", info: 0} => ended
+        if (data?.event === "onStateChange" && data?.info === 0) {
+          if (isVisibleRef.current) onEndRef.current();
+        }
+        // Vimeo: {event: "finish"}
+        if (data?.event === "finish") {
+          if (isVisibleRef.current) onEndRef.current();
+        }
+      } catch { /* ignore non-JSON messages */ }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [isEmbed]);
 
   // Tap/clique para play/pause (somente vídeo direto)
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -364,10 +399,10 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
             src={videoInfo.rawUrl}
             poster={product.image_url ?? undefined}
             className="absolute inset-0 h-full w-full object-cover"
-            loop
             muted={muted}
             playsInline
             preload="metadata"
+            onEnded={onEnd}
           />
           {/* Área de toque para play/pause */}
           <button
@@ -456,7 +491,8 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
         </h3>
 
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-lg font-bold text-primary text-green-400">
+          {/* Preço na cor laranja do accent — igual ao destaque da página do produto */}
+          <span className="text-lg font-bold" style={{ color: "hsl(24 95% 55%)" }}>
             {formattedPrice(product.price)}
           </span>
           {product.original_price && product.original_price > product.price && (
@@ -466,16 +502,17 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
           )}
         </div>
 
-        <Button
-          asChild
-          className="mt-3 w-full gap-2 text-md font-bold"
-          size="default"
+        {/* Botão com a mesma aparência do "Acessar Oferta" da página do produto */}
+        <a
+          href={product.affiliate_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-accent mt-3 w-full flex items-center justify-center gap-2 text-base py-3"
+          aria-label={`Comprar ${product.title}`}
         >
-          <a href={product.affiliate_url} target="_blank" rel="noopener noreferrer">
-            Comprar Agora
-            <ExternalLink className="h-5 w-5" />
-          </a>
-        </Button>
+          Comprar Agora
+          <ExternalLink className="h-5 w-5" />
+        </a>
       </div>
     </div>
   );

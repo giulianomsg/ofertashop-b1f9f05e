@@ -12,6 +12,13 @@ const OfertaShortsFeed = () => {
   // Preferência de mute compartilhada entre todos os itens
   const [muted, setMuted] = useState(true);
 
+  // Rola suavemente para o próximo item (chamado ao final de cada vídeo/slideshow)
+  const scrollToNext = useCallback(() => {
+    const container = containerScrollRef.current;
+    if (!container) return;
+    container.scrollBy({ top: window.innerHeight, behavior: "smooth" });
+  }, []);
+
   // Initial fetch + reset scroll to top
   useEffect(() => {
     if (hasFetchedOnce.current) return;
@@ -75,6 +82,7 @@ const OfertaShortsFeed = () => {
           product={product}
           muted={muted}
           onMuteChange={setMuted}
+          onEnd={scrollToNext}
         />
       ))}
 
