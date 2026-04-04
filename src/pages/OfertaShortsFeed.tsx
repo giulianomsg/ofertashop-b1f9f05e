@@ -5,7 +5,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const OfertaShortsFeed = () => {
-  const { items, loading, hasMore, fetchNext } = useOfertaShorts();
+  const { items, loading, hasMore, isEmpty, fetchNext } = useOfertaShorts();
   const containerScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const hasFetchedOnce = useRef(false);
@@ -33,7 +33,7 @@ const OfertaShortsFeed = () => {
     return () => clearTimeout(t);
   }, [fetchNext]);
 
-  // Infinite scroll via IntersectionObserver on sentinel
+  // Loop infinito via IntersectionObserver no sentinel
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelCallback = useCallback(
     (node: HTMLDivElement | null) => {
@@ -41,7 +41,7 @@ const OfertaShortsFeed = () => {
       if (!node) return;
       observerRef.current = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting && hasMore && !loading) {
+          if (entry.isIntersecting && !loading) {
             fetchNext();
           }
         },
@@ -49,7 +49,7 @@ const OfertaShortsFeed = () => {
       );
       observerRef.current.observe(node);
     },
-    [hasMore, loading, fetchNext]
+    [loading, fetchNext]
   );
 
   return (
@@ -71,14 +71,14 @@ const OfertaShortsFeed = () => {
 
       {items.map((product) => (
         <ShortsItem
-          key={product.id}
+          key={product._key}
           product={product}
           muted={muted}
           onMuteChange={setMuted}
         />
       ))}
 
-      {/* Sentinel / loader */}
+      {/* Sentinel — sempre ativo para disparar o loop ao chegar ao fim */}
       <div
         ref={sentinelCallback}
         className="flex h-20 snap-start items-center justify-center"
@@ -86,11 +86,8 @@ const OfertaShortsFeed = () => {
         {loading && (
           <Loader2 className="h-6 w-6 animate-spin text-white/60" />
         )}
-        {!hasMore && items.length > 0 && (
-          <p className="text-sm text-white/40">Fim dos shorts 🎬</p>
-        )}
-        {!hasMore && items.length === 0 && !loading && (
-          <p className="text-sm text-white/40">Nenhum vídeo disponível</p>
+        {isEmpty && !loading && (
+          <p className="text-sm text-white/40">Nenhum produto disponível</p>
         )}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause } from "lucide-react";
+import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,11 +60,33 @@ function parseVideoUrl(url: string, muted: boolean): VideoInfo {
 }
 
 // ---------------------------------------------------------------------------
+// Faixas royalty-free para slideshow de fotos (SoundHelix — livres para uso)
+// ---------------------------------------------------------------------------
+const SLIDESHOW_TRACKS = [
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+];
+
+const pickRandomTrack = () =>
+  SLIDESHOW_TRACKS[Math.floor(Math.random() * SLIDESHOW_TRACKS.length)];
+
+// ---------------------------------------------------------------------------
 
 const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const selectedTrackRef = useRef<string>(pickRandomTrack());
+  const mutedRef = useRef(muted); // ref para acessar muted dentro do observer sem stale closure
   const { user } = useAuth();
 
   const [isLiked, setIsLiked] = useState(false);
@@ -93,6 +115,27 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
 
   // Ref de visibilidade (sem stale closure)
   const isVisibleRef = useRef(false);
+
+  // Mantém mutedRef sempre atualizado (sem stale closure no observer)
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
+
+  // Sincroniza muted com o áudio de fundo (slideshow de fotos)
+  useEffect(() => {
+    if (!hasVideo && audioRef.current) {
+      audioRef.current.muted = muted;
+    }
+  }, [muted, hasVideo]);
+
+  // Cleanup do áudio ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -126,14 +169,24 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
         isVisibleRef.current = entry.isIntersecting;
 
         if (!hasVideo) {
-          // Slideshow de fotos
+          // Slideshow de fotos + música de fundo
           if (entry.isIntersecting) {
             setSlideIndex(0);
             slideTimerRef.current = setInterval(() => {
               setSlideIndex((i) => (i + 1) % Math.max(allImages.length, 1));
             }, 3000);
+            // Inicia música de fundo
+            if (!audioRef.current) {
+              audioRef.current = new Audio(selectedTrackRef.current);
+              audioRef.current.loop = true;
+              audioRef.current.muted = mutedRef.current; // usa ref para evitar stale closure
+              audioRef.current.volume = 0.5;
+            }
+            audioRef.current.play().catch(() => {});
           } else {
             if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+            // Para música ao sair de tela
+            audioRef.current?.pause();
           }
         } else if (isEmbed) {
           // Montar/desmontar o iframe do DOM — única forma garantida de parar áudio
@@ -156,6 +209,7 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     return () => {
       obs.disconnect();
       if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+      audioRef.current?.pause();
       if (isEmbed) setIframeMounted(false);
       else videoEl?.pause();
     };
@@ -344,8 +398,8 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
       {/* Gradient base for readability */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent dark:from-black/70" />
 
-      {/* Botão de mute — oculto para carrossel de fotos */}
-      {hasVideo && (
+      {/* Botão de mute — visível para vídeos e para fotos com música */}
+      {(
         <button
           onClick={handleToggleMute}
           className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full
@@ -356,6 +410,15 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
         >
           {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </button>
+      )}
+
+      {/* Badge de música tocando (somente slideshow de fotos, não mutado) */}
+      {!hasVideo && !muted && (
+        <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full px-3 py-1.5
+          backdrop-blur-lg border border-white/20 bg-black/40 text-white">
+          <Music className="h-3.5 w-3.5 text-purple-400 animate-pulse" />
+          <span className="text-xs font-medium text-white/80">Música aleatória</span>
+        </div>
       )}
 
       {/* Action Bar Lateral (Curtir, Comentar, Salvar) */}
