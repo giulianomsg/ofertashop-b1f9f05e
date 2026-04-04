@@ -78,9 +78,18 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   // Chave para forçar remontagem do iframe (ex: mudar mute enquanto visível)
   const [iframeKey, setIframeKey] = useState(0);
 
-  const videoUrl = product.video_url ?? "";
-  const videoInfo = parseVideoUrl(videoUrl, muted);
-  const isEmbed = videoInfo.kind !== "direct";
+  const videoUrl = product.video_url?.trim() ?? "";
+  const hasVideo = videoUrl.length > 0;
+  const videoInfo = hasVideo ? parseVideoUrl(videoUrl, muted) : { kind: "direct" as const, embedUrl: null, rawUrl: "" };
+  const isEmbed = hasVideo && videoInfo.kind !== "direct";
+
+  // Fotos para o carrossel (quando não há vídeo)
+  const allImages = [
+    ...(product.image_url ? [product.image_url] : []),
+    ...(product.gallery_urls ?? []),
+  ].filter(Boolean);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const slideTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Ref de visibilidade (sem stale closure)
   const isVisibleRef = useRef(false);
@@ -106,6 +115,7 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   // IntersectionObserver: controla visibilidade
   // - iframes: monta/desmonta do DOM (garantia absoluta contra áudio em background)
   // - vídeo direto: play/pause nativo
+  // - fotos: inicia/para slideshow automático
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -115,7 +125,17 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
       ([entry]) => {
         isVisibleRef.current = entry.isIntersecting;
 
-        if (isEmbed) {
+        if (!hasVideo) {
+          // Slideshow de fotos
+          if (entry.isIntersecting) {
+            setSlideIndex(0);
+            slideTimerRef.current = setInterval(() => {
+              setSlideIndex((i) => (i + 1) % Math.max(allImages.length, 1));
+            }, 3000);
+          } else {
+            if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+          }
+        } else if (isEmbed) {
           // Montar/desmontar o iframe do DOM — única forma garantida de parar áudio
           setIframeMounted(entry.isIntersecting);
         } else {
@@ -135,11 +155,11 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     obs.observe(el);
     return () => {
       obs.disconnect();
-      // Desmontar iframe e pausar vídeo ao remover componente
+      if (slideTimerRef.current) clearInterval(slideTimerRef.current);
       if (isEmbed) setIframeMounted(false);
       else videoEl?.pause();
     };
-  }, [isEmbed]);
+  }, [hasVideo, isEmbed, allImages.length]);
 
   // Tap/clique para play/pause (somente vídeo direto)
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -206,8 +226,8 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     const newMuted = !muted;
     onMuteChange(newMuted); // propaga para o feed (afeta próximos vídeos)
     // Se este item está visível e é um iframe: remonta com nova URL de muted
-    if (isEmbed && isVisibleRef.current) {
-      setIframeKey((k) => k + 1); // iframeMounted já está true, só troca a key para recarregar a URL
+    if (hasVideo && isEmbed && isVisibleRef.current) {
+      setIframeKey((k) => k + 1);
     }
   };
 
@@ -224,8 +244,42 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
         onClose={() => setShowComments(false)}
       />
 
-      {/* ── Vídeo / iframe ── */}
-      {isEmbed ? (
+      {/* ── Mídia: Vídeo / Iframe / Carrossel de fotos ── */}
+      {!hasVideo ? (
+        // Carrossel de fotos (slideshow automático)
+        allImages.length > 0 ? (
+          <div className="absolute inset-0 overflow-hidden">
+            {allImages.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`${product.title} - foto ${i + 1}`}
+                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+                style={{ opacity: i === slideIndex ? 1 : 0 }}
+              />
+            ))}
+            {/* Indicadores de slide */}
+            {allImages.length > 1 && (
+              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {allImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSlideIndex(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === slideIndex ? "w-5 bg-white" : "w-1.5 bg-white/40"
+                    }`}
+                    aria-label={`Foto ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+            <span className="text-white/20 text-sm">Sem imagem</span>
+          </div>
+        )
+      ) : isEmbed ? (
         // Iframe só existe no DOM enquanto visível — garante ausência de áudio em background
         iframeMounted ? (
           <iframe
@@ -290,17 +344,19 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
       {/* Gradient base for readability */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent dark:from-black/70" />
 
-      {/* Mute toggle – glassmorphism */}
-      <button
-        onClick={handleToggleMute}
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full
-          backdrop-blur-lg border transition-colors duration-300
-          bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10
-          text-white hover:bg-white/20 dark:hover:bg-black/50"
-        aria-label={muted ? "Ativar som" : "Desativar som"}
-      >
-        {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-      </button>
+      {/* Botão de mute — oculto para carrossel de fotos */}
+      {hasVideo && (
+        <button
+          onClick={handleToggleMute}
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full
+            backdrop-blur-lg border transition-colors duration-300
+            bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10
+            text-white hover:bg-white/20 dark:hover:bg-black/50"
+          aria-label={muted ? "Ativar som" : "Desativar som"}
+        >
+          {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        </button>
+      )}
 
       {/* Action Bar Lateral (Curtir, Comentar, Salvar) */}
       <div className="absolute right-4 bottom-32 z-20 flex flex-col gap-6 items-center">

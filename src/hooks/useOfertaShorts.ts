@@ -4,7 +4,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type ShortProduct = Pick<
   Tables<"products">,
-  "id" | "title" | "price" | "original_price" | "video_url" | "affiliate_url" | "image_url" | "discount_percentage"
+  "id" | "title" | "price" | "original_price" | "video_url" | "affiliate_url" | "image_url" | "discount_percentage" | "gallery_urls"
 >;
 
 const PAGE_SIZE = 6;
@@ -23,11 +23,9 @@ export const useOfertaShorts = () => {
 
     const { data, error } = await supabase
       .from("products")
-      .select("id, title, price, original_price, video_url, affiliate_url, image_url, discount_percentage")
+      .select("id, title, price, original_price, video_url, affiliate_url, image_url, discount_percentage, gallery_urls")
       .eq("is_active", true)
-      .not("video_url", "is", null)
-      .neq("video_url", "") // Filtro rigoroso para bloquear strings vazias
-      .order("created_at", { ascending: true }) // Inverte a ordenação para mostrar o primeiro item indexado no topo
+      .order("created_at", { ascending: true })
       .range(offset.current, offset.current + PAGE_SIZE - 1);
 
     if (!error && data) {
