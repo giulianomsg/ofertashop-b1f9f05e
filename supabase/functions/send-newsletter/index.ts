@@ -182,6 +182,10 @@ Deno.serve(async (req) => {
         failed++;
       }
     }
+    if (sent > 0 && resendApiKey) {
+      const { error: incErr } = await supabase.rpc("increment_resend_usage", { increment_by: sent });
+      if (incErr) console.error("[send] Failed to increment resend usage logs:", incErr);
+    }
 
     return new Response(JSON.stringify({ success: true, processed: pendingEmails.length, sent, failed }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar } from "lucide-react";
+import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar, Settings2 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -109,21 +109,25 @@ const AdminNewsletters = () => {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    // Fetch month sent count
-    const { count: monthCount } = await supabase
-      .from("email_queue")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "sent")
-      .gte("created_at", startOfMonth.toISOString());
+    const currentMonthIso = startOfMonth.toISOString().split("T")[0];
+    const todayIso = startOfDay.toISOString().split("T")[0];
 
-    // Fetch day sent count
-    const { count: dayCount } = await supabase
-      .from("email_queue")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "sent")
-      .gte("created_at", startOfDay.toISOString());
+    const { data: usageData } = await (supabase as any)
+      .from("resend_usage_logs")
+      .select("date, sent_count")
+      .gte("date", currentMonthIso);
 
-    // Fetch total contacts
+    let mCount = 0;
+    let dCount = 0;
+
+    if (usageData) {
+      usageData.forEach((row: any) => {
+        mCount += row.sent_count;
+        if (row.date === todayIso) {
+          dCount += row.sent_count;
+        }
+      });
+    }
     const { count: profilesCount } = await supabase
       .from("profiles")
       .select("*", { count: "exact", head: true })
@@ -133,8 +137,8 @@ const AdminNewsletters = () => {
       .from("newsletter_subscribers")
       .select("*", { count: "exact", head: true });
 
-    setSentThisMonth(monthCount || 0);
-    setSentToday(dayCount || 0);
+    setSentThisMonth(mCount);
+    setSentToday(dCount);
     setTotalContacts((profilesCount || 0) + (anonCount || 0));
   }, []);
 
@@ -295,6 +299,35 @@ const AdminNewsletters = () => {
       toast.success("Data reagendada.");
       loadDrafts();
     } catch { toast.error("Erro ao reagendar."); }
+  };
+
+  // ── Adjust Limits ──
+  const handleAjustarDiario = async () => {
+    const val = prompt("Quantos e-mails foram contabilizados HOJE no painel da Resend?", sentToday.toString());
+    if (val === null) return;
+    const num = parseInt(val, 10);
+    if (isNaN(num) || num < 0) return;
+    const todayIso = new Date().toISOString().split("T")[0];
+    try {
+      await (supabase as any).from("resend_usage_logs").upsert({ date: todayIso, sent_count: num });
+      toast.success("Limite diário atualizado!");
+      loadLimits();
+    } catch { toast.error("Erro ao atualizar!"); }
+  };
+
+  const handleAjustarMes = async () => {
+    const val = prompt("Deseja inserir envios externos manuais neste mês? Informe a quantidade a ser somada (ficará no dia 1):", "0");
+    if (val === null) return;
+    const num = parseInt(val, 10);
+    if (isNaN(num) || num < 0) return;
+    const startObj = new Date();
+    startObj.setDate(1);
+    const firstDayIso = startObj.toISOString().split("T")[0];
+    try {
+      await (supabase as any).from("resend_usage_logs").upsert({ date: firstDayIso, sent_count: num });
+      toast.success("Base mensal do mês atualizada!");
+      loadLimits();
+    } catch { toast.error("Erro ao atualizar!"); }
   };
 
   // ── Toggle draft selection for sending ──
@@ -602,7 +635,12 @@ const AdminNewsletters = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Transacional (Diário)</span>
+              <span className="text-muted-foreground flex items-center gap-1">
+                Transacional (Diário)
+                <button onClick={handleAjustarDiario} className="p-0.5 hover:bg-black/10 rounded cursor-pointer" title="Ajustar Contagem">
+                   <Settings2 className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </span>
               <span className="font-bold">{sentToday} <span className="text-muted-foreground font-normal">/ 100</span></span>
             </div>
             <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
@@ -612,7 +650,12 @@ const AdminNewsletters = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Transacional (Mensal)</span>
+              <span className="text-muted-foreground flex items-center gap-1">
+                Transacional (Mensal)
+                <button onClick={handleAjustarMes} className="p-0.5 hover:bg-black/10 rounded cursor-pointer" title="Adicionar Extras">
+                   <Settings2 className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </span>
               <span className="font-bold">{sentThisMonth} <span className="text-muted-foreground font-normal">/ 3.000</span></span>
             </div>
             <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
