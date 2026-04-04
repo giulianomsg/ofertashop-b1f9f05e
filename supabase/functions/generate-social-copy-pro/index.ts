@@ -257,13 +257,26 @@ Gere o conteúdo completo para: ${platformTasks}`;
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedContent = JSON.parse(jsonMatch[0]);
-        // Fix formatting so UI interprets Linebreaks visually instead of seeing Literal characters '\n'
-        if ((parsedContent as any)?.prompts_visuais?.image_generation_prompt) {
-          (parsedContent as any).prompts_visuais.image_generation_prompt = (parsedContent as any).prompts_visuais.image_generation_prompt.replace(/\\n/g, "\n");
-        }
-        if ((parsedContent as any)?.prompts_visuais?.audio_generation_prompt) {
-          (parsedContent as any).prompts_visuais.audio_generation_prompt = (parsedContent as any).prompts_visuais.audio_generation_prompt.replace(/\\n/g, "\n");
-        }
+
+        // Recursively clean all string values:
+        // 1. Convert literal \\n sequences to real newlines
+        // 2. Remove stray lone backslashes that the AI sometimes leaves at line ends
+        const cleanStrings = (obj: unknown): unknown => {
+          if (typeof obj === "string") {
+            return obj
+              .replace(/\\n/g, "\n")       // literal \n  →  real newline
+              .replace(/\\(?!\n)/g, "");   // lone \ not before newline → removed
+          }
+          if (Array.isArray(obj)) return obj.map(cleanStrings);
+          if (obj && typeof obj === "object") {
+            return Object.fromEntries(
+              Object.entries(obj).map(([k, v]) => [k, cleanStrings(v)])
+            );
+          }
+          return obj;
+        };
+
+        parsedContent = cleanStrings(parsedContent) as ProContent;
       } else {
         throw new Error("No JSON found in AI response");
       }
