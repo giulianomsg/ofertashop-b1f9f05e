@@ -41,6 +41,7 @@ import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
 import LinksPage from "./pages/LinksPage";
 import AdminLinks from "./pages/admin/AdminLinks";
+import OfertaShortsFeed from "./pages/OfertaShortsFeed";
 
 // AI Pro pages
 import AdminAILayout from "./pages/admin/ai/AdminAILayout";
@@ -75,6 +76,7 @@ const AppContent = () => {
             <Route path="/p/:slug" element={<InstitutionalPage />} />
             <Route path="/perfil" element={<UserProfile />} />
             <Route path="/links" element={<LinksPage />} />
+            <Route path="/shorts" element={<OfertaShortsFeed />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
