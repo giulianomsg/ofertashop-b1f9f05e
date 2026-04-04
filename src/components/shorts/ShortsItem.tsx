@@ -143,6 +143,42 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
     };
   }, []);
 
+  // Pausa música e vídeo quando a página/aba fica invisível (ex: tela desligada ou mudança de aba)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pausa áudio de background das fotos
+        if (!hasVideo && audioRef.current) {
+          audioRef.current.pause();
+        } 
+        // Pausa vídeo nativo
+        else if (hasVideo && !isEmbed && videoRef.current) {
+          videoRef.current.pause();
+          setIsPlaying(false);
+        } 
+        // Para iframes (YouTube/Vimeo), desmonta do DOM para forçar parada absoluta
+        else if (hasVideo && isEmbed) {
+          setIframeMounted(false);
+        }
+      } else {
+        // Se voltar para a aba e *este item* for o que estava visível, retoma
+        if (isVisibleRef.current) {
+          if (!hasVideo && audioRef.current) {
+            audioRef.current.play().catch(() => {});
+          } else if (hasVideo && !isEmbed && videoRef.current) {
+            videoRef.current.play().catch(() => {});
+            setIsPlaying(true);
+          } else if (hasVideo && isEmbed) {
+            setIframeMounted(true);
+          }
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [hasVideo, isEmbed]);
+
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
     if (!user) { setIsLiked(false); setIsSaved(false); return; }
