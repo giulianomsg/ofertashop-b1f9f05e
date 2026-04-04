@@ -25,7 +25,7 @@ const LinksPage = () => {
     queryKey: ['publicLinks'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('links')
+        .from('links' as any)
         .select('*')
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
