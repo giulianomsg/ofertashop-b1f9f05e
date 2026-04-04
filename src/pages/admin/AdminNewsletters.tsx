@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X } from "lucide-react";
+import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,7 +24,7 @@ const AdminNewsletters = () => {
   const [showSubscribers, setShowSubscribers] = useState(false);
 
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [queueStats, setQueueStats] = useState<Record<string, { pending: number, sent: number, failed: number }>>({});
+  const [queueStats, setQueueStats] = useState<Record<string, { pending: number, sent: number, failed: number, scheduledAt?: string }>>({});
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
@@ -33,6 +32,7 @@ const AdminNewsletters = () => {
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [showDrafts, setShowDrafts] = useState(true);
   const [scheduledAt, setScheduledAt] = useState("");
+  const [rescheduleData, setRescheduleData] = useState<Record<string, string>>({});
 
   const { data: products = [], isLoading } = useProducts();
 
@@ -73,17 +73,20 @@ const AdminNewsletters = () => {
       // Load queue stats
       const { data: statsData, error: statsError } = await (supabase as any)
         .from("email_queue")
-        .select("newsletter_id, status")
+        .select("newsletter_id, status, scheduled_at")
         .not("newsletter_id", "is", null);
       
       if (!statsError && statsData) {
-        const stats: Record<string, { pending: number, sent: number, failed: number }> = {};
+        const stats: Record<string, { pending: number, sent: number, failed: number, scheduledAt?: string }> = {};
         statsData.forEach((row: any) => {
           if (!row.newsletter_id) return;
           if (!stats[row.newsletter_id]) stats[row.newsletter_id] = { pending: 0, sent: 0, failed: 0 };
           const s = row.status as keyof typeof stats[string];
           if (stats[row.newsletter_id][s] !== undefined) {
              stats[row.newsletter_id][s]++;
+          }
+          if (row.scheduled_at && row.status === "pending") {
+             stats[row.newsletter_id].scheduledAt = row.scheduled_at;
           }
         });
         setQueueStats(stats);
@@ -274,6 +277,25 @@ const AdminNewsletters = () => {
     } catch { toast.error("Erro ao excluir rascunho."); }
   };
 
+  // ── Revert queued draft to draft status ──
+  const revertDraft = async (id: string) => {
+    try {
+      await (supabase as any).from("email_queue").delete().eq("newsletter_id", id);
+      await (supabase as any).from("newsletters").update({ status: "draft" }).eq("id", id);
+      toast.success("Newsletter revertida para rascunho.");
+      loadDrafts();
+    } catch { toast.error("Erro ao reverter."); }
+  };
+
+  // ── Reschedule queued draft ──
+  const rescheduleDraft = async (id: string, newDate: string) => {
+    try {
+      await (supabase as any).from("email_queue").update({ scheduled_at: newDate }).eq("newsletter_id", id);
+      toast.success("Data reagendada.");
+      loadDrafts();
+    } catch { toast.error("Erro ao reagendar."); }
+  };
+
   // ── Toggle draft selection for sending ──
   const toggleDraftSelection = (id: string) => {
     setSelectedDrafts(prev =>
@@ -302,7 +324,7 @@ const AdminNewsletters = () => {
       // Get subscribers
       const { data: subsProfiles } = await supabase
         .from("profiles")
-        .select("user_id")
+        .select("user_id, full_name")
         .eq("newsletter_opt_in", true);
 
       const { data: subsAnon } = await (supabase as any)
@@ -317,6 +339,43 @@ const AdminNewsletters = () => {
         setSendingQueue(false);
         return;
       }
+
+      // Modern Email Template Builder
+      const buildModernEmailHTML = (draftContent: string, productsHTML: string, recipientName: string, recipientRef: string) => {
+        const publicUrl = "https://ofertashop.com.br"; // Base domain for images/unsubscribe
+        
+        return `
+          <div style="font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; padding: 0; overflow: hidden; color: #333;">
+            
+            <!-- Header -->
+            <div style="background-color: #0f172a; padding: 30px; text-align: center;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: bold; letter-spacing: -0.5px;">OfertaShop</h2>
+            </div>
+      
+            <!-- Main Content -->
+            <div style="padding: 40px 30px;">
+              <h3 style="color: #0f172a; margin-top: 0; font-size: 20px;">Olá, ${recipientName}! 👋</h3>
+              <div style="color: #475569; line-height: 1.6; font-size: 16px; margin-bottom: 30px;">
+                ${draftContent}
+              </div>
+              
+              ${productsHTML ? `
+                <div style="margin-top: 30px;">
+                  ${productsHTML}
+                </div>
+              ` : ''}
+            </div>
+      
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 10px;">Você está recebendo este e-mail porque assinou a newsletter da OfertaShop.</p>
+              <p style="margin: 0;">
+                 <a href="${publicUrl}/unsubscribe?id=${encodeURIComponent(recipientRef)}" style="color: #64748b; text-decoration: underline;">Cancelar inscrição (Unsubscribe)</a>
+              </p>
+            </div>
+          </div>
+        `;
+      };
 
       let totalQueued = 0;
 
@@ -335,25 +394,29 @@ const AdminNewsletters = () => {
 
         // Build product HTML
         const productsHTML = draftProducts.length > 0 ? `
-          <table style="width: 100%; max-width: 600px; margin: 20px auto; border-collapse: collapse; font-family: sans-serif;">
-            <tbody>
-              ${draftProducts.map((p) => {
-                const img = p.image_url || 'https://via.placeholder.com/150';
-                const price = Number(p.price).toFixed(2).replace('.', ',');
-                return `
-                  <tr>
-                    <td style="padding: 15px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top;">
-                      <img src="${img}" alt="${p.title}" style="width: 120px; border-radius: 8px;">
-                    </td>
-                    <td style="padding: 15px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top;">
-                      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">${p.title}</h3>
-                      <p style="margin: 0 0 10px 0; font-size: 18px; font-weight: bold; color: #e11d48;">R$ ${price}</p>
-                      <a href="${p.affiliate_url}" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver Oferta</a>
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; border-collapse: separate; border-spacing: 0 20px;">
+            ${draftProducts.map((p) => {
+              const img = p.image_url || 'https://via.placeholder.com/150';
+              const price = Number(p.price).toFixed(2).replace('.', ',');
+              return `
+                <tr>
+                  <td style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="160" style="background-color: #f8fafc; padding: 20px; text-align: center; vertical-align: middle; border-right: 1px solid #e2e8f0; border-radius: 12px 0 0 12px;">
+                          <img src="${img}" alt="${p.title}" width="120" style="max-width: 120px; height: auto;">
+                        </td>
+                        <td style="padding: 24px; vertical-align: middle;">
+                          <h4 style="margin: 0 0 10px; font-size: 16px; color: #0f172a; font-weight: 600; line-height: 1.4;">${p.title}</h4>
+                          <p style="margin: 0 0 15px; font-size: 24px; font-weight: bold; color: #e11d48;">R$ ${price}</p>
+                          <a href="${p.affiliate_url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">🛍️ Ver Oferta</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
           </table>
         ` : "";
 
@@ -362,22 +425,34 @@ const AdminNewsletters = () => {
         const queueData: any[] = [];
         
         profilesList.forEach(sub => {
+          const finalHtml = buildModernEmailHTML(
+             draft.html_content || "", 
+             productsHTML, 
+             sub.full_name || "Cliente",
+             sub.user_id
+          );
           queueData.push({
             user_id: sub.user_id,
             newsletter_id: draftId,
             subject: draft.subject,
-            html_content: fullHtml,
+            html_content: finalHtml,
             status: "pending",
             scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null
           });
         });
 
         anonList.forEach((sub: any) => {
+          const finalHtml = buildModernEmailHTML(
+             draft.html_content || "", 
+             productsHTML, 
+             "Cliente",
+             sub.email
+          );
           queueData.push({
             customer_email: sub.email,
             newsletter_id: draftId,
             subject: draft.subject,
-            html_content: fullHtml,
+            html_content: finalHtml,
             status: "pending",
             scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null
           });
@@ -755,14 +830,22 @@ const AdminNewsletters = () => {
                             <span className={editingDraftId === d.id ? "text-accent" : ""}>{d.subject}</span>
                           </td>
                           <td className="p-4 text-center hidden sm:table-cell">
-                            <div className="flex flex-col items-center gap-1">
+                            <div className="flex flex-col items-center gap-1.5">
                               <span className={`text-xs px-2 py-1 rounded-full border ${st.cls}`}>{st.text}</span>
                               {queueStats[d.id] && (
-                                <div className="text-[10px] text-muted-foreground flex gap-2 font-medium">
-                                  {queueStats[d.id].pending > 0 && <span className="text-amber-500" title="Pendentes">{queueStats[d.id].pending} P</span>}
-                                  {queueStats[d.id].sent > 0 && <span className="text-emerald-500" title="Enviados">{queueStats[d.id].sent} S</span>}
-                                  {queueStats[d.id].failed > 0 && <span className="text-destructive" title="Falhas">{queueStats[d.id].failed} F</span>}
-                                </div>
+                                <>
+                                  {queueStats[d.id].scheduledAt && (
+                                     <span className="text-[10px] bg-secondary text-secondary-foreground border border-border px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
+                                       <Calendar className="w-3 h-3" /> 
+                                       {new Date(queueStats[d.id].scheduledAt!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                                     </span>
+                                  )}
+                                  <div className="text-[10px] text-muted-foreground flex gap-2 font-medium">
+                                    {queueStats[d.id].pending > 0 && <span className="text-amber-500" title="Pendentes">{queueStats[d.id].pending} P</span>}
+                                    {queueStats[d.id].sent > 0 && <span className="text-emerald-500" title="Enviados">{queueStats[d.id].sent} S</span>}
+                                    {queueStats[d.id].failed > 0 && <span className="text-destructive" title="Falhas">{queueStats[d.id].failed} F</span>}
+                                  </div>
+                                </>
                               )}
                             </div>
                           </td>
@@ -771,6 +854,32 @@ const AdminNewsletters = () => {
                           </td>
                           <td className="p-4 text-right">
                             <div className="flex items-center justify-end gap-1">
+                              {d.status === "queued" && (
+                                 <div className="flex flex-col gap-1.5 items-end mr-4">
+                                    <div className="flex gap-1 items-center">
+                                       <input 
+                                         type="datetime-local" 
+                                         className="text-[10px] border border-border rounded px-1.5 h-6 bg-background text-foreground" 
+                                         value={rescheduleData[d.id] || ""} 
+                                         onChange={e => setRescheduleData({...rescheduleData, [d.id]: e.target.value})} 
+                                         title="Reagendar Data/Hora"
+                                       />
+                                       <button 
+                                         onClick={() => handleReschedule(d.id, rescheduleData[d.id])} 
+                                         disabled={!rescheduleData[d.id]} 
+                                         className="h-6 px-2 bg-primary text-primary-foreground text-[10px] font-medium rounded hover:opacity-90 disabled:opacity-50"
+                                       >
+                                         OK
+                                       </button>
+                                    </div>
+                                    <button 
+                                      onClick={() => handleRevertToDraft(d.id)} 
+                                      className="text-[10px] font-medium text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                    >
+                                      Voltar p/ Rascunho
+                                    </button>
+                                 </div>
+                              )}
                               {isDraft && (
                                 <button onClick={() => editDraft(d)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar rascunho">
                                   <Pencil className="w-4 h-4 text-muted-foreground" />

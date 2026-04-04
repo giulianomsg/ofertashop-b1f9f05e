@@ -42,6 +42,7 @@ import UserProfile from "./pages/UserProfile";
 import LinksPage from "./pages/LinksPage";
 import AdminLinks from "./pages/admin/AdminLinks";
 import OfertaShortsFeed from "./pages/OfertaShortsFeed";
+import UnsubscribePage from "./pages/UnsubscribePage";
 
 // AI Pro pages
 import AdminAILayout from "./pages/admin/ai/AdminAILayout";
@@ -78,6 +79,7 @@ const AppContent = () => {
             <Route path="/links" element={<LinksPage />} />
             <Route path="/shorts" element={<OfertaShortsFeed />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/unsubscribe" element={<UnsubscribePage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="banners" element={<AdminBanners />} />
