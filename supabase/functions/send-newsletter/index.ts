@@ -106,10 +106,12 @@ Deno.serve(async (req) => {
     }
 
     // Default action: process pending emails in queue
+    const nowISO = new Date().toISOString();
     const { data: pendingEmails, error: fetchErr } = await supabase
       .from("email_queue")
       .select("id, user_id, subject, html_content, customer_email")
       .eq("status", "pending")
+      .or(`scheduled_at.is.null,scheduled_at.lte.${nowISO}`)
       .order("created_at", { ascending: true })
       .limit(BATCH_SIZE);
 

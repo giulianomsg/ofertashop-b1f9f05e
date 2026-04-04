@@ -32,6 +32,7 @@ const AdminNewsletters = () => {
   const [sendingQueue, setSendingQueue] = useState(false);
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [showDrafts, setShowDrafts] = useState(true);
+  const [scheduledAt, setScheduledAt] = useState("");
 
   const { data: products = [], isLoading } = useProducts();
 
@@ -366,7 +367,8 @@ const AdminNewsletters = () => {
             newsletter_id: draftId,
             subject: draft.subject,
             html_content: fullHtml,
-            status: "pending"
+            status: "pending",
+            scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null
           });
         });
 
@@ -376,7 +378,8 @@ const AdminNewsletters = () => {
             newsletter_id: draftId,
             subject: draft.subject,
             html_content: fullHtml,
-            status: "pending"
+            status: "pending",
+            scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null
           });
         });
 
@@ -403,6 +406,7 @@ const AdminNewsletters = () => {
       );
 
       setSelectedDrafts([]);
+      setScheduledAt("");
       loadDrafts();
 
       // Automatically trigger the edge function
@@ -693,14 +697,25 @@ const AdminNewsletters = () => {
                     {selectedDrafts.length === draftCount ? "Desmarcar todos" : "Selecionar todos os rascunhos"}
                   </button>
                   {selectedDrafts.length > 0 && (
-                    <button
-                      onClick={handleSendSelectedToQueue}
-                      disabled={sendingQueue}
-                      className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-success text-success-foreground text-sm font-medium disabled:opacity-50 hover:bg-success/90 transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                      {sendingQueue ? "Enviando..." : `Enviar ${selectedDrafts.length} para Fila`}
-                    </button>
+                    <div className="ml-auto flex items-center gap-3">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">Agendar:</span>
+                        <input 
+                          type="datetime-local" 
+                          value={scheduledAt}
+                          onChange={(e) => setScheduledAt(e.target.value)}
+                          className="h-9 px-2 text-xs border border-border rounded bg-background"
+                        />
+                      </div>
+                      <button
+                        onClick={handleSendSelectedToQueue}
+                        disabled={sendingQueue}
+                        className="flex items-center gap-2 px-4 py-2 mt-4 rounded-lg bg-success text-success-foreground text-sm font-medium disabled:opacity-50 hover:bg-success/90 transition-colors"
+                      >
+                        <Send className="w-4 h-4" />
+                        {sendingQueue ? "Processando..." : (scheduledAt ? `Agendar ${selectedDrafts.length} Newsletter(s)` : `Enviar ${selectedDrafts.length} para Fila`)}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
