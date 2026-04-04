@@ -147,27 +147,18 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Pausa áudio de background das fotos
-        if (!hasVideo && audioRef.current) {
-          audioRef.current.pause();
-        } 
-        // Pausa vídeo nativo
+        if (!hasVideo && audioRef.current) audioRef.current.pause();
         else if (hasVideo && !isEmbed && videoRef.current) {
           videoRef.current.pause();
           setIsPlaying(false);
         } 
-        // Para iframes (YouTube/Vimeo), desmonta do DOM para forçar parada absoluta
-        else if (hasVideo && isEmbed) {
-          setIframeMounted(false);
-        }
+        else if (hasVideo && isEmbed) setIframeMounted(false);
       } else {
-        // Se voltar para a aba e *este item* for o que estava visível, retoma
         if (isVisibleRef.current) {
-          if (!hasVideo && audioRef.current) {
+          if (!hasVideo && audioRef.current && isPlaying) {
             audioRef.current.play().catch(() => {});
-          } else if (hasVideo && !isEmbed && videoRef.current) {
+          } else if (hasVideo && !isEmbed && videoRef.current && isPlaying) {
             videoRef.current.play().catch(() => {});
-            setIsPlaying(true);
           } else if (hasVideo && isEmbed) {
             setIframeMounted(true);
           }
@@ -177,7 +168,25 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [hasVideo, isEmbed]);
+  }, [hasVideo, isEmbed, isPlaying]);
+
+  // Lógica de avanço do carrossel (resume/start)
+  const startSlideshow = useCallback(() => {
+    if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+    slideTimerRef.current = setInterval(() => {
+      setSlideIndex((prev) => {
+        const nextSlide = prev + 1;
+        if (nextSlide >= allImages.length) {
+          clearInterval(slideTimerRef.current!);
+          onEndRef.current();
+          return prev;
+        }
+        return nextSlide;
+      });
+    }, 3000);
+    if (audioRef.current) audioRef.current.play().catch(() => {});
+    setIsPlaying(true);
+  }, [allImages.length]);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -214,29 +223,17 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
           // Slideshow de fotos + música de fundo
           if (entry.isIntersecting) {
             setSlideIndex(0);
-            let currentSlide = 0;
-            slideTimerRef.current = setInterval(() => {
-              currentSlide += 1;
-              if (currentSlide >= allImages.length) {
-                // Último slide exibido — avança para o próximo item
-                clearInterval(slideTimerRef.current!);
-                onEndRef.current();
-              } else {
-                setSlideIndex(currentSlide);
-              }
-            }, 3000);
-            // Inicia música de fundo
             if (!audioRef.current) {
               audioRef.current = new Audio(selectedTrackRef.current);
               audioRef.current.loop = true;
               audioRef.current.muted = mutedRef.current; // usa ref para evitar stale closure
               audioRef.current.volume = 0.5;
             }
-            audioRef.current.play().catch(() => {});
+            startSlideshow();
           } else {
             if (slideTimerRef.current) clearInterval(slideTimerRef.current);
-            // Para música ao sair de tela
             audioRef.current?.pause();
+            setIsPlaying(false);
           }
         } else if (isEmbed) {
           // Montar/desmontar o iframe do DOM — única forma garantida de parar áudio
@@ -263,7 +260,7 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
       if (isEmbed) setIframeMounted(false);
       else videoEl?.pause();
     };
-  }, [hasVideo, isEmbed, allImages.length]);
+  }, [hasVideo, isEmbed, allImages.length, startSlideshow]);
 
   // Detecta fim de vídeo em iframes (YouTube state=0, Vimeo 'finish')
   useEffect(() => {
@@ -286,24 +283,36 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
     return () => window.removeEventListener("message", handleMessage);
   }, [isEmbed]);
 
-  // Tap/clique para play/pause (somente vídeo direto)
+  // Tap/clique para play/pause (fotos e vídeo direto)
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleVideoTap = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play().catch(() => {});
-      setIsPlaying(true);
-      setShowFeedbackIcon("play");
+  const handleTap = useCallback(() => {
+    if (!hasVideo) {
+      if (isPlaying) {
+        if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+        if (audioRef.current) audioRef.current.pause();
+        setIsPlaying(false);
+        setShowFeedbackIcon("pause");
+      } else {
+        startSlideshow();
+        setShowFeedbackIcon("play");
+      }
     } else {
-      video.pause();
-      setIsPlaying(false);
-      setShowFeedbackIcon("pause");
+      const video = videoRef.current;
+      if (!video) return;
+      if (video.paused) {
+        video.play().catch(() => {});
+        setIsPlaying(true);
+        setShowFeedbackIcon("play");
+      } else {
+        video.pause();
+        setIsPlaying(false);
+        setShowFeedbackIcon("pause");
+      }
     }
     // Esconde o ícone após 700ms
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = setTimeout(() => setShowFeedbackIcon(null), 700);
-  }, []);
+  }, [hasVideo, isPlaying, startSlideshow]);
 
   const formattedPrice = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -373,29 +382,50 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
       {!hasVideo ? (
         // Carrossel de fotos (slideshow automático)
         allImages.length > 0 ? (
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden bg-black flex items-center justify-center">
             {allImages.map((src, i) => (
               <img
                 key={i}
                 src={src}
                 alt={`${product.title} - foto ${i + 1}`}
-                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
+                className="absolute inset-0 h-full w-full object-contain transition-opacity duration-700"
                 style={{ opacity: i === slideIndex ? 1 : 0 }}
               />
             ))}
+            {/* Área de toque para play/pause de fotos */}
+            <button
+              onClick={handleTap}
+              className="absolute inset-0 z-10 w-full h-full cursor-pointer bg-transparent"
+              aria-label={isPlaying ? "Pausar galeria" : "Reproduzir galeria"}
+            />
             {/* Indicadores de slide */}
             {allImages.length > 1 && (
-              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 pointer-events-none">
                 {allImages.map((_, i) => (
-                  <button
+                  <div
                     key={i}
-                    onClick={() => setSlideIndex(i)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       i === slideIndex ? "w-5 bg-white" : "w-1.5 bg-white/40"
                     }`}
-                    aria-label={`Foto ${i + 1}`}
                   />
                 ))}
+              </div>
+            )}
+            {/* Ícone de feedback animado para fotos */}
+            {showFeedbackIcon && (
+              <div
+                key={showFeedbackIcon}
+                className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+              >
+                <div
+                  className="flex h-20 w-20 items-center justify-center rounded-full bg-black/50 backdrop-blur-md"
+                  style={{ animation: "shorts-feedback 0.6s ease-out forwards" }}
+                >
+                  {showFeedbackIcon === "play"
+                    ? <Play className="h-10 w-10 fill-white text-white" />
+                    : <Pause className="h-10 w-10 fill-white text-white" />
+                  }
+                </div>
               </div>
             )}
           </div>
@@ -440,13 +470,13 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
             preload="metadata"
             onEnded={onEnd}
           />
-          {/* Área de toque para play/pause */}
+          {/* Área de toque para play/pause de vídeo */}
           <button
-            onClick={handleVideoTap}
+            onClick={handleTap}
             className="absolute inset-0 z-10 w-full h-full cursor-pointer bg-transparent"
             aria-label={isPlaying ? "Pausar vídeo" : "Reproduzir vídeo"}
           />
-          {/* Ícone de feedback animado */}
+          {/* Ícone de feedback animado para vídeo */}
           {showFeedbackIcon && (
             <div
               key={showFeedbackIcon}
