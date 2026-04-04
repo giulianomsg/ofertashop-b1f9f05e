@@ -175,7 +175,7 @@ const AdminLinks = () => {
   const createLinkMutation = useMutation({
     mutationFn: async ({ title, url, sort_order, icon_url }: { title: string, url: string, sort_order: number, icon_url?: string | null }) => {
       const { error } = await supabase
-        .from('links')
+        .from('links' as any)
         .insert([{ title, url, sort_order, icon_url }]);
       if (error) throw error;
     },
