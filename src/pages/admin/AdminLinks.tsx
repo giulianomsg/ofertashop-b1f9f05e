@@ -212,7 +212,7 @@ const AdminLinks = () => {
   // Delete Link
   const deleteLinkMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('links').delete().eq('id', id);
+      const { error } = await supabase.from('links' as any).delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
