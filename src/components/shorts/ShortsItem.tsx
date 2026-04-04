@@ -1,7 +1,10 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import type { ShortProduct } from "@/hooks/useOfertaShorts";
 
 interface Props {
@@ -12,10 +15,30 @@ const ShortsItem = ({ product }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [muted, setMuted] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Fetch initial liked/saved state when user is logged in
+  useEffect(() => {
+    if (!user) { setIsLiked(false); setIsSaved(false); return; }
+    let cancelled = false;
+
+    const check = async () => {
+      const [likeRes, wishRes] = await Promise.all([
+        supabase.from("product_likes").select("id").eq("user_id", user.id).eq("product_id", product.id).maybeSingle(),
+        supabase.from("wishlists").select("id").eq("user_id", user.id).eq("product_id", product.id).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      setIsLiked(!!likeRes.data);
+      setIsSaved(!!wishRes.data);
+    };
+    check();
+    return () => { cancelled = true; };
+  }, [user, product.id]);
 
   // Autoplay/pause based on visibility
   useEffect(() => {
@@ -42,19 +65,42 @@ const ShortsItem = ({ product }: Props) => {
   const formattedPrice = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  // Funções de Interação (UI Otimista)
-  const handleLike = () => {
-    setIsLiked((prev) => !prev);
-    // TODO: Disparar mutation para o Supabase (tabela de curtidas)
-  };
+  const requireAuth = useCallback(() => {
+    if (!user) { toast.error("Faça login para realizar esta ação"); return true; }
+    return false;
+  }, [user]);
 
-  const handleSave = () => {
-    setIsSaved((prev) => !prev);
-    // TODO: Disparar mutation para o Supabase (tabela de favoritos/wishlist)
-  };
+  const handleLike = useCallback(async () => {
+    if (requireAuth() || busy) return;
+    setBusy(true);
+    const liked = isLiked;
+    setIsLiked(!liked);
+    try {
+      if (liked) {
+        await supabase.from("product_likes").delete().eq("user_id", user!.id).eq("product_id", product.id);
+      } else {
+        await supabase.from("product_likes").insert({ user_id: user!.id, product_id: product.id });
+      }
+    } catch { setIsLiked(liked); }
+    setBusy(false);
+  }, [isLiked, user, product.id, busy, requireAuth]);
+
+  const handleSave = useCallback(async () => {
+    if (requireAuth() || busy) return;
+    setBusy(true);
+    const saved = isSaved;
+    setIsSaved(!saved);
+    try {
+      if (saved) {
+        await supabase.from("wishlists").delete().eq("user_id", user!.id).eq("product_id", product.id);
+      } else {
+        await supabase.from("wishlists").insert({ user_id: user!.id, product_id: product.id, price_when_favorited: product.price });
+      }
+    } catch { setIsSaved(saved); }
+    setBusy(false);
+  }, [isSaved, user, product.id, product.price, busy, requireAuth]);
 
   const handleCommentClick = () => {
-    // Redireciona para a página do produto (assumindo a rota padrão do seu projeto)
     navigate(`/produto/${product.id}`);
   };
 
