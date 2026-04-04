@@ -9,6 +9,8 @@ import ShortsCommentPanel from "@/components/shorts/ShortsCommentPanel";
 
 interface Props {
   product: ShortProduct;
+  muted: boolean;
+  onMuteChange: (muted: boolean) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -59,25 +61,29 @@ function parseVideoUrl(url: string, muted: boolean): VideoInfo {
 
 // ---------------------------------------------------------------------------
 
-const ShortsItem = ({ product }: Props) => {
+const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { user } = useAuth();
 
-  const [muted, setMuted] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showFeedbackIcon, setShowFeedbackIcon] = useState<"play" | "pause" | null>(null);
-  // Quando togglamos mute num iframe precisamos recarregá-lo com novo param
+  // Força reload do iframe quando muted muda (para passar novo parâmetro na URL)
   const [iframeKey, setIframeKey] = useState(0);
 
   const videoUrl = product.video_url ?? "";
   const videoInfo = parseVideoUrl(videoUrl, muted);
   const isEmbed = videoInfo.kind !== "direct";
+
+  // Reload iframe quando a preferência de mute muda externamente
+  useEffect(() => {
+    if (isEmbed) setIframeKey((k) => k + 1);
+  }, [muted, isEmbed]);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -230,13 +236,8 @@ const ShortsItem = ({ product }: Props) => {
   };
 
   const handleToggleMute = () => {
-    setMuted((m) => {
-      if (isEmbed) {
-        // força reload do iframe com novo parâmetro mute
-        setIframeKey((k) => k + 1);
-      }
-      return !m;
-    });
+    // Propaga preferência para o feed pai (afeta todos os próximos vídeos)
+    onMuteChange(!muted);
   };
 
   // URL do embed final (recalculada quando muted muda, triggering iframeKey)

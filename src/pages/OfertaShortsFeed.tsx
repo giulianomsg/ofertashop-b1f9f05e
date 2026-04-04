@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useOfertaShorts } from "@/hooks/useOfertaShorts";
 import ShortsItem from "@/components/shorts/ShortsItem";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -6,10 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 const OfertaShortsFeed = () => {
   const { items, loading, hasMore, fetchNext } = useOfertaShorts();
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const containerScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const hasFetchedOnce = useRef(false);
+  // Preferência de mute compartilhada entre todos os itens
+  const [muted, setMuted] = useState(true);
 
   // Initial fetch + reset scroll to top
   useEffect(() => {
@@ -69,7 +70,12 @@ const OfertaShortsFeed = () => {
       </button>
 
       {items.map((product) => (
-        <ShortsItem key={product.id} product={product} />
+        <ShortsItem
+          key={product.id}
+          product={product}
+          muted={muted}
+          onMuteChange={setMuted}
+        />
       ))}
 
       {/* Sentinel / loader */}
