@@ -18,7 +18,7 @@ interface Draft {
 
 const AdminNewsletters = () => {
   const [subject, setSubject] = useState("");
-  const [content, setContent] = useState("<p>Olá,</p><p>Confira nossas ofertas imperdíveis desta semana!</p>");
+  const [content, setContent] = useState("<p>Confira nossas ofertas imperdíveis desta semana!</p>");
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [subscribers, setSubscribers] = useState<any[]>([]);
@@ -88,7 +88,7 @@ const AdminNewsletters = () => {
         .from("email_queue")
         .select("newsletter_id, status, scheduled_at")
         .not("newsletter_id", "is", null);
-      
+
       if (!statsError && statsData) {
         const stats: Record<string, { pending: number, sent: number, failed: number, scheduledAt?: string }> = {};
         statsData.forEach((row: any) => {
@@ -96,10 +96,10 @@ const AdminNewsletters = () => {
           if (!stats[row.newsletter_id]) stats[row.newsletter_id] = { pending: 0, sent: 0, failed: 0 };
           const s = row.status as keyof typeof stats[string];
           if (stats[row.newsletter_id][s] !== undefined) {
-             stats[row.newsletter_id][s]++;
+            stats[row.newsletter_id][s]++;
           }
           if (row.scheduled_at && row.status === "pending") {
-             stats[row.newsletter_id].scheduledAt = row.scheduled_at;
+            stats[row.newsletter_id].scheduledAt = row.scheduled_at;
           }
         });
         setQueueStats(stats);
@@ -154,8 +154,8 @@ const AdminNewsletters = () => {
     setTotalContacts((profilesCount || 0) + (anonCount || 0));
   }, []);
 
-  useEffect(() => { 
-    loadDrafts(); 
+  useEffect(() => {
+    loadDrafts();
     loadLimits();
   }, [loadDrafts, loadLimits]);
 
@@ -184,7 +184,7 @@ const AdminNewsletters = () => {
     if (!anonError && anonData) {
       subs.push(...anonData.map((a: any) => ({ user_id: a.email, full_name: a.email })));
     }
-    
+
     setSubscribers(subs);
     setShowSubscribers(true);
   };
@@ -422,8 +422,8 @@ const AdminNewsletters = () => {
       // Modern Email Template Builder
       const buildModernEmailHTML = (draftContent: string, productsHTML: string, recipientName: string, recipientRef: string) => {
         const publicUrl = window.location.origin;
-        
-        const logoHtml = newsletterLogoUrl 
+
+        const logoHtml = newsletterLogoUrl
           ? `<img src="${newsletterLogoUrl}" alt="OfertaShop" style="display:block; margin: 0 auto; max-width: 100%; max-height: 50px; object-fit: contain;">`
           : `<h2 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: bold; letter-spacing: -0.5px;">OfertaShop</h2>`;
 
@@ -479,9 +479,9 @@ const AdminNewsletters = () => {
         const productsHTML = draftProducts.length > 0 ? `
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; border-collapse: separate; border-spacing: 0 20px;">
             ${draftProducts.map((p) => {
-              const img = p.image_url || 'https://via.placeholder.com/150';
-              const price = Number(p.price).toFixed(2).replace('.', ',');
-              return `
+          const img = p.image_url || 'https://via.placeholder.com/150';
+          const price = Number(p.price).toFixed(2).replace('.', ',');
+          return `
                 <tr>
                   <td style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                     <table width="100%" cellpadding="0" cellspacing="0">
@@ -501,20 +501,20 @@ const AdminNewsletters = () => {
                   </td>
                 </tr>
               `;
-            }).join('')}
+        }).join('')}
           </table>
         ` : "";
 
         const fullHtml = (draft.html_content || "") + productsHTML;
 
         const queueData: any[] = [];
-        
+
         profilesList.forEach(sub => {
           const finalHtml = buildModernEmailHTML(
-             draft.html_content || "", 
-             productsHTML, 
-             sub.full_name || "Cliente",
-             sub.user_id
+            draft.html_content || "",
+            productsHTML,
+            sub.full_name || "Cliente",
+            sub.user_id
           );
           queueData.push({
             user_id: sub.user_id,
@@ -528,10 +528,10 @@ const AdminNewsletters = () => {
 
         anonList.forEach((sub: any) => {
           const finalHtml = buildModernEmailHTML(
-             draft.html_content || "", 
-             productsHTML, 
-             "Cliente",
-             sub.id
+            draft.html_content || "",
+            productsHTML,
+            "Cliente",
+            sub.id
           );
           queueData.push({
             customer_email: sub.email,
@@ -571,7 +571,7 @@ const AdminNewsletters = () => {
 
       // Automatically trigger the edge function
       handleProcessQueue();
-      
+
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erro desconhecido";
       toast.error("Erro ao enviar para fila: " + message);
@@ -585,7 +585,7 @@ const AdminNewsletters = () => {
     try {
       const { data, error } = await supabase.functions.invoke("send-newsletter");
       if (error) throw error;
-      
+
       const res = data as { success: boolean, processed: number, sent?: number, failed?: number, message?: string };
       if (res.processed > 0) {
         toast.success(`Fila processada! ${res.sent || 0} enviados, ${res.failed || 0} falhas de ${res.processed} tentados.`);
@@ -606,11 +606,11 @@ const AdminNewsletters = () => {
     <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse; font-family: sans-serif;">
       <tbody>
         ${selectedProducts.map((productId) => {
-          const p = products.find(p => p.id === productId);
-          if (!p) return '';
-          const img = p.image_url || 'https://via.placeholder.com/150';
-          const price = Number(p.price).toFixed(2).replace('.', ',');
-          return `
+    const p = products.find(p => p.id === productId);
+    if (!p) return '';
+    const img = p.image_url || 'https://via.placeholder.com/150';
+    const price = Number(p.price).toFixed(2).replace('.', ',');
+    return `
             <tr>
               <td style="padding: 15px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top;">
                 <img src="${img}" alt="${p.title}" style="width: 120px; border-radius: 8px;">
@@ -622,7 +622,7 @@ const AdminNewsletters = () => {
               </td>
             </tr>
           `;
-        }).join('')}
+  }).join('')}
       </tbody>
     </table>
   `;
@@ -646,10 +646,10 @@ const AdminNewsletters = () => {
           <p className="text-muted-foreground mt-1">Monte e-mails com ofertas, salve rascunhos e envie para a fila.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={handleProcessQueue} 
+          <button
+            onClick={handleProcessQueue}
             disabled={isProcessingQueue}
-            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" 
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50"
             aria-label="Processar Fila"
           >
             <Send className="w-4 h-4" /> {isProcessingQueue ? "Processando..." : "Processar Fila Pendente"}
@@ -689,7 +689,7 @@ const AdminNewsletters = () => {
               <span className="text-muted-foreground flex items-center gap-1">
                 Transacional (Diário)
                 <button onClick={handleAjustarDiario} className="p-0.5 hover:bg-black/10 rounded cursor-pointer" title="Ajustar Contagem">
-                   <Settings2 className="w-3 h-3 text-muted-foreground" />
+                  <Settings2 className="w-3 h-3 text-muted-foreground" />
                 </button>
               </span>
               <span className="font-bold">{sentToday} <span className="text-muted-foreground font-normal">/ 100</span></span>
@@ -704,7 +704,7 @@ const AdminNewsletters = () => {
               <span className="text-muted-foreground flex items-center gap-1">
                 Transacional (Mensal)
                 <button onClick={handleAjustarMes} className="p-0.5 hover:bg-black/10 rounded cursor-pointer" title="Adicionar Extras">
-                   <Settings2 className="w-3 h-3 text-muted-foreground" />
+                  <Settings2 className="w-3 h-3 text-muted-foreground" />
                 </button>
               </span>
               <span className="font-bold">{sentThisMonth} <span className="text-muted-foreground font-normal">/ 3.000</span></span>
@@ -732,7 +732,7 @@ const AdminNewsletters = () => {
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold flex items-center gap-2">
-                <FileText className="w-4 h-4" /> 
+                <FileText className="w-4 h-4" />
                 {editingDraftId ? "Editando Rascunho" : "Nova Newsletter"}
               </h3>
               <div className="flex items-center gap-2">
@@ -762,10 +762,10 @@ const AdminNewsletters = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Assunto do E-mail</label>
-              <input 
-                type="text" 
-                value={subject} 
-                onChange={(e) => setSubject(e.target.value)} 
+              <input
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 placeholder="Ex: Ofertas Exclusivas da Semana!"
               />
@@ -773,11 +773,11 @@ const AdminNewsletters = () => {
             <div className="pb-10">
               <label className="block text-sm font-medium mb-1">Conteúdo do E-mail</label>
               <div className="text-foreground bg-secondary rounded-lg overflow-hidden border border-transparent focus-within:ring-2 focus-within:ring-accent/30">
-                <ReactQuill 
-                  theme="snow" 
-                  value={content} 
-                  onChange={(val: string) => setContent(val)} 
-                  className="min-h-[200px]" 
+                <ReactQuill
+                  theme="snow"
+                  value={content}
+                  onChange={(val: string) => setContent(val)}
+                  className="min-h-[200px]"
                 />
               </div>
             </div>
@@ -792,12 +792,12 @@ const AdminNewsletters = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={searchProduct}
                   onChange={e => setSearchProduct(e.target.value)}
                   placeholder="Buscar produto..."
@@ -813,13 +813,13 @@ const AdminNewsletters = () => {
                 {stores.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {isLoading && <p className="text-sm text-muted-foreground">Carregando produtos...</p>}
               {filteredProducts.map(p => {
                 const isSelected = selectedProducts.includes(p.id);
                 return (
-                  <div 
+                  <div
                     key={p.id}
                     onClick={() => toggleProduct(p.id)}
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'border-accent bg-accent/5' : 'border-border hover:bg-secondary'}`}
@@ -844,7 +844,7 @@ const AdminNewsletters = () => {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="font-semibold flex items-center gap-2"><Mail className="w-4 h-4" /> Pré-visualização</h3>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={handleSaveDraft}
                   disabled={saving}
                   className="btn-accent flex items-center gap-2 disabled:opacity-50 text-sm"
@@ -854,7 +854,7 @@ const AdminNewsletters = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="border border-border rounded-lg bg-white text-gray-800 p-8 min-h-[500px] overflow-y-auto">
               <div dangerouslySetInnerHTML={{ __html: content }} />
               <div className="mt-6">
@@ -867,12 +867,12 @@ const AdminNewsletters = () => {
 
       {/* ═══ DRAFTS LIST ═══ */}
       <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-        <button 
-          onClick={() => setShowDrafts(!showDrafts)} 
+        <button
+          onClick={() => setShowDrafts(!showDrafts)}
           className="w-full flex items-center justify-between p-5 hover:bg-secondary/30 transition-colors"
         >
           <h3 className="font-semibold flex items-center gap-2">
-            <InboxIcon className="w-4 h-4" /> 
+            <InboxIcon className="w-4 h-4" />
             Rascunhos & Newsletters ({drafts.length})
           </h3>
           {showDrafts ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -891,8 +891,8 @@ const AdminNewsletters = () => {
                     <div className="ml-auto flex items-center gap-3">
                       <div className="flex flex-col items-start gap-1">
                         <span className="text-[10px] uppercase font-bold text-muted-foreground mr-1">Agendar:</span>
-                        <input 
-                          type="datetime-local" 
+                        <input
+                          type="datetime-local"
                           value={scheduledAt}
                           onChange={(e) => setScheduledAt(e.target.value)}
                           className="h-9 px-2 text-xs border border-border rounded bg-background"
@@ -951,10 +951,10 @@ const AdminNewsletters = () => {
                               {queueStats[d.id] && (
                                 <>
                                   {queueStats[d.id].scheduledAt && (
-                                     <span className="text-[10px] bg-secondary text-secondary-foreground border border-border px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
-                                       <Calendar className="w-3 h-3" /> 
-                                       {new Date(queueStats[d.id].scheduledAt!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
-                                     </span>
+                                    <span className="text-[10px] bg-secondary text-secondary-foreground border border-border px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
+                                      <Calendar className="w-3 h-3" />
+                                      {new Date(queueStats[d.id].scheduledAt!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                                    </span>
                                   )}
                                   <div className="text-[10px] text-muted-foreground flex gap-2 font-medium">
                                     {queueStats[d.id].pending > 0 && <span className="text-amber-500" title="Pendentes">{queueStats[d.id].pending} P</span>}
@@ -971,30 +971,30 @@ const AdminNewsletters = () => {
                           <td className="p-4 text-right">
                             <div className="flex items-center justify-end gap-1">
                               {d.status === "queued" && (
-                                 <div className="flex flex-col gap-1.5 items-end mr-4">
-                                    <div className="flex gap-1 items-center">
-                                       <input 
-                                         type="datetime-local" 
-                                         className="text-[10px] border border-border rounded px-1.5 h-6 bg-background text-foreground" 
-                                         value={rescheduleData[d.id] || ""} 
-                                         onChange={e => setRescheduleData({...rescheduleData, [d.id]: e.target.value})} 
-                                         title="Reagendar Data/Hora"
-                                       />
-                                       <button 
-                                         onClick={() => rescheduleDraft(d.id, rescheduleData[d.id])} 
-                                         disabled={!rescheduleData[d.id]} 
-                                         className="h-6 px-2 bg-primary text-primary-foreground text-[10px] font-medium rounded hover:opacity-90 disabled:opacity-50"
-                                       >
-                                         OK
-                                       </button>
-                                    </div>
-                                    <button 
-                                      onClick={() => revertDraft(d.id)} 
-                                      className="text-[10px] font-medium text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                <div className="flex flex-col gap-1.5 items-end mr-4">
+                                  <div className="flex gap-1 items-center">
+                                    <input
+                                      type="datetime-local"
+                                      className="text-[10px] border border-border rounded px-1.5 h-6 bg-background text-foreground"
+                                      value={rescheduleData[d.id] || ""}
+                                      onChange={e => setRescheduleData({ ...rescheduleData, [d.id]: e.target.value })}
+                                      title="Reagendar Data/Hora"
+                                    />
+                                    <button
+                                      onClick={() => rescheduleDraft(d.id, rescheduleData[d.id])}
+                                      disabled={!rescheduleData[d.id]}
+                                      className="h-6 px-2 bg-primary text-primary-foreground text-[10px] font-medium rounded hover:opacity-90 disabled:opacity-50"
                                     >
-                                      Voltar p/ Rascunho
+                                      OK
                                     </button>
-                                 </div>
+                                  </div>
+                                  <button
+                                    onClick={() => revertDraft(d.id)}
+                                    className="text-[10px] font-medium text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                                  >
+                                    Voltar p/ Rascunho
+                                  </button>
+                                </div>
                               )}
                               {isDraft && (
                                 <button onClick={() => editDraft(d)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Editar rascunho">
