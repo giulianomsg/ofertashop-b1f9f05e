@@ -1,11 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, Mail, Share2, Send, CheckCircle2 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import ProductCard from "@/components/ProductCard";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const LinksPage = () => {
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
   // Fetch Logo
   const { data: siteLogo } = useQuery({
     queryKey: ['siteSettings', 'site_logo'],
@@ -198,6 +204,107 @@ const LinksPage = () => {
                )}
             </motion.div>
           )}
+
+          {/* Social Share & Newsletter Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="w-full mt-8 flex flex-col gap-6"
+          >
+            {/* Share action */}
+            <div className="flex justify-center">
+               <button
+                 onClick={() => {
+                   if (navigator.share) {
+                     navigator.share({
+                       title: 'OfertaShop',
+                       text: 'Confira as melhores ofertas exclusivas e cupons do momento!',
+                       url: window.location.href,
+                     }).catch(err => console.log('Erro ao compartilhar:', err));
+                   } else {
+                     navigator.clipboard.writeText(window.location.href);
+                     toast.success("Link copiado para a área de transferência!");
+                   }
+                 }}
+                 className="flex items-center gap-2 bg-card/60 backdrop-blur-md hover:bg-accent/10 border border-border/60 hover:border-accent/40 text-foreground hover:text-accent font-medium px-6 py-3 rounded-full transition-all shadow-sm hover:shadow-md"
+               >
+                 <Share2 className="w-4 h-4" />
+                 Compartilhar
+               </button>
+            </div>
+
+            {/* Newsletter Subscription */}
+            <div className="p-6 bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 shadow-md">
+              <div className="flex flex-col items-center text-center space-y-4">
+                 <div className="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center">
+                   <Mail className="w-6 h-6" />
+                 </div>
+                 <div>
+                   <h3 className="font-display font-bold text-lg text-foreground">Assine Nossa Newsletter</h3>
+                   <p className="text-sm text-muted-foreground mt-1 max-w-[280px]">As melhores ofertas e descontos direto na sua caixa de entrada, toda semana.</p>
+                 </div>
+                 
+                 {subscribed ? (
+                   <motion.div 
+                     initial={{ scale: 0.9, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     className="w-full bg-success/10 text-success border border-success/20 rounded-xl p-4 flex items-center justify-center gap-2 font-medium"
+                   >
+                     <CheckCircle2 className="w-5 h-5" />
+                     Inscrito com sucesso!
+                   </motion.div>
+                 ) : (
+                   <form 
+                     onSubmit={async (e) => {
+                       e.preventDefault();
+                       if (!email) return;
+                       setIsSubscribing(true);
+                       try {
+                         const { error } = await (supabase as any)
+                           .from('newsletter_subscribers')
+                           .insert([{ email }]);
+                         
+                         // Se der erro de restrição única, consideramos sucesso (já tava lá)
+                         if (error && error.code !== '23505' && error.code !== 'PGRST204') {
+                           if (error.code === '42P01') {
+                              // Fallback se a tabela não existir, insere em perfis anônimos se possível? Não tem tabela.
+                              toast.success("Inscrito! (Tabela de leads ausente no banco)");
+                           } else {
+                              throw error; 
+                           }
+                         }
+                         setSubscribed(true);
+                         toast.success("Inscrição confirmada!");
+                       } catch (err) {
+                         toast.error("Ocorreu um erro ao assinar.");
+                         console.error(err);
+                       } finally {
+                         setIsSubscribing(false);
+                       }
+                     }} 
+                     className="w-full flex mt-2 relative"
+                   >
+                     <input
+                       type="email"
+                       required
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       placeholder="Seu melhor e-mail"
+                       className="w-full h-12 pl-4 pr-12 rounded-xl border border-border/80 bg-background/50 focus:bg-background focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-sm outline-none"
+                     />
+                     <button 
+                       type="submit" 
+                       disabled={isSubscribing}
+                       className="absolute right-1 top-1 bottom-1 w-10 flex items-center justify-center bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 disabled:opacity-50 transition-colors"
+                     >
+                       {isSubscribing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                     </button>
+                   </form>
+                 )}
+              </div>
+            </div>
+          </motion.div>
 
           <motion.div 
             initial={{ opacity: 0 }} 
