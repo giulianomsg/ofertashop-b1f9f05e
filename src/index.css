@@ -176,3 +176,11 @@ iframe[src*="lovable.dev"],
 div[style*="Edit with Lovable"] {
   display: none !important;
 }
+
+/* Animação de feedback play/pause nos OfertaShorts */
+@keyframes shorts-feedback {
+  0%   { opacity: 0; transform: scale(0.6); }
+  20%  { opacity: 1; transform: scale(1.1); }
+  60%  { opacity: 1; transform: scale(1);   }
+  100% { opacity: 0; transform: scale(1.05); }
+}

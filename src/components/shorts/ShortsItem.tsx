@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark } from "lucide-react";
+import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +70,8 @@ const ShortsItem = ({ product }: Props) => {
   const [isSaved, setIsSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showFeedbackIcon, setShowFeedbackIcon] = useState<"play" | "pause" | null>(null);
   // Quando togglamos mute num iframe precisamos recarregá-lo com novo param
   const [iframeKey, setIframeKey] = useState(0);
 
@@ -147,8 +149,10 @@ const ShortsItem = ({ product }: Props) => {
           if (!videoEl) return;
           if (entry.isIntersecting) {
             videoEl.play().catch(() => { });
+            setIsPlaying(true);
           } else {
             videoEl.pause();
+            setIsPlaying(false);
           }
         }
       },
@@ -163,6 +167,25 @@ const ShortsItem = ({ product }: Props) => {
       else videoEl?.pause();
     };
   }, [isEmbed, pauseIframe, playIframe]);
+
+  // Tap/clique para play/pause (somente vídeo direto)
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleVideoTap = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      setIsPlaying(true);
+      setShowFeedbackIcon("play");
+    } else {
+      video.pause();
+      setIsPlaying(false);
+      setShowFeedbackIcon("pause");
+    }
+    // Esconde o ícone após 700ms
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => setShowFeedbackIcon(null), 700);
+  }, []);
 
   const formattedPrice = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -244,16 +267,41 @@ const ShortsItem = ({ product }: Props) => {
           title={product.title}
         />
       ) : (
-        <video
-          ref={videoRef}
-          src={videoInfo.rawUrl}
-          poster={product.image_url ?? undefined}
-          className="absolute inset-0 h-full w-full object-cover"
-          loop
-          muted={muted}
-          playsInline
-          preload="metadata"
-        />
+        <>
+          <video
+            ref={videoRef}
+            src={videoInfo.rawUrl}
+            poster={product.image_url ?? undefined}
+            className="absolute inset-0 h-full w-full object-cover"
+            loop
+            muted={muted}
+            playsInline
+            preload="metadata"
+          />
+          {/* Área de toque para play/pause */}
+          <button
+            onClick={handleVideoTap}
+            className="absolute inset-0 z-10 w-full h-full cursor-pointer bg-transparent"
+            aria-label={isPlaying ? "Pausar vídeo" : "Reproduzir vídeo"}
+          />
+          {/* Ícone de feedback animado */}
+          {showFeedbackIcon && (
+            <div
+              key={showFeedbackIcon}
+              className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+            >
+              <div
+                className="flex h-20 w-20 items-center justify-center rounded-full bg-black/50 backdrop-blur-md"
+                style={{ animation: "shorts-feedback 0.6s ease-out forwards" }}
+              >
+                {showFeedbackIcon === "play"
+                  ? <Play className="h-10 w-10 fill-white text-white" />
+                  : <Pause className="h-10 w-10 fill-white text-white" />
+                }
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Gradient base for readability */}
