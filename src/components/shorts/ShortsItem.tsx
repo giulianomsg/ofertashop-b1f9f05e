@@ -80,10 +80,13 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   const videoInfo = parseVideoUrl(videoUrl, muted);
   const isEmbed = videoInfo.kind !== "direct";
 
-  // Reload iframe quando a preferência de mute muda externamente
-  useEffect(() => {
-    if (isEmbed) setIframeKey((k) => k + 1);
-  }, [muted, isEmbed]);
+  // Refs para controle fino (sem stale closures)
+  const isVisibleRef = useRef(false);   // está em tela agora?
+  const mutedRef = useRef(muted);       // valor atual de muted sem closure stale
+  const iframeLoadedMutedRef = useRef(muted); // muted usado no último load do iframe
+
+  // Mantém mutedRef sincronizado com o prop
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -140,23 +143,33 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    // Captura local para evitar stale ref no cleanup
-    const videoEl = videoRef.current;
+    const videoEl = videoRef.current; // captura local para cleanup
 
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (isEmbed) {
           if (entry.isIntersecting) {
-            playIframe();
+            isVisibleRef.current = true;
+            // Se a preferência de mute mudou enquanto estava fora de tela,
+            // recarrega o iframe com a URL correta (só para este item)
+            if (iframeLoadedMutedRef.current !== mutedRef.current) {
+              iframeLoadedMutedRef.current = mutedRef.current;
+              setIframeKey((k) => k + 1);
+            } else {
+              playIframe();
+            }
           } else {
+            isVisibleRef.current = false;
             pauseIframe();
           }
         } else {
           if (!videoEl) return;
           if (entry.isIntersecting) {
+            isVisibleRef.current = true;
             videoEl.play().catch(() => { });
             setIsPlaying(true);
           } else {
+            isVisibleRef.current = false;
             videoEl.pause();
             setIsPlaying(false);
           }
@@ -168,7 +181,6 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     obs.observe(el);
     return () => {
       obs.disconnect();
-      // Garante pausa ao desmontar
       if (isEmbed) pauseIframe();
       else videoEl?.pause();
     };
@@ -236,8 +248,13 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   };
 
   const handleToggleMute = () => {
-    // Propaga preferência para o feed pai (afeta todos os próximos vídeos)
-    onMuteChange(!muted);
+    const newMuted = !muted;
+    onMuteChange(newMuted); // propaga para o feed (afeta próximos vídeos)
+    // Se este item é um iframe e está visível, recarrega imediatamente com o novo mute
+    if (isEmbed && isVisibleRef.current) {
+      iframeLoadedMutedRef.current = newMuted;
+      setIframeKey((k) => k + 1);
+    }
   };
 
   // URL do embed final (recalculada quando muted muda, triggering iframeKey)
