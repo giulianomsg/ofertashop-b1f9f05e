@@ -2,61 +2,44 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MailX, Loader2, CheckCircle2 } from "lucide-react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function UnsubscribePage() {
   const [searchParams] = useSearchParams();
-  const email = searchParams.get("email");
+  const idParam = searchParams.get("id") || searchParams.get("email");
   const [status, setStatus] = useState<"loading" | "success" | "error" | "invalid">("loading");
 
   useEffect(() => {
-    if (!email) {
+    if (!idParam) {
       setStatus("invalid");
       return;
     }
 
     const processUnsubscribe = async () => {
       try {
-        let success = false;
+        // Call the Security Definer RPC which bypasses RLS and can update both tables
+        const { data, error } = await (supabase as any).rpc("unsubscribe_recipient", {
+          recipient_ref: idParam
+        });
 
-        // Try profiles
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", email)
-          .single();
-
-        if (profile) {
-           await supabase
-            .from("profiles")
-            .update({ newsletter_opt_in: false })
-            .eq("id", profile.id);
-           success = true;
+        if (error || data === false) {
+          throw new Error("Falha ao remover a inscrição.");
         }
-
-        // Try anonymous newsletter_subscribers (using RPC or direct auth if RLS allows, wait newsletter_subscribers RLS might block delete, let's just use regular delete if RLS allows, or create an RPC)
-        // Wait, newsletter_subscribers usually allows anon insert/select. Let's try to delete.
-        const { error: anonErr } = await (supabase as any)
-          .from("newsletter_subscribers")
-          .delete()
-          .eq("email", email);
-
-        if (!anonErr) success = true;
 
         setStatus("success");
       } catch (err) {
-        console.error(err);
+        console.error("Erro no Unsubscribe:", err);
         setStatus("error");
       }
     };
 
     processUnsubscribe();
-  }, [email]);
+  }, [idParam]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <SiteHeader />
       <main className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="max-w-md w-full bg-card border border-border p-8 rounded-2xl shadow-sm text-center space-y-4">
           {status === "loading" && (
@@ -76,7 +59,7 @@ export default function UnsubscribePage() {
               </div>
               <h2 className="text-xl font-bold">Inscrição Cancelada</h2>
               <p className="text-muted-foreground">
-                O e-mail <strong>{email}</strong> foi removido com sucesso de nossa lista. Você não receberá mais os nossos e-mails de ofertas.
+                Sua referência <strong>{idParam}</strong> foi removida com sucesso. Você não receberá mais os nossos e-mails de ofertas.
               </p>
             </>
           )}
@@ -110,7 +93,7 @@ export default function UnsubscribePage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

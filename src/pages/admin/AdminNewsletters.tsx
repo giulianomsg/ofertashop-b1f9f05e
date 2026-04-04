@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
@@ -329,7 +330,7 @@ const AdminNewsletters = () => {
 
       const { data: subsAnon } = await (supabase as any)
         .from("newsletter_subscribers")
-        .select("email");
+        .select("id, email");
 
       const profilesList = subsProfiles || [];
       const anonList = subsAnon || [];
@@ -446,7 +447,7 @@ const AdminNewsletters = () => {
              draft.html_content || "", 
              productsHTML, 
              "Cliente",
-             sub.email
+             sub.id
           );
           queueData.push({
             customer_email: sub.email,
@@ -865,7 +866,7 @@ const AdminNewsletters = () => {
                                          title="Reagendar Data/Hora"
                                        />
                                        <button 
-                                         onClick={() => handleReschedule(d.id, rescheduleData[d.id])} 
+                                         onClick={() => rescheduleDraft(d.id, rescheduleData[d.id])} 
                                          disabled={!rescheduleData[d.id]} 
                                          className="h-6 px-2 bg-primary text-primary-foreground text-[10px] font-medium rounded hover:opacity-90 disabled:opacity-50"
                                        >
@@ -873,7 +874,7 @@ const AdminNewsletters = () => {
                                        </button>
                                     </div>
                                     <button 
-                                      onClick={() => handleRevertToDraft(d.id)} 
+                                      onClick={() => revertDraft(d.id)} 
                                       className="text-[10px] font-medium text-amber-600 hover:text-amber-700 underline underline-offset-2"
                                     >
                                       Voltar p/ Rascunho
