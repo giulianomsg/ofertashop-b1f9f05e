@@ -30,11 +30,6 @@ interface GenerateRequest {
     persona?: Persona | null;
     tone?: string;
     trigger?: string;
-    campaignName?: string;
-    campaignType?: string;
-    includeHashtags?: boolean;
-    includeCTA?: boolean;
-    optimizeSEO?: boolean;
     platform?: string;
   };
 }
@@ -118,24 +113,29 @@ Deno.serve(async (req) => {
     }
 
     const systemRules = [
-      "1. Responda APENAS em JSON valido, sem markdown.",
+      "1. Responda APENAS em JSON valido, sem usar markdown (```json) envelopando a resposta.",
       `2. Siga EXATAMENTE esta estrutura JSON:\n${jsonStructure}`,
-      "3. A REGRA DA CURADORIA TÉCNICA: Posicione-se como um curador confiável. Se o produto for de tecnologia (placas de vídeo, processadores, hardware, etc), adicione um breve comentário técnico atestando a qualidade e explicando por que a peça tem um ótimo custo-benefício para o setup do usuário.",
-      "4. AUTOMAÇÃO MANYCHAT: No Feed Instagram e TikTok/Reels, NUNCA coloque a URL ou 'link na bio'. Use a estratégia Manychat: a Call to Action DEVE incentivar o usuário a comentar uma palavra (ex: 'Comente EU QUERO que o robô te manda no direct agora').",
-      "5. USO DO LINK DIRETO: APENAS no formato WhatsApp, insira a URL de compra explicitamente.",
-      "6. GESTÃO DE PROVA SOCIAL: Nas mensagens de Feed ou WhatsApp, sempre que fizer sentido, adicione gatilhos como 'Veja nos destaques quem já comprou e recebeu' para validar a confiabilidade do OfertaShop.",
-      "7. FOCO EXCLUSIVO: Não mencione plataformas terceiras. Toda credibilidade pertence ao 'OfertaShop'."
+      "3. A REGRA DA CURADORIA TÉCNICA: Posicione-se como um curador rigoroso. Se o produto for tech, embase o custo-benefício tecnicamente na copy.",
+      "4. AUTOMAÇÃO MANYCHAT (INSTA/TIKTOK): NUNCA coloque a URL ou mande para 'link na bio'. A CTA DEVE induzir atrito positivo (ex: 'Comente *EU QUERO* que te mando no direct').",
+      "5. USO DO LINK DIRETO: APENAS no WhatsApp insira a URL de compra explicitamente.",
+      "6. GESTÃO DE PROVA SOCIAL: Referencie validações de forma orgânica ('Mais de X já receberam e marcaram nos Destaques').",
+      "7. ENRIQUECIMENTO VISUAL OBRIGATÓRIO (WHATSAPP): O texto DEVE ser altamente escaneável usando a sintaxe nativa do WhatsApp: Use `*negrito*` para destacar benefícios e novos preços; Use `~tachado~` EXCLUSIVAMENTE para a ancoragem de preço antigo (ex: De ~R$ 199~ por *R$ 99*); Use `_itálico_` para ganchos emocionais ou escassez; Use ``` `monoespaçado` ``` para destacar CUPONS; Use citações `> ` para depoimentos. Estruture listas obrigatoriamente com Emojis temáticos ou hifens `- `.",
+      "8. ENRIQUECIMENTO VISUAL OBRIGATÓRIO (FEED INSTAGRAM): Como o Instagram não aceita formatação nativa (bold/italic), você DEVE criar hierarquia visual usando CAIXA ALTA (Caps Lock) nos ganchos de abertura e CTAs. Intercale com Emojis elegantes (🔥, 🚨, ✅, 🛒) e garanta respiro visual utilizando dupla quebra de linha literal (`\\\\n\\\\n`) entre os parágrafos.",
+      "9. ENRIQUECIMENTO VISUAL OBRIGATÓRIO (ROTEIROS DE VÍDEO): Nos roteiros do TikTok/Reels, utilize sintaxe Markdown Rica para orientar o locutor: use `**negrito**` nas palavras que exigem ênfase vocal, `> blockquotes` para descrever ações visuais de tela e gravação, e listas ordenadas para os frames do vídeo.",
+      "10. FOCO EXCLUSIVO: Não mencione plataformas terceiras de marketplaces. O produto pertence e é chancelado pelo 'OfertaShop'."
     ];
 
-    if (requestedPlatform === "tiktok") {
-      systemRules.push("8. A ENGENHARIA DO VÍDEO CURTO: Divida o roteiro rigorosamente nestas 3 etapas: A) Gancho (3 segundos iniciais): Interrompa o padrão focando em uma dor ou num preço histórico surreal. B) Corpo (A Prova): Instrua mostrar a tela, o site oficial e o desconto aplicado. C) CTA (Escassez + Manychat): Finalize induzindo o comentário para disparar automação.");
+    if (requestedPlatform === "design") {
+      systemRules.push('11. ARQUITETURA VISUAL DE DESIGN: O `image_generation_prompt` NÃO DEVE ter link de imagem, mas DEVE instruir a geradora a copiar rigorosamente a imagem que for anexada junto ao prompt. Adicione EXATAMENTE o trecho em inglês no início do prompt: "Use the attached reference image exactly as it is, maintaining physical characteristics, proportions, format, textures, and keeping natural imperfections without any retouch. Visibly integrate the attached OfertaShop logo clearly at the top of the image with a transparent background. Create a visible bounding banner or dark gradient footer at the bottom specifically to highlight the overlay text. Ensure the central product is entirely visible and not covered or obscured by the footer, logo or overlays." Adicione os atributos: "hyper-realistic, 8k resolution, raw style, Camera: Canon R5, 85mm f/1.2 lens, ISO 100, cinematic color grading --ar 9:16". APÓS os atributos de câmera, adicione OBRIGATORIAMENTE o seguinte bloco EXATO de tipografia: "Typography & Layout Rules: Font Style: Use a modern, clean, geometric Sans-Serif font (like Montserrat, Gotham, or Helvetica) for all text. Color: All text must be pure white or black for maximum contrast. Header (Top): in Semi-Bold, medium size, centered below the logo. Old price in Regular font, small size and strikethrough; promotional price in Extra-Bold font, large size to emphasize.. Rating (Bottom): followed by five stars (yellow/gold fill). Footer (Banner): in Bold, medium size, centered inside the dark bottom banner." Após esse bloco, quebre duas linhas LITERAIS usando `\\\\n\\\\n` e liste os Overlays em PT-BR. CADA dado em uma linha única. Estrutura EXATA:\\\\nOverlay: [Nome do Produto]\\\\nOverlay: De [Preço Antigo] por apenas [Preço Novo] ([Desconto]% OFF)\\\\nOverlay: [Nota/Vendas] (Instrução: Representar as estrelas do rating na cor amarela e com preenchimento de acordo com a pontuação)\\\\nOverlay: Cupom: [Código, se houver]\\\\nOverlay: 🔒 ofertashop.com.br\\\\nOverlay (Rodapé com fundo delimitador): Link na Bio.');
+      systemRules.push('12. PROMPT DE ÁUDIO / NARRAÇÃO: O `audio_generation_prompt` deve OBRIGATORIAMENTE começar com EXATAMENTE esta frase fixa: "Gere um áudio de 30 segundos com o texto abaixo. Use uma voz feminina, com tom profissional e sofisticado, em português do Brasil." seguida de uma linha em branco (`\\\\n\\\\n`), e então o roteiro de locução completo em PT-BR com TODOS OS ACENTOS E CEDILHAS CORRETOS (é, ã, ç, ó, etc). O roteiro deve descrever o produto passando MUITA EMOÇÃO, criar urgência de compra e finalizar com CTA forte ("Clique no link da bio", "Link disponível na bio", etc). IMPORTANTE: NO ROTEIRO DE ÁUDIO, NUNCA use o símbolo % — escreva sempre por extenso "por cento" ou "porcentagem". NUNCA use o símbolo R$ — escreva apenas o valor numérico precedido de "Reais" ou apenas o número. Ex: "de 199 por apenas 99 reais". As quebras de parágrafo usarão literais `\\\\n`.');
+      systemRules.push('13. PROIBIÇÃO DE QUEBRA DE LINHA REAL: Como a resposta deve ser um JSON estrito, você NUNCA deve dar um ENTER/Quebra de linha real no meio dos valores. Use SEMPRE os caracteres literais `\\\\n` para simular quebras.');
     }
 
-    const systemPrompt = `Você é um estrategista de conteúdo focado em conversão e growth.\n${personaBlock}\n${toneBlock}\n${triggerBlock}\n\nREGRAS CRÍTICAS:\n${systemRules.join("\n")}`;
+    const systemPrompt = `Você é um estrategista de conteúdo sênior focado em arquitetura da informação e conversão.\n${personaBlock}\n${toneBlock}\n${triggerBlock}\n\nREGRAS CRÍTICAS:\n${systemRules.join("\n")}`;
 
-    const userPrompt = `Produto: ${product.title}\nPreço atual: ${priceFormatted}\nPreço original: ${originalPriceFormatted}\nDesconto: ${discount}%\nDescrição: ${(product.description || "").substring(0, 500)}\nLink: ${productLink}\n\nGere o conteúdo focado em: ${platformTasks}`;
+    const userPrompt = `Produto: ${product.title}\nPreço atual: ${priceFormatted}\nPreço original: ${originalPriceFormatted}\nDesconto: ${discount}%\nDescrição: ${(product.description || "").substring(0, 500)}\nLink: ${productLink}\n\nGere o conteúdo altamente escaneável para: ${platformTasks}`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
