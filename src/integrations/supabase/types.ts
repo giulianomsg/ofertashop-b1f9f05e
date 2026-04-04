@@ -575,6 +575,36 @@ export type Database = {
         }
         Relationships: []
       }
+      links: {
+        Row: {
+          created_at: string
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       ml_product_mappings: {
         Row: {
           created_at: string | null
