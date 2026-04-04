@@ -80,7 +80,7 @@ const ShortsItem = ({ product }: Props) => {
         </h3>
 
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-lg font-bold text-emerald-400">
+          <span className="text-lg font-bold text-primary">
             {formattedPrice(product.price)}
           </span>
           {product.original_price && product.original_price > product.price && (
@@ -89,7 +89,7 @@ const ShortsItem = ({ product }: Props) => {
             </span>
           )}
           {product.discount_percentage && product.discount_percentage > 0 && (
-            <span className="ml-auto rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-300">
+            <span className="ml-auto rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
               -{Math.round(product.discount_percentage)}%
             </span>
           )}

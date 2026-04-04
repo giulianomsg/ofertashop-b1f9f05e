@@ -76,6 +76,7 @@ const AppContent = () => {
             <Route path="/p/:slug" element={<InstitutionalPage />} />
             <Route path="/perfil" element={<UserProfile />} />
             <Route path="/links" element={<LinksPage />} />
+            <Route path="/shorts" element={<OfertaShortsFeed />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
