@@ -38,8 +38,8 @@ function parseVideoUrl(url: string, muted: boolean): VideoInfo {
     if (m) {
       const id = m[1];
       const muteParam = muted ? 1 : 0;
-      // autoplay=1, loop=1, playlist= (necessário para loop), mute controlável
-      const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&controls=1`;
+      // enablejsapi=1 obrigatório para postMessage (pausar via JS)
+      const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&controls=1&enablejsapi=1`;
       return { kind: "youtube", embedUrl, rawUrl: raw };
     }
   }
@@ -95,28 +95,74 @@ const ShortsItem = ({ product }: Props) => {
     return () => { cancelled = true; };
   }, [user, product.id]);
 
-  // Autoplay/pause para vídeo direto baseado em visibilidade
+  // Helpers para controlar playback de iframes via postMessage
+  const pauseIframe = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+    if (videoInfo.kind === "youtube") {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+        "*"
+      );
+    } else if (videoInfo.kind === "vimeo") {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ method: "pause" }),
+        "*"
+      );
+    }
+  }, [videoInfo.kind]);
+
+  const playIframe = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+    if (videoInfo.kind === "youtube") {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+        "*"
+      );
+    } else if (videoInfo.kind === "vimeo") {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ method: "play" }),
+        "*"
+      );
+    }
+  }, [videoInfo.kind]);
+
+  // IntersectionObserver unificado: controla vídeo direto E iframes
   useEffect(() => {
-    if (isEmbed) return; // iframes gerenciam o próprio autoplay
     const el = containerRef.current;
     if (!el) return;
+    // Captura local para evitar stale ref no cleanup
+    const videoEl = videoRef.current;
 
     const obs = new IntersectionObserver(
       ([entry]) => {
-        const video = videoRef.current;
-        if (!video) return;
-        if (entry.isIntersecting) {
-          video.play().catch(() => { });
+        if (isEmbed) {
+          if (entry.isIntersecting) {
+            playIframe();
+          } else {
+            pauseIframe();
+          }
         } else {
-          video.pause();
+          if (!videoEl) return;
+          if (entry.isIntersecting) {
+            videoEl.play().catch(() => { });
+          } else {
+            videoEl.pause();
+          }
         }
       },
-      { threshold: 0.7 }
+      { threshold: 0.5 }
     );
 
     obs.observe(el);
-    return () => obs.disconnect();
-  }, [isEmbed]);
+    return () => {
+      obs.disconnect();
+      // Garante pausa ao desmontar
+      if (isEmbed) pauseIframe();
+      else videoEl?.pause();
+    };
+  }, [isEmbed, pauseIframe, playIframe]);
 
   const formattedPrice = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
