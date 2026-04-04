@@ -11,9 +11,58 @@ interface Props {
   product: ShortProduct;
 }
 
+// ---------------------------------------------------------------------------
+// Helpers para detectar e construir URL de embed
+// ---------------------------------------------------------------------------
+
+type VideoKind = "youtube" | "vimeo" | "direct";
+
+interface VideoInfo {
+  kind: VideoKind;
+  /** URL de embed pronta para uso no iframe (YouTube/Vimeo) */
+  embedUrl: string | null;
+  /** URL bruta original para o <video> */
+  rawUrl: string;
+}
+
+function parseVideoUrl(url: string, muted: boolean): VideoInfo {
+  const raw = url.trim();
+
+  // YouTube: watch?v=, youtu.be/, /shorts/, /embed/
+  const ytPatterns = [
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([A-Za-z0-9_-]{11})/,
+    /(?:youtu\.be\/)([A-Za-z0-9_-]{11})/,
+  ];
+  for (const pattern of ytPatterns) {
+    const m = raw.match(pattern);
+    if (m) {
+      const id = m[1];
+      const muteParam = muted ? 1 : 0;
+      // autoplay=1, loop=1, playlist= (necessário para loop), mute controlável
+      const embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&mute=${muteParam}&playsinline=1&rel=0&modestbranding=1&controls=1`;
+      return { kind: "youtube", embedUrl, rawUrl: raw };
+    }
+  }
+
+  // Vimeo
+  const vimeoMatch = raw.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    const id = vimeoMatch[1];
+    const muteParam = muted ? "1" : "0";
+    const embedUrl = `https://player.vimeo.com/video/${id}?autoplay=1&loop=1&muted=${muteParam}&background=0`;
+    return { kind: "vimeo", embedUrl, rawUrl: raw };
+  }
+
+  // Vídeo direto (mp4, webm, etc.)
+  return { kind: "direct", embedUrl: null, rawUrl: raw };
+}
+
+// ---------------------------------------------------------------------------
+
 const ShortsItem = ({ product }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const { user } = useAuth();
 
   const [muted, setMuted] = useState(true);
@@ -21,6 +70,12 @@ const ShortsItem = ({ product }: Props) => {
   const [isSaved, setIsSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  // Quando togglamos mute num iframe precisamos recarregá-lo com novo param
+  const [iframeKey, setIframeKey] = useState(0);
+
+  const videoUrl = product.video_url ?? "";
+  const videoInfo = parseVideoUrl(videoUrl, muted);
+  const isEmbed = videoInfo.kind !== "direct";
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -40,8 +95,9 @@ const ShortsItem = ({ product }: Props) => {
     return () => { cancelled = true; };
   }, [user, product.id]);
 
-  // Autoplay/pause based on visibility
+  // Autoplay/pause para vídeo direto baseado em visibilidade
   useEffect(() => {
+    if (isEmbed) return; // iframes gerenciam o próprio autoplay
     const el = containerRef.current;
     if (!el) return;
 
@@ -60,7 +116,7 @@ const ShortsItem = ({ product }: Props) => {
 
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [isEmbed]);
 
   const formattedPrice = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -104,6 +160,19 @@ const ShortsItem = ({ product }: Props) => {
     setShowComments(true);
   };
 
+  const handleToggleMute = () => {
+    setMuted((m) => {
+      if (isEmbed) {
+        // força reload do iframe com novo parâmetro mute
+        setIframeKey((k) => k + 1);
+      }
+      return !m;
+    });
+  };
+
+  // URL do embed final (recalculada quando muted muda, triggering iframeKey)
+  const currentEmbedUrl = parseVideoUrl(videoUrl, muted).embedUrl ?? "";
+
   return (
     <div
       ref={containerRef}
@@ -116,24 +185,37 @@ const ShortsItem = ({ product }: Props) => {
         open={showComments}
         onClose={() => setShowComments(false)}
       />
-      {/* Video */}
-      <video
-        ref={videoRef}
-        src={product.video_url ?? ""}
-        poster={product.image_url ?? undefined}
-        className="absolute inset-0 h-full w-full object-cover"
-        loop
-        muted={muted}
-        playsInline
-        preload="metadata"
-      />
+
+      {/* ── Vídeo / iframe ── */}
+      {isEmbed ? (
+        <iframe
+          key={iframeKey}
+          ref={iframeRef}
+          src={currentEmbedUrl}
+          className="absolute inset-0 h-full w-full border-0"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+          allowFullScreen
+          title={product.title}
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          src={videoInfo.rawUrl}
+          poster={product.image_url ?? undefined}
+          className="absolute inset-0 h-full w-full object-cover"
+          loop
+          muted={muted}
+          playsInline
+          preload="metadata"
+        />
+      )}
 
       {/* Gradient base for readability */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent dark:from-black/70" />
 
       {/* Mute toggle – glassmorphism */}
       <button
-        onClick={() => setMuted((m) => !m)}
+        onClick={handleToggleMute}
         className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full
           backdrop-blur-lg border transition-colors duration-300
           bg-white/10 dark:bg-black/40 border-white/20 dark:border-white/10
