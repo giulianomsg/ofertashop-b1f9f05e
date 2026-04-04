@@ -227,7 +227,7 @@ const AdminLinks = () => {
     mutationFn: async (newOrder: {id: string, sort_order: number}[]) => {
       // Supabase has no bulk update by default, so we do it one by one or create a rpc
       for (const item of newOrder) {
-        await supabase.from('links').update({ sort_order: item.sort_order }).eq('id', item.id);
+        await supabase.from('links' as any).update({ sort_order: item.sort_order }).eq('id', item.id);
       }
     },
     onSuccess: () => {
