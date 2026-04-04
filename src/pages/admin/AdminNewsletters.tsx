@@ -24,10 +24,10 @@ const AdminNewsletters = () => {
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [showSubscribers, setShowSubscribers] = useState(false);
 
-  // Drafts management
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [queueStats, setQueueStats] = useState<Record<string, { pending: number, sent: number, failed: number }>>({});
   const [loadingDrafts, setLoadingDrafts] = useState(false);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
   const [sendingQueue, setSendingQueue] = useState(false);
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
@@ -358,11 +358,36 @@ const AdminNewsletters = () => {
 
       setSelectedDrafts([]);
       loadDrafts();
+
+      // Automatically trigger the edge function
+      handleProcessQueue();
+      
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erro desconhecido";
       toast.error("Erro ao enviar para fila: " + message);
     } finally {
       setSendingQueue(false);
+    }
+  };
+
+  const handleProcessQueue = async () => {
+    setIsProcessingQueue(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-newsletter");
+      if (error) throw error;
+      
+      const res = data as { success: boolean, processed: number, sent?: number, failed?: number, message?: string };
+      if (res.processed > 0) {
+        toast.success(`Fila processada! ${res.sent || 0} enviados, ${res.failed || 0} falhas de ${res.processed} tentados.`);
+        loadDrafts(); // Refresh queue stats
+      } else {
+        toast.info(res.message || "Nenhum e-mail pendente na fila.");
+      }
+    } catch (err: any) {
+      console.error("Erro ao processar fila:", err);
+      toast.error("Erro ao invocar o processador de fila.");
+    } finally {
+      setIsProcessingQueue(false);
     }
   };
 
@@ -410,9 +435,19 @@ const AdminNewsletters = () => {
           <h2 className="text-3xl font-display font-bold text-foreground">Criador de Newsletters</h2>
           <p className="text-muted-foreground mt-1">Monte e-mails com ofertas, salve rascunhos e envie para a fila.</p>
         </div>
-        <button onClick={loadSubscribers} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground transition-colors" aria-label="Ver assinantes">
-          <Users className="w-4 h-4" /> Assinantes
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleProcessQueue} 
+            disabled={isProcessingQueue}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50" 
+            aria-label="Processar Fila"
+          >
+            <Send className="w-4 h-4" /> {isProcessingQueue ? "Processando..." : "Processar Fila Pendente"}
+          </button>
+          <button onClick={loadSubscribers} className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground transition-colors border border-border" aria-label="Ver assinantes">
+            <Users className="w-4 h-4" /> Assinantes
+          </button>
+        </div>
       </div>
 
       {showSubscribers && (

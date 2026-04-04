@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     // Default action: process pending emails in queue
     const { data: pendingEmails, error: fetchErr } = await supabase
       .from("email_queue")
-      .select("id, user_id, subject, html_content")
+      .select("id, user_id, subject, html_content, customer_email")
       .eq("status", "pending")
       .order("created_at", { ascending: true })
       .limit(BATCH_SIZE);
@@ -129,16 +129,22 @@ Deno.serve(async (req) => {
 
     for (const email of pendingEmails) {
       try {
-        const { data: userData, error: userErr } = await supabase.auth.admin.getUserById(email.user_id);
+        let recipientEmail = email.customer_email;
 
-        if (userErr || !userData?.user?.email) {
-          console.warn(`[send] Cannot resolve email for user ${email.user_id}`);
+        // If no customer_email and we have a user_id, try to resolve via auth.admin
+        if (!recipientEmail && email.user_id) {
+          const { data: userData, error: userErr } = await supabase.auth.admin.getUserById(email.user_id);
+          if (!userErr && userData?.user?.email) {
+            recipientEmail = userData.user.email;
+          }
+        }
+
+        if (!recipientEmail) {
+          console.warn(`[send] Cannot resolve email for item ${email.id}`);
           await supabase.from("email_queue").update({ status: "failed" }).eq("id", email.id);
           failed++;
           continue;
         }
-
-        const recipientEmail = userData.user.email;
 
         if (resendApiKey) {
           const resendRes = await fetch("https://api.resend.com/emails", {
