@@ -26,7 +26,8 @@ export const useOfertaShorts = () => {
       .select("id, title, price, original_price, video_url, affiliate_url, image_url, discount_percentage")
       .eq("is_active", true)
       .not("video_url", "is", null)
-      .order("created_at", { ascending: false })
+      .neq("video_url", "") // Filtro rigoroso para bloquear strings vazias
+      .order("created_at", { ascending: true }) // Inverte a ordenação para mostrar o primeiro item indexado no topo
       .range(offset.current, offset.current + PAGE_SIZE - 1);
 
     if (!error && data) {
