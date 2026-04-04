@@ -1,11 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { ExternalLink, Volume2, VolumeX, Heart, MessageCircle, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { ShortProduct } from "@/hooks/useOfertaShorts";
+import ShortsCommentPanel from "@/components/shorts/ShortsCommentPanel";
 
 interface Props {
   product: ShortProduct;
@@ -14,13 +14,13 @@ interface Props {
 const ShortsItem = ({ product }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [muted, setMuted] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -101,7 +101,7 @@ const ShortsItem = ({ product }: Props) => {
   }, [isSaved, user, product.id, product.price, busy, requireAuth]);
 
   const handleCommentClick = () => {
-    navigate(`/produto/${product.id}`);
+    setShowComments(true);
   };
 
   return (
@@ -109,6 +109,13 @@ const ShortsItem = ({ product }: Props) => {
       ref={containerRef}
       className="relative h-[100dvh] w-full snap-start flex-shrink-0 overflow-hidden bg-black"
     >
+      {/* Comments panel */}
+      <ShortsCommentPanel
+        productId={product.id}
+        productTitle={product.title}
+        open={showComments}
+        onClose={() => setShowComments(false)}
+      />
       {/* Video */}
       <video
         ref={videoRef}

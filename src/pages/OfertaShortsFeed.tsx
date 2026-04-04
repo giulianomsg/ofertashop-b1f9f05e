@@ -7,11 +7,29 @@ import { useNavigate } from "react-router-dom";
 const OfertaShortsFeed = () => {
   const { items, loading, hasMore, fetchNext } = useOfertaShorts();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const containerScrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const hasFetchedOnce = useRef(false);
 
-  // Initial fetch
+  // Initial fetch + reset scroll to top
   useEffect(() => {
-    fetchNext();
+    if (hasFetchedOnce.current) return;
+    hasFetchedOnce.current = true;
+    fetchNext().then?.(() => {
+      // after items render, snap back to top
+      requestAnimationFrame(() => {
+        if (containerScrollRef.current) {
+          containerScrollRef.current.scrollTop = 0;
+        }
+      });
+    });
+    // fallback: always reset scroll after a short delay
+    const t = setTimeout(() => {
+      if (containerScrollRef.current) {
+        containerScrollRef.current.scrollTop = 0;
+      }
+    }, 150);
+    return () => clearTimeout(t);
   }, [fetchNext]);
 
   // Infinite scroll via IntersectionObserver on sentinel
@@ -34,7 +52,10 @@ const OfertaShortsFeed = () => {
   );
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-y-scroll snap-y snap-mandatory bg-black">
+    <div
+      ref={containerScrollRef}
+      className="relative h-[100dvh] w-full overflow-y-scroll snap-y snap-mandatory bg-black"
+    >
       {/* Back button – glassmorphism */}
       <button
         onClick={() => navigate(-1)}
