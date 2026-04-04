@@ -26,6 +26,7 @@ const AdminNewsletters = () => {
 
   // Drafts management
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [queueStats, setQueueStats] = useState<Record<string, { pending: number, sent: number, failed: number }>>({});
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
   const [sendingQueue, setSendingQueue] = useState(false);
@@ -63,6 +64,25 @@ const AdminNewsletters = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       setDrafts(data || []);
+
+      // Load queue stats
+      const { data: statsData, error: statsError } = await (supabase as any)
+        .from("email_queue")
+        .select("newsletter_id, status")
+        .not("newsletter_id", "is", null);
+      
+      if (!statsError && statsData) {
+        const stats: Record<string, { pending: number, sent: number, failed: number }> = {};
+        statsData.forEach((row: any) => {
+          if (!row.newsletter_id) return;
+          if (!stats[row.newsletter_id]) stats[row.newsletter_id] = { pending: 0, sent: 0, failed: 0 };
+          const s = row.status as keyof typeof stats[string];
+          if (stats[row.newsletter_id][s] !== undefined) {
+             stats[row.newsletter_id][s]++;
+          }
+        });
+        setQueueStats(stats);
+      }
     } catch (err) {
       console.error("Error loading drafts:", err);
     } finally {
@@ -297,6 +317,7 @@ const AdminNewsletters = () => {
         profilesList.forEach(sub => {
           queueData.push({
             user_id: sub.user_id,
+            newsletter_id: draftId,
             subject: draft.subject,
             html_content: fullHtml,
             status: "pending"
@@ -306,6 +327,7 @@ const AdminNewsletters = () => {
         anonList.forEach((sub: any) => {
           queueData.push({
             customer_email: sub.email,
+            newsletter_id: draftId,
             subject: draft.subject,
             html_content: fullHtml,
             status: "pending"
@@ -596,7 +618,16 @@ const AdminNewsletters = () => {
                             <span className={editingDraftId === d.id ? "text-accent" : ""}>{d.subject}</span>
                           </td>
                           <td className="p-4 text-center hidden sm:table-cell">
-                            <span className={`text-xs px-2 py-1 rounded-full border ${st.cls}`}>{st.text}</span>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={`text-xs px-2 py-1 rounded-full border ${st.cls}`}>{st.text}</span>
+                              {queueStats[d.id] && (
+                                <div className="text-[10px] text-muted-foreground flex gap-2 font-medium">
+                                  {queueStats[d.id].pending > 0 && <span className="text-amber-500" title="Pendentes">{queueStats[d.id].pending} P</span>}
+                                  {queueStats[d.id].sent > 0 && <span className="text-emerald-500" title="Enviados">{queueStats[d.id].sent} S</span>}
+                                  {queueStats[d.id].failed > 0 && <span className="text-destructive" title="Falhas">{queueStats[d.id].failed} F</span>}
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4 text-muted-foreground hidden md:table-cell">
                             {new Date(d.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}

@@ -33,4 +33,9 @@ $$;
 ALTER TABLE public.email_queue
 ADD COLUMN IF NOT EXISTS customer_email TEXT;
 
+-- Drop and recreate the check constraint to ensure 'queued' is allowed! (Failsafe)
+ALTER TABLE public.newsletters DROP CONSTRAINT IF EXISTS newsletters_status_check;
+ALTER TABLE public.newsletters ADD CONSTRAINT newsletters_status_check
+  CHECK (status IN ('draft', 'queued', 'sent'));
+
 NOTIFY pgrst, 'reload schema';
