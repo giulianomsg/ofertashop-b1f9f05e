@@ -179,32 +179,6 @@ const LinksPage = () => {
             )}
           </div>
           
-          {/* Campaign Section */}
-          {campaignSettings && campaignSettings.productIds?.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="w-full mt-10 p-6 bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 shadow-xl"
-            >
-               {campaignSettings.title && (
-                 <h2 className="text-xl font-display font-bold text-center mb-6 text-foreground">
-                   {campaignSettings.title}
-                 </h2>
-               )}
-               
-               {isLoadingProducts ? (
-                 <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-               ) : (
-                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                   {campaignProducts.map((p, index) => (
-                     <ProductCard key={p.id} product={p as any} index={index} />
-                   ))}
-                 </div>
-               )}
-            </motion.div>
-          )}
-
           {/* Social Share & Newsletter Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -305,6 +279,32 @@ const LinksPage = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Campaign Section */}
+          {campaignSettings && campaignSettings.productIds?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="w-full mt-10 p-6 bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 shadow-xl"
+            >
+               {campaignSettings.title && (
+                 <h2 className="text-xl font-display font-bold text-center mb-6 text-foreground">
+                   {campaignSettings.title}
+                 </h2>
+               )}
+               
+               {isLoadingProducts ? (
+                 <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+               ) : (
+                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                   {campaignProducts.map((p, index) => (
+                     <ProductCard key={p.id} product={p as any} index={index} />
+                   ))}
+                 </div>
+               )}
+            </motion.div>
+          )}
 
           <motion.div 
             initial={{ opacity: 0 }} 
