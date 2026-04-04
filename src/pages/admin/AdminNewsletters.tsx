@@ -35,6 +35,10 @@ const AdminNewsletters = () => {
 
   const { data: products = [], isLoading } = useProducts();
 
+  const [sentThisMonth, setSentThisMonth] = useState(0);
+  const [sentToday, setSentToday] = useState(0);
+  const [totalContacts, setTotalContacts] = useState(0);
+
   const [searchProduct, setSearchProduct] = useState("");
   const [storeFilter, setStoreFilter] = useState("");
 
@@ -90,7 +94,49 @@ const AdminNewsletters = () => {
     }
   }, []);
 
-  useEffect(() => { loadDrafts(); }, [loadDrafts]);
+  const loadLimits = useCallback(async () => {
+    // Current month start
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Current day start
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    // Fetch month sent count
+    const { count: monthCount } = await supabase
+      .from("email_queue")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", startOfMonth.toISOString());
+
+    // Fetch day sent count
+    const { count: dayCount } = await supabase
+      .from("email_queue")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", startOfDay.toISOString());
+
+    // Fetch total contacts
+    const { count: profilesCount } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("newsletter_opt_in", true);
+
+    const { count: anonCount } = await (supabase as any)
+      .from("newsletter_subscribers")
+      .select("*", { count: "exact", head: true });
+
+    setSentThisMonth(monthCount || 0);
+    setSentToday(dayCount || 0);
+    setTotalContacts((profilesCount || 0) + (anonCount || 0));
+  }, []);
+
+  useEffect(() => { 
+    loadDrafts(); 
+    loadLimits();
+  }, [loadDrafts, loadLimits]);
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts(prev =>
@@ -451,7 +497,10 @@ const AdminNewsletters = () => {
       </div>
 
       {showSubscribers && (
-        <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm relative">
+          <button onClick={() => setShowSubscribers(false)} className="absolute top-4 right-4 p-1 hover:bg-secondary rounded">
+            <X className="w-4 h-4" />
+          </button>
           <h3 className="font-semibold text-sm mb-3">Assinantes da Newsletter ({subscribers.length})</h3>
           {subscribers.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum assinante encontrado.</p>
@@ -464,6 +513,44 @@ const AdminNewsletters = () => {
           )}
         </div>
       )}
+
+      {/* ═══ RESEND LIMITS ═══ */}
+      <div className="border border-border/50 bg-secondary/20 rounded-xl p-5 pb-6">
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+          Limites de Uso (Resend Plano Gratuito)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Transacional (Diário)</span>
+              <span className="font-bold">{sentToday} <span className="text-muted-foreground font-normal">/ 100</span></span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className={`h-full ${sentToday > 90 ? 'bg-destructive' : 'bg-blue-500'}`} style={{ width: `${Math.min((sentToday / 100) * 100, 100)}%` }} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Transacional (Mensal)</span>
+              <span className="font-bold">{sentThisMonth} <span className="text-muted-foreground font-normal">/ 3.000</span></span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className={`h-full ${sentThisMonth > 2800 ? 'bg-destructive' : 'bg-emerald-500'}`} style={{ width: `${Math.min((sentThisMonth / 3000) * 100, 100)}%` }} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Marketing (Contatos)</span>
+              <span className="font-bold">{totalContacts} <span className="text-muted-foreground font-normal">/ 1.000</span></span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className={`h-full ${totalContacts > 950 ? 'bg-destructive' : 'bg-indigo-500'}`} style={{ width: `${Math.min((totalContacts / 1000) * 100, 100)}%` }} />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ═══ FORM ═══ */}
       <div className="grid lg:grid-cols-2 gap-8">
