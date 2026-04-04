@@ -25,7 +25,7 @@ const LinksPage = () => {
     queryKey: ['publicLinks'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('links')
+        .from('links' as any)
         .select('*')
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
@@ -139,7 +139,7 @@ const LinksPage = () => {
                 <p className="text-muted-foreground">Nenhum link disponível no momento.</p>
               </div>
             ) : (
-              links.map((link, index) => (
+              links.map((link: any, index: number) => (
                 <motion.a
                   key={link.id}
                   href={link.url}

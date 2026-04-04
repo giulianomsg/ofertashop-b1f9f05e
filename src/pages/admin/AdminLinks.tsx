@@ -159,15 +159,15 @@ const AdminLinks = () => {
   });
 
   // Fetch Links
-  const { data: links = [], isLoading } = useQuery({
+  const { data: links = [], isLoading } = useQuery<LinkType[]>({
     queryKey: ['adminLinks'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('links')
+        .from('links' as any)
         .select('*')
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []) as unknown as LinkType[];
     }
   });
 
@@ -175,7 +175,7 @@ const AdminLinks = () => {
   const createLinkMutation = useMutation({
     mutationFn: async ({ title, url, sort_order, icon_url }: { title: string, url: string, sort_order: number, icon_url?: string | null }) => {
       const { error } = await supabase
-        .from('links')
+        .from('links' as any)
         .insert([{ title, url, sort_order, icon_url }]);
       if (error) throw error;
     },
@@ -193,7 +193,7 @@ const AdminLinks = () => {
   const updateLinkMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<LinkType> & { id: string }) => {
       const { error } = await supabase
-        .from('links')
+        .from('links' as any)
         .update(updates)
         .eq('id', id);
       if (error) throw error;
@@ -212,7 +212,7 @@ const AdminLinks = () => {
   // Delete Link
   const deleteLinkMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('links').delete().eq('id', id);
+      const { error } = await supabase.from('links' as any).delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -227,7 +227,7 @@ const AdminLinks = () => {
     mutationFn: async (newOrder: {id: string, sort_order: number}[]) => {
       // Supabase has no bulk update by default, so we do it one by one or create a rpc
       for (const item of newOrder) {
-        await supabase.from('links').update({ sort_order: item.sort_order }).eq('id', item.id);
+        await supabase.from('links' as any).update({ sort_order: item.sort_order }).eq('id', item.id);
       }
     },
     onSuccess: () => {
