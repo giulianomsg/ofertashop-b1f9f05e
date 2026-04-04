@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar, Settings2 } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar, Settings2, Image, Upload, Loader2 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +28,9 @@ const AdminNewsletters = () => {
   const [queueStats, setQueueStats] = useState<Record<string, { pending: number, sent: number, failed: number, scheduledAt?: string }>>({});
   const [loadingDrafts, setLoadingDrafts] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [newsletterLogoUrl, setNewsletterLogoUrl] = useState<string>("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedDrafts, setSelectedDrafts] = useState<string[]>([]);
   const [sendingQueue, setSendingQueue] = useState(false);
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
@@ -70,6 +73,15 @@ const AdminNewsletters = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       setDrafts(data || []);
+
+      const { data: logoSetting } = await (supabase as any)
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "newsletter_logo_url")
+        .maybeSingle();
+      if (logoSetting?.value) {
+        setNewsletterLogoUrl(logoSetting.value);
+      }
 
       // Load queue stats
       const { data: statsData, error: statsError } = await (supabase as any)
@@ -330,6 +342,39 @@ const AdminNewsletters = () => {
     } catch { toast.error("Erro ao atualizar!"); }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("O arquivo precisa ser uma imagem.");
+      return;
+    }
+    setIsUploadingLogo(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const fileName = `newsletter-logo-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(fileName, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("banners").getPublicUrl(fileName);
+      const url = urlData.publicUrl;
+      const { error: settingsError } = await (supabase as any).from("admin_settings").upsert(
+        { key: "newsletter_logo_url", value: url },
+        { onConflict: "key" }
+      );
+      if (settingsError) throw settingsError;
+      setNewsletterLogoUrl(url);
+      toast.success("Logo atualizado com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao enviar logo.");
+    } finally {
+      setIsUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   // ── Toggle draft selection for sending ──
   const toggleDraftSelection = (id: string) => {
     setSelectedDrafts(prev =>
@@ -376,19 +421,23 @@ const AdminNewsletters = () => {
 
       // Modern Email Template Builder
       const buildModernEmailHTML = (draftContent: string, productsHTML: string, recipientName: string, recipientRef: string) => {
-        const publicUrl = "https://ofertashop.com.br"; // Base domain for images/unsubscribe
+        const publicUrl = window.location.origin;
         
+        const logoHtml = newsletterLogoUrl 
+          ? `<img src="${newsletterLogoUrl}" alt="OfertaShop" style="display:block; margin: 0 auto; max-width: 100%; max-height: 50px; object-fit: contain;">`
+          : `<h2 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: bold; letter-spacing: -0.5px;">OfertaShop</h2>`;
+
         return `
           <div style="font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; padding: 0; overflow: hidden; color: #333;">
             
             <!-- Header -->
-            <div style="background-color: #0f172a; padding: 30px; text-align: center;">
-              <h2 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: bold; letter-spacing: -0.5px;">OfertaShop</h2>
+            <div style="background-color: ${newsletterLogoUrl ? '#ffffff' : '#ea580c'}; padding: 30px; text-align: center; ${newsletterLogoUrl ? 'border-bottom: 3px solid #ea580c;' : ''}">
+              ${logoHtml}
             </div>
       
             <!-- Main Content -->
             <div style="padding: 40px 30px;">
-              <h3 style="color: #0f172a; margin-top: 0; font-size: 20px;">Olá, ${recipientName}! 👋</h3>
+              <h3 style="color: #ea580c; margin-top: 0; font-size: 20px;">Olá, ${recipientName}! 👋</h3>
               <div style="color: #475569; line-height: 1.6; font-size: 16px; margin-bottom: 30px;">
                 ${draftContent}
               </div>
@@ -401,10 +450,10 @@ const AdminNewsletters = () => {
             </div>
       
             <!-- Footer -->
-            <div style="background-color: #f8fafc; padding: 30px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            <div style="background-color: #fff7ed; padding: 30px; text-align: center; font-size: 13px; color: #ea580c; border-top: 1px solid #fed7aa;">
               <p style="margin: 0 0 10px;">Você está recebendo este e-mail porque assinou a newsletter da OfertaShop.</p>
               <p style="margin: 0;">
-                 <a href="${publicUrl}/unsubscribe?id=${encodeURIComponent(recipientRef)}" style="color: #64748b; text-decoration: underline;">Cancelar inscrição (Unsubscribe)</a>
+                 <a href="${publicUrl}/unsubscribe?id=${encodeURIComponent(recipientRef)}" style="color: #ea580c; text-decoration: underline; font-weight: 600;">Cancelar Inscrição (Unsubscribe)</a>
               </p>
             </div>
           </div>
@@ -437,13 +486,15 @@ const AdminNewsletters = () => {
                   <td style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td width="160" style="background-color: #f8fafc; padding: 20px; text-align: center; vertical-align: middle; border-right: 1px solid #e2e8f0; border-radius: 12px 0 0 12px;">
-                          <img src="${img}" alt="${p.title}" width="120" style="max-width: 120px; height: auto;">
+                        <td width="160" style="background-color: #fff7ed; padding: 20px; text-align: center; vertical-align: middle; border-right: 1px solid #fed7aa; border-radius: 12px 0 0 12px;">
+                          <img src="${img}" alt="${p.title}" style="width: 120px; max-height: 120px; object-fit: contain; border-radius: 8px;">
                         </td>
-                        <td style="padding: 24px; vertical-align: middle;">
-                          <h4 style="margin: 0 0 10px; font-size: 16px; color: #0f172a; font-weight: 600; line-height: 1.4;">${p.title}</h4>
-                          <p style="margin: 0 0 15px; font-size: 24px; font-weight: bold; color: #e11d48;">R$ ${price}</p>
-                          <a href="${p.affiliate_url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">🛍️ Ver Oferta</a>
+                        <td style="padding: 24px; text-align: left; vertical-align: middle;">
+                          <h4 style="margin: 0 0 8px; font-size: 15px; color: #1e293b; line-height: 1.4;">${p.title}</h4>
+                          <p style="margin: 0 0 16px; font-size: 20px; font-weight: bold; color: #ea580c;">R$ ${price}</p>
+                          <a href="${p.affiliate_url}" style="display: inline-block; padding: 12px 24px; background-color: #ea580c; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2), 0 2px 4px -2px rgba(234, 88, 12, 0.1);">
+                            Aproveitar Oferta →
+                          </a>
                         </td>
                       </tr>
                     </table>
@@ -679,15 +730,36 @@ const AdminNewsletters = () => {
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <FileText className="w-4 h-4" /> 
-              {editingDraftId ? "Editando Rascunho" : "Nova Newsletter"}
-              {editingDraftId && (
-                <button onClick={resetForm} className="ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  ← Cancelar edição
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2">
+                <FileText className="w-4 h-4" /> 
+                {editingDraftId ? "Editando Rascunho" : "Nova Newsletter"}
+              </h3>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingLogo}
+                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-secondary/80 rounded-md border text-muted-foreground transition-colors disabled:opacity-50"
+                  title="A imagem será usada no cabeçalho das Newsletters."
+                >
+                  {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                  {newsletterLogoUrl ? "Trocar Logo" : "Upload Logo"}
                 </button>
-              )}
-            </h3>
+                {editingDraftId && (
+                  <button onClick={resetForm} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    ← Cancelar edição
+                  </button>
+                )}
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1">Assunto do E-mail</label>
               <input 
