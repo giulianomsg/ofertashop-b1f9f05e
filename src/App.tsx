@@ -41,6 +41,7 @@ import NotFound from "./pages/NotFound";
 import UserProfile from "./pages/UserProfile";
 import LinksPage from "./pages/LinksPage";
 import AdminLinks from "./pages/admin/AdminLinks";
+import OfertaShortsFeed from "./pages/OfertaShortsFeed";
 
 // AI Pro pages
 import AdminAILayout from "./pages/admin/ai/AdminAILayout";
