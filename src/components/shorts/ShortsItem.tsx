@@ -337,7 +337,7 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
         const { error } = await supabase.from("product_likes").insert({ user_id: user!.id, product_id: product.id });
         if (error) throw error;
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Like error:", err);
       toast.error("Erro ao curtir. Tente novamente.");
       setIsLiked(liked);
@@ -355,16 +355,16 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
         const { error } = await supabase.from("wishlists").delete().eq("user_id", user!.id).eq("product_id", product.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("wishlists").insert({ user_id: user!.id, product_id: product.id, price_when_favorited: product.price });
+        const { error } = await supabase.from("wishlists").insert({ user_id: user!.id, product_id: product.id });
         if (error) throw error;
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Save error:", err);
       toast.error("Houve uma falha ao favoritar produto.");
       setIsSaved(saved);
     }
     setBusy(false);
-  }, [isSaved, user, product.id, product.price, busy, requireAuth]);
+  }, [isSaved, user, product.id, busy, requireAuth]);
 
   const handleCommentClick = () => {
     setShowComments(true);
