@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,6 +34,25 @@ const AdminNewsletters = () => {
 
   const { data: products = [], isLoading } = useProducts();
 
+  const [searchProduct, setSearchProduct] = useState("");
+  const [storeFilter, setStoreFilter] = useState("");
+
+  const stores = useMemo(() => {
+    return Array.from(new Set(products.map(p => p.store).filter(Boolean))) as string[];
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchSearch = p.title?.toLowerCase().includes(searchProduct.toLowerCase());
+      const matchStore = storeFilter ? p.store === storeFilter : true;
+      return matchSearch && matchStore;
+    });
+  }, [products, searchProduct, storeFilter]);
+
+  const clearSelectedProducts = () => {
+    setSelectedProducts([]);
+  };
+
   // ── Load drafts ──
   const loadDrafts = useCallback(async () => {
     setLoadingDrafts(true);
@@ -62,11 +81,24 @@ const AdminNewsletters = () => {
   };
 
   const loadSubscribers = async () => {
-    const { data, error } = await supabase
+    const { data: profilesData, error: profilesError } = await supabase
       .from("profiles")
       .select("user_id, full_name, newsletter_opt_in")
       .eq("newsletter_opt_in", true);
-    if (!error && data) setSubscribers(data);
+
+    const { data: anonData, error: anonError } = await (supabase as any)
+      .from("newsletter_subscribers")
+      .select("email, created_at");
+
+    const subs = [];
+    if (!profilesError && profilesData) {
+      subs.push(...profilesData.map(p => ({ user_id: p.user_id, full_name: p.full_name || p.user_id })));
+    }
+    if (!anonError && anonData) {
+      subs.push(...anonData.map((a: any) => ({ user_id: a.email, full_name: a.email })));
+    }
+    
+    setSubscribers(subs);
     setShowSubscribers(true);
   };
 
@@ -201,13 +233,19 @@ const AdminNewsletters = () => {
     setSendingQueue(true);
     try {
       // Get subscribers
-      const { data: subs, error: subError } = await supabase
+      const { data: subsProfiles } = await supabase
         .from("profiles")
         .select("user_id")
         .eq("newsletter_opt_in", true);
 
-      if (subError) throw subError;
-      if (!subs || subs.length === 0) {
+      const { data: subsAnon } = await (supabase as any)
+        .from("newsletter_subscribers")
+        .select("email");
+
+      const profilesList = subsProfiles || [];
+      const anonList = subsAnon || [];
+
+      if (profilesList.length === 0 && anonList.length === 0) {
         toast.error("Nenhum assinante encontrado.");
         setSendingQueue(false);
         return;
@@ -254,12 +292,25 @@ const AdminNewsletters = () => {
 
         const fullHtml = (draft.html_content || "") + productsHTML;
 
-        const queueData = subs.map(sub => ({
-          user_id: sub.user_id,
-          subject: draft.subject,
-          html_content: fullHtml,
-          status: "pending"
-        }));
+        const queueData: any[] = [];
+        
+        profilesList.forEach(sub => {
+          queueData.push({
+            user_id: sub.user_id,
+            subject: draft.subject,
+            html_content: fullHtml,
+            status: "pending"
+          });
+        });
+
+        anonList.forEach((sub: any) => {
+          queueData.push({
+            customer_email: sub.email,
+            subject: draft.subject,
+            html_content: fullHtml,
+            status: "pending"
+          });
+        });
 
         const { error: queueError } = await (supabase as any)
           .from("email_queue")
@@ -273,7 +324,7 @@ const AdminNewsletters = () => {
           .update({ status: "queued" })
           .eq("id", draftId);
 
-        totalQueued += subs.length;
+        totalQueued += profilesList.length + anonList.length;
       }
 
       toast.success(
@@ -394,11 +445,39 @@ const AdminNewsletters = () => {
           </div>
 
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4 h-[400px] flex flex-col">
-            <h3 className="font-semibold flex items-center gap-2"><PackageSearch className="w-4 h-4" /> Selecionar Produtos ({selectedProducts.length})</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2"><PackageSearch className="w-4 h-4" /> Selecionar Produtos ({selectedProducts.length})</h3>
+              {selectedProducts.length > 0 && (
+                <button onClick={clearSelectedProducts} className="text-xs text-destructive hover:underline flex items-center gap-1">
+                  <X className="w-3 h-3" /> Remover Todos
+                </button>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  value={searchProduct}
+                  onChange={e => setSearchProduct(e.target.value)}
+                  placeholder="Buscar produto..."
+                  className="w-full h-9 pl-9 pr-3 rounded-md border border-input bg-background text-sm"
+                />
+              </div>
+              <select
+                value={storeFilter}
+                onChange={e => setStoreFilter(e.target.value)}
+                className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              >
+                <option value="">Todas as Lojas</option>
+                {stores.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
             
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {isLoading && <p className="text-sm text-muted-foreground">Carregando produtos...</p>}
-              {products.map(p => {
+              {filteredProducts.map(p => {
                 const isSelected = selectedProducts.includes(p.id);
                 return (
                   <div 
