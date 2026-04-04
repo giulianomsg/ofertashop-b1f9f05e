@@ -13,10 +13,16 @@ const OfertaShortsFeed = () => {
   const [muted, setMuted] = useState(true);
 
   // Rola suavemente para o próximo item (chamado ao final de cada vídeo/slideshow)
+  // isScrollingRef previne cascata de auto-advances (ex: vídeos curtos em sequência)
+  const isScrollingRef = useRef(false);
   const scrollToNext = useCallback(() => {
+    if (isScrollingRef.current) return; // já está rolando, ignora
     const container = containerScrollRef.current;
     if (!container) return;
+    isScrollingRef.current = true;
     container.scrollBy({ top: window.innerHeight, behavior: "smooth" });
+    // Libera após a animação de scroll terminar (~600ms) + margem de segurança
+    setTimeout(() => { isScrollingRef.current = false; }, 1200);
   }, []);
 
   // Initial fetch + reset scroll to top

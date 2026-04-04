@@ -21,9 +21,11 @@ export const useOfertaShorts = () => {
   const cycle = useRef(0);   // quantas vezes já voltou ao início
   const fetching = useRef(false);
   const totalFetched = useRef(0); // total de produtos únicos encontrados
+  const loopCooldown = useRef(false); // bloqueia fetches imediatos após reset de ciclo
 
   const fetchNext = useCallback(async () => {
-    if (fetching.current || !hasMore) return;
+    // Bloqueia durante fetch ativo, sem mais itens, ou durante cooldown pós-ciclo
+    if (fetching.current || !hasMore || loopCooldown.current) return;
     fetching.current = true;
     setLoading(true);
 
@@ -53,6 +55,10 @@ export const useOfertaShorts = () => {
         // Reinicia offset e incrementa ciclo para o próximo fetch
         offset.current = 0;
         cycle.current += 1;
+        // Cooldown: bloqueia novos fetches por 2.5s para deixar o DOM atualizar
+        // e o sentinel sair da viewport antes de disparar novamente
+        loopCooldown.current = true;
+        setTimeout(() => { loopCooldown.current = false; }, 2500);
         // hasMore permanece true (loop contínuo)
         setHasMore(true);
       } else {
