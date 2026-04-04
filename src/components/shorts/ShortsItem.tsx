@@ -73,20 +73,17 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   const [showComments, setShowComments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showFeedbackIcon, setShowFeedbackIcon] = useState<"play" | "pause" | null>(null);
-  // Força reload do iframe quando muted muda (para passar novo parâmetro na URL)
+  // Para iframes: só monta no DOM enquanto o item está visível (evita áudio em background)
+  const [iframeMounted, setIframeMounted] = useState(false);
+  // Chave para forçar remontagem do iframe (ex: mudar mute enquanto visível)
   const [iframeKey, setIframeKey] = useState(0);
 
   const videoUrl = product.video_url ?? "";
   const videoInfo = parseVideoUrl(videoUrl, muted);
   const isEmbed = videoInfo.kind !== "direct";
 
-  // Refs para controle fino (sem stale closures)
-  const isVisibleRef = useRef(false);   // está em tela agora?
-  const mutedRef = useRef(muted);       // valor atual de muted sem closure stale
-  const iframeLoadedMutedRef = useRef(muted); // muted usado no último load do iframe
-
-  // Mantém mutedRef sincronizado com o prop
-  useEffect(() => { mutedRef.current = muted; }, [muted]);
+  // Ref de visibilidade (sem stale closure)
+  const isVisibleRef = useRef(false);
 
   // Fetch initial liked/saved state when user is logged in
   useEffect(() => {
@@ -106,70 +103,27 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     return () => { cancelled = true; };
   }, [user, product.id]);
 
-  // Helpers para controlar playback de iframes via postMessage
-  const pauseIframe = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe?.contentWindow) return;
-    if (videoInfo.kind === "youtube") {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
-        "*"
-      );
-    } else if (videoInfo.kind === "vimeo") {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ method: "pause" }),
-        "*"
-      );
-    }
-  }, [videoInfo.kind]);
-
-  const playIframe = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe?.contentWindow) return;
-    if (videoInfo.kind === "youtube") {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
-        "*"
-      );
-    } else if (videoInfo.kind === "vimeo") {
-      iframe.contentWindow.postMessage(
-        JSON.stringify({ method: "play" }),
-        "*"
-      );
-    }
-  }, [videoInfo.kind]);
-
-  // IntersectionObserver unificado: controla vídeo direto E iframes
+  // IntersectionObserver: controla visibilidade
+  // - iframes: monta/desmonta do DOM (garantia absoluta contra áudio em background)
+  // - vídeo direto: play/pause nativo
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const videoEl = videoRef.current; // captura local para cleanup
+    const videoEl = videoRef.current;
 
     const obs = new IntersectionObserver(
       ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+
         if (isEmbed) {
-          if (entry.isIntersecting) {
-            isVisibleRef.current = true;
-            // Se a preferência de mute mudou enquanto estava fora de tela,
-            // recarrega o iframe com a URL correta (só para este item)
-            if (iframeLoadedMutedRef.current !== mutedRef.current) {
-              iframeLoadedMutedRef.current = mutedRef.current;
-              setIframeKey((k) => k + 1);
-            } else {
-              playIframe();
-            }
-          } else {
-            isVisibleRef.current = false;
-            pauseIframe();
-          }
+          // Montar/desmontar o iframe do DOM — única forma garantida de parar áudio
+          setIframeMounted(entry.isIntersecting);
         } else {
           if (!videoEl) return;
           if (entry.isIntersecting) {
-            isVisibleRef.current = true;
             videoEl.play().catch(() => { });
             setIsPlaying(true);
           } else {
-            isVisibleRef.current = false;
             videoEl.pause();
             setIsPlaying(false);
           }
@@ -181,10 +135,11 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
     obs.observe(el);
     return () => {
       obs.disconnect();
-      if (isEmbed) pauseIframe();
+      // Desmontar iframe e pausar vídeo ao remover componente
+      if (isEmbed) setIframeMounted(false);
       else videoEl?.pause();
     };
-  }, [isEmbed, pauseIframe, playIframe]);
+  }, [isEmbed]);
 
   // Tap/clique para play/pause (somente vídeo direto)
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -250,15 +205,11 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
   const handleToggleMute = () => {
     const newMuted = !muted;
     onMuteChange(newMuted); // propaga para o feed (afeta próximos vídeos)
-    // Se este item é um iframe e está visível, recarrega imediatamente com o novo mute
+    // Se este item está visível e é um iframe: remonta com nova URL de muted
     if (isEmbed && isVisibleRef.current) {
-      iframeLoadedMutedRef.current = newMuted;
-      setIframeKey((k) => k + 1);
+      setIframeKey((k) => k + 1); // iframeMounted já está true, só troca a key para recarregar a URL
     }
   };
-
-  // URL do embed final (recalculada quando muted muda, triggering iframeKey)
-  const currentEmbedUrl = parseVideoUrl(videoUrl, muted).embedUrl ?? "";
 
   return (
     <div
@@ -275,15 +226,29 @@ const ShortsItem = ({ product, muted, onMuteChange }: Props) => {
 
       {/* ── Vídeo / iframe ── */}
       {isEmbed ? (
-        <iframe
-          key={iframeKey}
-          ref={iframeRef}
-          src={currentEmbedUrl}
-          className="absolute inset-0 h-full w-full border-0"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          allowFullScreen
-          title={product.title}
-        />
+        // Iframe só existe no DOM enquanto visível — garante ausência de áudio em background
+        iframeMounted ? (
+          <iframe
+            key={iframeKey}
+            ref={iframeRef}
+            src={parseVideoUrl(videoUrl, muted).embedUrl ?? ""}
+            className="absolute inset-0 h-full w-full border-0"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            title={product.title}
+          />
+        ) : (
+          // Poster enquanto o iframe não está montado
+          product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-zinc-900" />
+          )
+        )
       ) : (
         <>
           <video
