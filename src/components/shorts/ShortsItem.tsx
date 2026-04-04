@@ -331,11 +331,17 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
     setIsLiked(!liked);
     try {
       if (liked) {
-        await supabase.from("product_likes").delete().eq("user_id", user!.id).eq("product_id", product.id);
+        const { error } = await supabase.from("product_likes").delete().eq("user_id", user!.id).eq("product_id", product.id);
+        if (error) throw error;
       } else {
-        await supabase.from("product_likes").insert({ user_id: user!.id, product_id: product.id });
+        const { error } = await supabase.from("product_likes").insert({ user_id: user!.id, product_id: product.id });
+        if (error) throw error;
       }
-    } catch { setIsLiked(liked); }
+    } catch (err: any) {
+      console.error("Like error:", err);
+      toast.error("Erro ao curtir. Tente novamente.");
+      setIsLiked(liked);
+    }
     setBusy(false);
   }, [isLiked, user, product.id, busy, requireAuth]);
 
@@ -346,11 +352,17 @@ const ShortsItem = ({ product, muted, onMuteChange, onEnd }: Props) => {
     setIsSaved(!saved);
     try {
       if (saved) {
-        await supabase.from("wishlists").delete().eq("user_id", user!.id).eq("product_id", product.id);
+        const { error } = await supabase.from("wishlists").delete().eq("user_id", user!.id).eq("product_id", product.id);
+        if (error) throw error;
       } else {
-        await supabase.from("wishlists").insert({ user_id: user!.id, product_id: product.id, price_when_favorited: product.price });
+        const { error } = await supabase.from("wishlists").insert({ user_id: user!.id, product_id: product.id, price_when_favorited: product.price });
+        if (error) throw error;
       }
-    } catch { setIsSaved(saved); }
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error("Houve uma falha ao favoritar produto.");
+      setIsSaved(saved);
+    }
     setBusy(false);
   }, [isSaved, user, product.id, product.price, busy, requireAuth]);
 
