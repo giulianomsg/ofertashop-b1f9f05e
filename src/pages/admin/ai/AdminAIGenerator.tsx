@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Download, Check, ChevronsUpDown, ChevronLeft, ChevronRight, Mic } from "lucide-react";
+import { Sparkles, Wand2, Instagram, MessageCircle, Video, Palette, Download, Check, ChevronsUpDown, ChevronLeft, ChevronRight, Mic, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProducts } from "@/hooks/useProducts";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import CopyBlock from "@/components/admin/ai/CopyBlock";
 import GenerationLoader from "@/components/admin/ai/GenerationLoader";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -108,30 +106,44 @@ const AdminAIGenerator = () => {
           <CardContent className="space-y-4">
             <div>
               <label className="text-xs font-semibold text-foreground mb-1.5 block">Produto</label>
-              <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" className="w-full justify-between bg-secondary border-border">
-                    <span className="truncate">{selectedProduct ? selectedProduct.title : "Selecione um produto..."}</span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <div className="flex gap-2">
+                <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="flex-1 justify-between bg-secondary border-border">
+                      <span className="truncate">{selectedProduct ? selectedProduct.title : "Selecione..."}</span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar produto..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {products.map((product) => (
+                            <CommandItem key={product.id} value={product.title} onSelect={() => { setSelectedProductId(product.id); setProductSearchOpen(false); }}>
+                              <Check className={cn("mr-2 h-4 w-4", selectedProductId === product.id ? "opacity-100" : "opacity-0")} />
+                              {product.title}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                {selectedProductId && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 bg-secondary hover:bg-accent hover:text-white transition-colors"
+                    onClick={() => window.open(`https://www.ofertashop.com.br/produto/${selectedProductId}`, '_blank')}
+                    title="Visitar na loja"
+                  >
+                    <ExternalLink className="w-4 h-4" />
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Buscar produto..." />
-                    <CommandList>
-                      <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-                      <CommandGroup>
-                        {products.map((product) => (
-                          <CommandItem key={product.id} value={product.title} onSelect={() => { setSelectedProductId(product.id); setProductSearchOpen(false); }}>
-                            <Check className={cn("mr-2 h-4 w-4", selectedProductId === product.id ? "opacity-100" : "opacity-0")} />
-                            {product.title}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                )}
+              </div>
             </div>
 
             <div>
@@ -149,7 +161,7 @@ const AdminAIGenerator = () => {
             </div>
 
             <div className="pt-2 text-xs text-muted-foreground p-3 bg-muted/30 rounded-md">
-              💡 <strong>Dica:</strong> A geração individual por aba garante foco absoluto nas diretrizes de Growth e previne timeouts do servidor.
+              💡 <strong>Dica:</strong> A geração on-demand foca recursos na plataforma escolhida, evitando timeouts (Erro 546) na IA.
             </div>
           </CardContent>
         </Card>
@@ -177,6 +189,7 @@ const AdminAIGenerator = () => {
                     <TabsTrigger value="design" className="text-xs"><Palette className="w-3 h-3 mr-1" />Design</TabsTrigger>
                   </TabsList>
 
+                  {/* Feed Tab */}
                   <TabsContent value="feed" className="space-y-3 mt-4">
                     <div className="flex items-center justify-between mb-4 border-b pb-3 border-border">
                       <p className="text-xs text-muted-foreground w-2/3">Legendas focadas em conversão usando automação de direct.</p>
@@ -189,6 +202,7 @@ const AdminAIGenerator = () => {
                     )) : <p className="text-xs text-muted-foreground text-center py-6">Nenhum conteúdo gerado.</p>}
                   </TabsContent>
 
+                  {/* TikTok / Reels Tab */}
                   <TabsContent value="tiktok" className="mt-4 space-y-3">
                     <div className="flex items-center justify-between mb-4 border-b pb-3 border-border">
                       <p className="text-xs text-muted-foreground w-2/3">Roteiros curtos com hook de retenção para captação orgânica.</p>
@@ -201,6 +215,7 @@ const AdminAIGenerator = () => {
                     ) : <p className="text-xs text-muted-foreground text-center py-6">Nenhum conteúdo gerado.</p>}
                   </TabsContent>
 
+                  {/* WhatsApp Tab */}
                   <TabsContent value="whatsapp" className="space-y-3 mt-4">
                     <div className="flex items-center justify-between mb-4 border-b pb-3 border-border">
                       <p className="text-xs text-muted-foreground w-2/3">Disparos de venda direta para aquecimento de Grupos e Listas VIP.</p>
@@ -216,6 +231,7 @@ const AdminAIGenerator = () => {
                     ) : <p className="text-xs text-muted-foreground text-center py-6">Nenhum conteúdo gerado.</p>}
                   </TabsContent>
 
+                  {/* Design Tab */}
                   <TabsContent value="design" className="space-y-3 mt-4">
                     <div className="flex items-center justify-between mb-4 border-b pb-3 border-border">
                       <p className="text-xs text-muted-foreground w-2/3">Direcionais técnicos para criação de artes e locução.</p>
@@ -223,6 +239,51 @@ const AdminAIGenerator = () => {
                         <Wand2 className="w-3 h-3 mr-1" /> Gerar Prompts
                       </Button>
                     </div>
+
+                    {/* Galeria Restaurada */}
+                    {selectedProduct && (selectedProduct.image_url || (selectedProduct as any).gallery_urls?.length) && (() => {
+                      const allImgs: string[] = [
+                        ...(selectedProduct.image_url ? [selectedProduct.image_url] : []),
+                        ...((selectedProduct as any).gallery_urls || []),
+                      ].filter(Boolean);
+
+                      const scrollGallery = (dir: number) => {
+                        if (galleryScrollRef.current) {
+                          galleryScrollRef.current.scrollBy({ left: dir * 96, behavior: 'smooth' });
+                        }
+                      };
+
+                      return (
+                        <div className="mb-6 bg-muted/20 p-3 rounded-lg border border-border">
+                          <p className="text-xs font-medium text-muted-foreground mb-3 flex items-center justify-between">
+                            <span>Imagens de Referência ({allImgs.length})</span>
+                            <span className="text-[10px] font-normal opacity-70">Clique para baixar</span>
+                          </p>
+                          <div className="relative flex items-center gap-1">
+                            {allImgs.length > 3 && (
+                              <button onClick={() => scrollGallery(-1)} className="shrink-0 w-6 h-6 rounded-full bg-background border border-border shadow-sm hover:bg-accent/30 flex items-center justify-center transition-colors">
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <div ref={galleryScrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1 py-1">
+                              {allImgs.map((url, i) => (
+                                <a key={i} href={url} target="_blank" download className="block shrink-0 overflow-hidden rounded-md border border-border shadow-sm group relative w-20 h-20">
+                                  <img src={url} alt={`Ref ${i + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <Download className="w-4 h-4 text-white" />
+                                  </div>
+                                </a>
+                              ))}
+                            </div>
+                            {allImgs.length > 3 && (
+                              <button onClick={() => scrollGallery(1)} className="shrink-0 w-6 h-6 rounded-full bg-background border border-border shadow-sm hover:bg-accent/30 flex items-center justify-center transition-colors">
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {content?.prompts_visuais?.audio_generation_prompt && (
                       <div className="mb-4">
