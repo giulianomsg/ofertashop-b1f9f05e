@@ -35,6 +35,19 @@ const TRIGGERS = [
   { value: "exclusividade", label: "Exclusividade" },
 ];
 
+// Limpa strings que possam ter literais \n ou \ avulsos (vindos do banco ou da IA)
+const cleanStrings = (obj: unknown): unknown => {
+  if (typeof obj === "string") {
+    return obj
+      .replace(/\\n/g, "\n")      // literal \n → quebra de linha real
+      .replace(/\\(?!\n)/g, "");  // \ avulso → removido
+  }
+  if (Array.isArray(obj)) return obj.map(cleanStrings);
+  if (obj && typeof obj === "object")
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, cleanStrings(v)]));
+  return obj;
+};
+
 interface ProContent {
   feed?: { legendas: string[] };
   reels?: { audio_sugerido: string; cenas: any[] };
@@ -85,6 +98,7 @@ const AdminAIGenerator = () => {
 
   const lastLoadedProductId = useRef<string | null>(null);
 
+  // Limpa strings carregadas do banco que possam ter literais \n ou \ avulsos
   useEffect(() => {
     if (!selectedProductId) {
       setContent(null);
@@ -98,7 +112,8 @@ const AdminAIGenerator = () => {
       if (product) {
         lastLoadedProductId.current = selectedProductId;
         if ((product as any).ai_content_metadata?.latest) {
-          setContent((product as any).ai_content_metadata.latest);
+          const raw = (product as any).ai_content_metadata.latest;
+          setContent(cleanStrings(raw) as ProContent);
           const hist = (product as any).ai_content_metadata.history;
           setUsedModel(hist && hist[0] ? hist[0].model + " (Salvo)" : "Recuperado da Base");
           

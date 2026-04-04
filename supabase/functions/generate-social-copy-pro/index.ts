@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
       "1. Responda APENAS em JSON valido, sem markdown, sem blocos de codigo.",
       `2. Siga EXATAMENTE esta estrutura JSON:\n${jsonStructure}`,
       `3. USO DO LINK DO PRODUTO:\n   - No Whatsapp/Lista de Transmissao: OBRIGATORIO colocar a URL (${productLink}) de forma explicita na mensagem.\n   - Nas Legendas (Instagram, TikTok, etc): NUNCA escreva a URL na legenda, pois la os links nao sao clicaveis! Ao inves disso, faca CTAs de CTA, ex: "Comente QUERO".`,
-      "4. FORMATACAO DE PARAGRAFOS: Utilize ativamente a marcacao de quebra de linha e duplo espaco (\\\\n\\\\n) dentro dos textos gerados na sua string JSON.",
+      "4. FORMATAÇÃO E EMOJIS: Use ativamente quebras de parágrafo (\\\\n\\\\n) E use emojis expressivos e relevantes ao longo do texto para tornar a mensagem mais visual e atrativa.",
       "5. IGNORAR LOJAS TERCEIRAS: IMPORTANTE! NUNCA escreva 'Vendido e entregue por Shopee / Mercado Livre' ou qualquer loja externa. Dê TODA A VISIBILIDADE e créditos exlusivamente para o 'OfertaShop'. O produto pertence e é vendido no OfertaShop.",
       "6. FOCO NO PRODUTO: NUNCA devem usar, citar ou mostrar pessoas (nada de narração pessoal ou atores). Exiba e foque SOMENTE nos produtos.",
       '7. CUIDADO COM ACENTOS NOS VIDEOS: NAO USE ACENTOS GRAFICOS (nem til, nem agudo, nem circunflexo) OU CEDILHA nas palavras geradas. (Ex: escreva "acao", "video", "nao", "voce").'
@@ -184,6 +184,10 @@ Deno.serve(async (req) => {
     if (requestedPlatform === "all" || requestedPlatform === "feed") systemRules.push("8. " + hashtagInstr);
     if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("9. " + ctaInstr);
     if (requestedPlatform === "all" || requestedPlatform !== "design") systemRules.push("10. " + seoInstr);
+
+    if (requestedPlatform === "all" || requestedPlatform === "whatsapp") {
+      systemRules.push('11. FORMATAÇÃO WHATSAPP: A mensagem do WhatsApp DEVE seguir esta estrutura visual rica:\n  - Linha 1: Emoji temático + título atrativo com emoji (ex: "🎬 Cinema em casa com o HY320!")\n  - Parágrafo de abertura emocional curto com o desconto em destaque\n  - Bloco de preço formatado: "💰 De: R$ [X] por apenas R$ [Y]" em linha própria\n  - Lista de benefícios com ✅ no início de cada item (4 a 6 itens)\n  - Frase de encerramento emocional com emoji (ex: "Ideal para filmes! 🚀")\n  - Linha de urgência com ⏳ (ex: "⏳ Oferta por tempo limitado!")\n  - CTA final: "Garanta o seu aqui: 👇" seguido da URL em linha própria\n  Use emojis relevantes ao produto em vários pontos do texto. Mantenha acento e cedilha corretos em português.');
+    }
 
     if (requestedPlatform === "all" || requestedPlatform === "reels" || requestedPlatform === "tiktok") {
       systemRules.push("11. ROTEIROS EM PARTES (CENAS): Divida os roteiros de video em multiplas partes ate concluir toda a mensagem. Cada cena/parte deve ter DURACAO MAXIMA DE 8 SEGUNDOS.");
