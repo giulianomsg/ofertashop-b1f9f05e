@@ -65,6 +65,25 @@ const SiteHeader = () => {
             </span>
           </Link>
 
+          {/* OfertaShorts – pill button */}
+          <Link
+            to="/shorts"
+            className="group shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all duration-300
+              border border-purple-500/30 hover:border-purple-400/60
+              bg-gradient-to-r from-purple-600/10 to-pink-500/10 hover:from-purple-600/20 hover:to-pink-500/20"
+            aria-label="OfertaShorts"
+          >
+            {/* Play icon — vertical bars style */}
+            <span className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_0_8px_rgba(168,85,247,0.5)] group-hover:shadow-[0_0_12px_rgba(168,85,247,0.7)] transition-shadow">
+              <svg viewBox="0 0 24 24" fill="white" className="h-2.5 w-2.5 ml-0.5">
+                <path d="M5 3L19 12L5 21V3Z" />
+              </svg>
+            </span>
+            <span className="hidden sm:block text-xs font-bold tracking-wide bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Shorts
+            </span>
+          </Link>
+
           <div className="relative flex-1 max-w-xl">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
