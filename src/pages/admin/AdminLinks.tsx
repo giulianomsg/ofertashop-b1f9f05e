@@ -193,7 +193,7 @@ const AdminLinks = () => {
   const updateLinkMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<LinkType> & { id: string }) => {
       const { error } = await supabase
-        .from('links')
+        .from('links' as any)
         .update(updates)
         .eq('id', id);
       if (error) throw error;
