@@ -545,39 +545,6 @@ export type Database = {
         }
         Relationships: []
       }
-      links: {
-        Row: {
-          id: string
-          title: string
-          url: string
-          is_active: boolean
-          sort_order: number
-          created_at: string
-          updated_at: string
-          icon_url: string | null
-        }
-        Insert: {
-          id?: string
-          title: string
-          url: string
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-          icon_url?: string | null
-        }
-        Update: {
-          id?: string
-          title?: string
-          url?: string
-          is_active?: boolean
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-          icon_url?: string | null
-        }
-        Relationships: []
-      }
       institutional_pages: {
         Row: {
           active: boolean | null
