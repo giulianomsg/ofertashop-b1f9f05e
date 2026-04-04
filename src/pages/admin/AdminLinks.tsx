@@ -163,7 +163,7 @@ const AdminLinks = () => {
     queryKey: ['adminLinks'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('links')
+        .from('links' as any)
         .select('*')
         .order('sort_order', { ascending: true });
       if (error) throw error;
