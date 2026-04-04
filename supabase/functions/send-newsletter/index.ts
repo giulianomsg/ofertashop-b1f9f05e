@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       .from("email_queue")
       .select("id, user_id, subject, html_content, customer_email")
       .eq("status", "pending")
-      .or(`scheduled_at.is.null,scheduled_at.lte.${nowISO}`)
+      .or(`scheduled_at.is.null,scheduled_at.lte."${nowISO}"`)
       .order("created_at", { ascending: true })
       .limit(BATCH_SIZE);
 
