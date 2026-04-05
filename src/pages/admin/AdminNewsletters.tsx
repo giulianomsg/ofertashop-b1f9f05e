@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Mail, Save, FileText, Check, PackageSearch, Users, Trash2, Send, InboxIcon, Pencil, ChevronDown, ChevronUp, Search, Filter, X, Calendar, Settings2, Image, Upload, Loader2 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
+import { usePlatforms } from "@/hooks/useEntities";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,8 +38,8 @@ const AdminNewsletters = () => {
   const [showDrafts, setShowDrafts] = useState(true);
   const [scheduledAt, setScheduledAt] = useState("");
   const [rescheduleData, setRescheduleData] = useState<Record<string, string>>({});
-
   const { data: products = [], isLoading } = useProducts();
+  const { data: dbPlatforms = [] } = usePlatforms();
 
   const [sentThisMonth, setSentThisMonth] = useState(0);
   const [sentToday, setSentToday] = useState(0);
@@ -48,8 +49,8 @@ const AdminNewsletters = () => {
   const [storeFilter, setStoreFilter] = useState("");
 
   const stores = useMemo(() => {
-    return Array.from(new Set(products.map(p => p.store).filter(Boolean))) as string[];
-  }, [products]);
+    return Array.from(new Set(dbPlatforms.map(p => p.name).filter(Boolean))) as string[];
+  }, [dbPlatforms]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
