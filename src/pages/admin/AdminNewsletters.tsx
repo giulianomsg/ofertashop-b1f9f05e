@@ -736,29 +736,39 @@ const AdminNewsletters = () => {
                 <FileText className="w-4 h-4" />
                 {editingDraftId ? "Editando Rascunho" : "Nova Newsletter"}
               </h3>
-              <div className="flex items-center gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingLogo}
-                  className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-secondary/80 rounded-md border text-muted-foreground transition-colors disabled:opacity-50"
-                  title="A imagem será usada no cabeçalho das Newsletters."
-                >
-                  {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                  {newsletterLogoUrl ? "Trocar Logo" : "Upload Logo"}
-                </button>
-                {editingDraftId && (
-                  <button onClick={resetForm} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    ← Cancelar edição
-                  </button>
+              <div className="flex items-center gap-3">
+                {newsletterLogoUrl && (
+                  <img
+                    src={newsletterLogoUrl}
+                    alt="Logo Atual"
+                    className="h-8 w-auto max-w-[100px] object-contain rounded bg-secondary p-1"
+                    title="Logo atual no banco de dados"
+                  />
                 )}
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-secondary/80 rounded-md border text-muted-foreground transition-colors disabled:opacity-50"
+                    title="A imagem será usada no cabeçalho das Newsletters."
+                  >
+                    {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {newsletterLogoUrl ? "Trocar" : "Upload Logo"}
+                  </button>
+                  {editingDraftId && (
+                    <button onClick={resetForm} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      ← Cancelar edição
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             <div>
