@@ -424,7 +424,7 @@ const AdminNewsletters = () => {
         const publicUrl = window.location.origin;
 
         const logoHtml = newsletterLogoUrl
-          ? `<img src="${newsletterLogoUrl}" alt="OfertaShop" style="display:block; margin: 0 auto; max-width: 100%; max-height: 100px; object-fit: contain;">`
+          ? `<img src="${newsletterLogoUrl}" alt="OfertaShop" style="display:block; margin: 0 auto; max-width: 100%; max-height: 145px; object-fit: contain;">`
           : `<h2 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: bold; letter-spacing: -0.5px;">OfertaShop</h2>`;
 
         return `
